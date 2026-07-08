@@ -83,6 +83,26 @@ function AreasPage() {
     onError: (e: any) => toast.error(e.message),
   });
 
+  const move = useMutation({
+    mutationFn: (v: { id: string; lat: number; lng: number }) => moveFn({ data: v }),
+    onSuccess: () => {
+      toast.success("Pin moved");
+      qc.invalidateQueries({ queryKey: ["areas", "list"] });
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const bulk = useMutation({
+    mutationFn: (v: { user_id: string; points: { lat: number; lng: number }[] }) => bulkFn({ data: v }),
+    onSuccess: (r: any) => {
+      toast.success(r.added ? `Added ${r.added} postcode${r.added === 1 ? "" : "s"}: ${r.postcodes.join(", ")}` : "No new postcodes in that area");
+      qc.invalidateQueries({ queryKey: ["areas", "list"] });
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const [drawMode, setDrawMode] = useState(false);
+
   // Map bootstrap
   const mapEl = useRef<HTMLDivElement>(null);
   const mapRef = useRef<any>(null);
