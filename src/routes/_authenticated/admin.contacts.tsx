@@ -60,9 +60,6 @@ function ContactsPage() {
                   {c.phone && <div>{c.phone}</div>}
                   {c.address && <div>{[c.address, c.city].filter(Boolean).join(", ")}</div>}
                 </div>
-                {c.notes && (
-                  <pre className="mt-2 max-h-40 overflow-auto whitespace-pre-wrap rounded bg-muted p-2 text-[10px] text-muted-foreground">{c.notes}</pre>
-                )}
               </div>
               <AlertDialog>
                 <AlertDialogTrigger asChild>

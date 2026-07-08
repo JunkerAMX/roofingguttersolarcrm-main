@@ -19,8 +19,6 @@ export const Route = createFileRoute("/api/public/highlevel/contact")({
           payload.id ??
           `unknown-${Date.now()}`;
 
-        // Stash raw payload in notes so we can see what HighLevel actually sends
-        const debugNotes = `RAW PAYLOAD:\n${raw.slice(0, 4000)}`;
 
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
         const { error } = await supabaseAdmin.from("contacts").upsert({
@@ -33,7 +31,7 @@ export const Route = createFileRoute("/api/public/highlevel/contact")({
           city: contact.city ?? payload.city ?? null,
           state: contact.state ?? payload.state ?? null,
           postal_code: contact.postal_code ?? contact.postalCode ?? contact.zip ?? payload.postal_code ?? payload.postalCode ?? payload.zip ?? null,
-          notes: contact.notes ?? payload.notes ?? debugNotes,
+          notes: contact.notes ?? payload.notes ?? null,
         }, { onConflict: "highlevel_contact_id" });
         if (error) return new Response(error.message, { status: 500 });
         return Response.json({ ok: true });
