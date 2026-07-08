@@ -19,38 +19,28 @@ function AdminHome() {
     toast.success("Copied");
   }
 
-  const urls = data ? [
-    { label: "Contact sync", url: origin + data.contactUrl },
-    { label: "Appointment → Job", url: origin + data.appointmentUrl },
-  ] : [];
+  const contactUrl = data ? origin + data.contactUrl : "";
+  const appointmentUrl = data ? origin + data.appointmentUrl : "";
 
   return (
     <div className="space-y-6">
       <div className="rounded-2xl border border-border bg-card p-6">
-        <h2 className="font-display text-lg font-semibold">HighLevel webhook endpoints</h2>
+        <h2 className="font-display text-lg font-semibold">HighLevel sync</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Configure your HighLevel automations to POST to these URLs. Include an <code className="rounded bg-secondary px-1">x-webhook-signature</code> header
-          computed as HMAC-SHA256 of the raw JSON body using your <code className="rounded bg-secondary px-1">HIGHLEVEL_WEBHOOK_SECRET</code>.
+          Point your HighLevel automation/webhook at the URL below. Send one JSON object per request — arrays are not supported.
         </p>
-        <div className="mt-4 space-y-2">
-          {urls.map((u) => (
-            <div key={u.url} className="flex items-center gap-2 rounded-xl border border-border bg-background px-3 py-2">
-              <div className="min-w-0 flex-1">
-                <div className="text-xs font-semibold text-brand-green">{u.label}</div>
-                <div className="truncate font-mono text-xs">{u.url}</div>
-              </div>
-              <button onClick={() => copy(u.url)} className="rounded-lg p-2 hover:bg-secondary"><Copy className="h-4 w-4" /></button>
-            </div>
-          ))}
-        </div>
-      </div>
 
-      <div className="rounded-2xl border border-border bg-card p-6">
-        <h2 className="font-display text-lg font-semibold">Expected payloads</h2>
-        <div className="mt-3 space-y-4 text-sm">
-          <div>
-            <div className="font-medium">Contact:</div>
-            <pre className="mt-1 overflow-x-auto rounded-lg bg-secondary/70 p-3 text-xs">{`{
+        <div className="mt-4 space-y-4">
+          <div className="rounded-xl border border-border bg-background p-4">
+            <div className="text-xs font-semibold text-brand-green">Contact webhook</div>
+            <p className="text-xs text-muted-foreground">Creates or updates a contact.</p>
+            <div className="mt-2 flex items-center gap-2 rounded-lg border border-border px-3 py-2">
+              <code className="min-w-0 flex-1 truncate text-xs">{contactUrl}</code>
+              <button onClick={() => copy(contactUrl)} className="rounded-lg p-2 hover:bg-secondary" aria-label="Copy contact webhook URL">
+                <Copy className="h-4 w-4" />
+              </button>
+            </div>
+            <pre className="mt-3 overflow-x-auto rounded-lg bg-secondary/70 p-3 text-xs">{`{
   "highlevel_contact_id": "abc123",
   "first_name": "Jane",
   "last_name": "Doe",
@@ -62,9 +52,17 @@ function AdminHome() {
   "postal_code": "2000"
 }`}</pre>
           </div>
-          <div>
-            <div className="font-medium">Appointment (fires 1 day before appointment):</div>
-            <pre className="mt-1 overflow-x-auto rounded-lg bg-secondary/70 p-3 text-xs">{`{
+
+          <div className="rounded-xl border border-border bg-background p-4">
+            <div className="text-xs font-semibold text-brand-green">Appointment / Job webhook</div>
+            <p className="text-xs text-muted-foreground">Creates or updates a job from one appointment.</p>
+            <div className="mt-2 flex items-center gap-2 rounded-lg border border-border px-3 py-2">
+              <code className="min-w-0 flex-1 truncate text-xs">{appointmentUrl}</code>
+              <button onClick={() => copy(appointmentUrl)} className="rounded-lg p-2 hover:bg-secondary" aria-label="Copy appointment webhook URL">
+                <Copy className="h-4 w-4" />
+              </button>
+            </div>
+            <pre className="mt-3 overflow-x-auto rounded-lg bg-secondary/70 p-3 text-xs">{`{
   "highlevel_appointment_id": "appt_123",
   "highlevel_contact_id": "abc123",
   "job_type_slug": "gutter-cleaning",
@@ -75,6 +73,10 @@ function AdminHome() {
   "assignee_email": "worker@rgs.com",
   "notes": "Two-storey house, ladder access from side"
 }`}</pre>
+            <p className="mt-2 text-xs text-muted-foreground">
+              You can also send HighLevel&apos;s native shape with <code className="rounded bg-secondary px-1">appointment</code> and{" "}
+              <code className="rounded bg-secondary px-1">contact</code> objects. Only one appointment per request.
+            </p>
           </div>
         </div>
       </div>
