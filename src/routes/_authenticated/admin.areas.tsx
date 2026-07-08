@@ -173,12 +173,14 @@ function AreasPage() {
 
   const readPolygonPoints = (poly: any) => {
     const pts: PolygonPoint[] = [];
-    poly.getPath().forEach((p: any) => pts.push({ lat: p.lat(), lng: p.lng() }));
+    const path = poly.getPath?.();
+    path?.forEach((p: any) => pts.push({ lat: p.lat(), lng: p.lng() }));
     return pts;
   };
 
   const clearPolyPath = (poly: any) => {
-    const path = poly.getPath();
+    const path = poly.getPath?.();
+    if (!path) return;
     while (path.getLength()) path.removeAt(path.getLength() - 1);
   };
 
@@ -218,20 +220,20 @@ function AreasPage() {
   const buildPoly = (uid: string, pts: PolygonPoint[]) => {
     const g = window.google;
     const color = workerColor.get(uid) ?? "#16a34a";
-    const path = new g.maps.MVCArray(pts.map((p) => new g.maps.LatLng(p.lat, p.lng)));
     const poly = new g.maps.Polygon({
-      paths: path,
       fillColor: color,
       strokeColor: color,
       strokeOpacity: 1,
       draggable: false,
       map: mapRef.current,
     });
+    poly.setPath(pts);
     // Non-select click selects the worker.
     listenersRef.current.push(poly.addListener("click", () => {
       if (selectedRef.current !== uid) setSelectedWorker(uid);
     }));
     // Path edit auto-saves for the active worker.
+    const path = poly.getPath?.();
     ["set_at", "insert_at", "remove_at"].forEach((ev) => {
       const listener = path?.addListener?.(ev, () => {
         if (selectedRef.current === uid) schedulePolySave(uid, poly);
@@ -295,7 +297,9 @@ function AreasPage() {
         poly = buildPoly(uid, []);
         polysRef.current.set(uid, poly);
       }
-      poly.getPath().push(e.latLng);
+      const path = poly.getPath?.();
+      if (!path) return;
+      path.push(e.latLng);
       schedulePolySave(uid, poly);
     });
     return () => g.maps.event.removeListener(listener);
@@ -316,7 +320,8 @@ function AreasPage() {
     const g = window.google;
     const poly = polysRef.current.get(uid);
     if (!uid || !poly) return;
-    const path = poly.getPath();
+    const path = poly.getPath?.();
+    if (!path) return;
     if (path.getLength() < 3) { toast.error("Add at least 3 points"); return; }
     const bounds = new g.maps.LatLngBounds();
     path.forEach((p: any) => bounds.extend(p));
