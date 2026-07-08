@@ -4,7 +4,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { useState, useRef } from "react";
 import { AppShell } from "@/components/app-shell";
 import { getJob, toggleChecklistItem, uploadJobPhoto, getPhotoUrl, markJobDone } from "@/lib/jobs.functions";
-import { ArrowLeft, MapPin, Phone, Mail, DollarSign, Camera, Check, Lock, ImageIcon, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, MapPin, Phone, Mail, DollarSign, Camera, Check, Lock, ImageIcon, CheckCircle2, Clock } from "lucide-react";
+import { format, formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
