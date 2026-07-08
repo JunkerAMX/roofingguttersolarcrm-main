@@ -333,28 +333,10 @@ function AreasPage() {
             <div className="absolute inset-0 flex items-center justify-center text-sm text-muted-foreground">Loading map…</div>
           )}
           {mapReady && (
-            <div className="absolute left-3 top-3 flex gap-2">
-              <button
-                onClick={() => setDrawMode(false)}
-                className={cn(
-                  "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold shadow transition-colors",
-                  !drawMode ? "bg-brand-green text-white" : "bg-background/90 text-foreground hover:bg-background",
-                )}
-              >
-                <MousePointer2 className="h-3.5 w-3.5" /> Pin
-              </button>
-              <button
-                onClick={() => setDrawMode(true)}
-                className={cn(
-                  "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold shadow transition-colors",
-                  drawMode ? "bg-brand-green text-white" : "bg-background/90 text-foreground hover:bg-background",
-                )}
-              >
-                <Pencil className="h-3.5 w-3.5" /> Draw
-              </button>
+            <div className="absolute left-3 top-3 flex flex-wrap gap-2">
               <button
                 onClick={finishPolygon}
-                className="rounded-full bg-background/90 px-3 py-1.5 text-xs font-semibold shadow hover:bg-background"
+                className="rounded-full bg-brand-green px-3 py-1.5 text-xs font-semibold text-white shadow hover:brightness-110"
               >
                 Finish → postcodes
               </button>
@@ -362,7 +344,17 @@ function AreasPage() {
                 onClick={clearPolygon}
                 className="rounded-full bg-background/90 px-3 py-1.5 text-xs font-semibold text-destructive shadow hover:bg-background"
               >
-                Clear area
+                Clear this worker
+              </button>
+              <button
+                onClick={() => {
+                  if (confirm("Delete ALL worker areas and pins across every worker? This cannot be undone.")) {
+                    clearAllM.mutate();
+                  }
+                }}
+                className="rounded-full bg-destructive px-3 py-1.5 text-xs font-semibold text-white shadow hover:brightness-110"
+              >
+                Clear all
               </button>
             </div>
           )}
