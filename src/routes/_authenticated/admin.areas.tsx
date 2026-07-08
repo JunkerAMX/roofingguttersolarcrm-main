@@ -219,7 +219,7 @@ function AreasPage() {
     const g = window.google;
     const color = workerColor.get(uid) ?? "#16a34a";
     const poly = new g.maps.Polygon({
-      paths: [pts],
+      paths: pts,
       fillColor: color,
       strokeColor: color,
       strokeOpacity: 1,
