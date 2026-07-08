@@ -3,13 +3,14 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { AppShell } from "@/components/app-shell";
 import { getMe } from "@/lib/jobs.functions";
-import { ListChecks, Users, Contact, Briefcase, Settings as SettingsIcon } from "lucide-react";
+import { ListChecks, Users, Contact, Briefcase, Settings as SettingsIcon, Map } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const tabs = [
   { to: "/admin", label: "Overview", icon: SettingsIcon, exact: true },
   { to: "/admin/checklists", label: "Checklists", icon: ListChecks },
   { to: "/admin/team", label: "Team", icon: Users },
+  { to: "/admin/areas", label: "Areas", icon: Map },
   { to: "/admin/contacts", label: "Contacts", icon: Contact },
   { to: "/admin/jobs", label: "All Jobs", icon: Briefcase },
   { to: "/admin/settings", label: "Settings", icon: SettingsIcon },
