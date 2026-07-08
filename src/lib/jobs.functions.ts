@@ -186,6 +186,11 @@ export const uploadJobPhoto = createServerFn({ method: "POST" })
   )
   .handler(async ({ context, data }) => {
     const { supabase, userId } = context;
+    const { data: jobRow } = await supabase.from("jobs").select("scheduled_for").eq("id", data.jobId).maybeSingle();
+    const jobStart = jobRow?.scheduled_for ? new Date(jobRow.scheduled_for).getTime() : null;
+    if (jobStart && jobStart > Date.now()) {
+      throw new Error("Job isn't active yet — you can start uploading photos once the appointment time arrives.");
+    }
     const bytes = Uint8Array.from(atob(data.fileBase64), (c) => c.charCodeAt(0));
     const path = `${data.jobId}/${data.kind}-${Date.now()}.${data.ext}`;
     const { error: upErr } = await supabase.storage
