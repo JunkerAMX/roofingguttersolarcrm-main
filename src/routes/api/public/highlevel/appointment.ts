@@ -1,5 +1,25 @@
 import { createFileRoute } from "@tanstack/react-router";
 
+function pick(...vals: any[]) {
+  for (const v of vals) {
+    if (v === undefined || v === null) continue;
+    if (typeof v === "string" && v.trim() === "") continue;
+    return v;
+  }
+  return null;
+}
+
+function toCents(v: any): number | null {
+  if (v === undefined || v === null || v === "") return null;
+  if (typeof v === "number") return Math.round(v);
+  const cleaned = String(v).replace(/[^0-9.-]/g, "");
+  if (!cleaned) return null;
+  const n = Number(cleaned);
+  if (Number.isNaN(n)) return null;
+  // If the string looked like dollars (contained a decimal), convert to cents.
+  return String(v).includes(".") ? Math.round(n * 100) : Math.round(n);
+}
+
 export const Route = createFileRoute("/api/public/highlevel/appointment")({
   server: {
     handlers: {
@@ -14,85 +34,74 @@ export const Route = createFileRoute("/api/public/highlevel/appointment")({
 
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-        // HighLevel usually wraps the appointment under an `appointment` key and the contact under `contact`.
-        const appt = payload.appointment ?? payload;
-        const contactSrc = payload.contact ?? (appt.contact ?? appt);
+        const appt = payload.appointment ?? {};
+        const contactSrc = payload.contact ?? {};
+        const custom = payload.customData ?? payload.custom_data ?? {};
+        const loc = payload.location ?? contactSrc.location ?? {};
 
-        // Resolve the HighLevel IDs
-        const highlevel_appointment_id =
-          payload.highlevel_appointment_id ??
-          appt.id ??
-          appt.appointment_id ??
-          appt.appointmentId ??
-          payload.appointment_id ??
-          payload.appointmentId ??
-          payload.id ??
-          `unknown-${Date.now()}`;
+        const highlevel_appointment_id = pick(
+          custom.highlevel_appointment_id,
+          payload.highlevel_appointment_id,
+          appt.id, appt.appointment_id, appt.appointmentId,
+          payload.appointment_id, payload.appointmentId,
+        ) ?? `hl-${payload.contact_id ?? payload.id ?? Date.now()}`;
 
-        const highlevel_contact_id =
-          payload.highlevel_contact_id ??
-          appt.contact_id ??
-          appt.contactId ??
-          contactSrc.id ??
-          contactSrc.contact_id ??
-          contactSrc.contactId ??
-          payload.contact_id ??
-          payload.contactId ??
-          null;
+        const highlevel_contact_id = pick(
+          custom.highlevel_contact_id,
+          payload.highlevel_contact_id,
+          appt.contact_id, appt.contactId,
+          contactSrc.id, contactSrc.contact_id, contactSrc.contactId,
+          payload.contact_id, payload.contactId,
+        );
 
-        // Upsert the linked contact if we have a HighLevel contact ID
+        // Upsert contact
         let contact_id: string | null = null;
         if (highlevel_contact_id) {
           const { data: c } = await supabaseAdmin
             .from("contacts")
             .upsert({
               highlevel_contact_id: String(highlevel_contact_id),
-              first_name: contactSrc.first_name ?? contactSrc.firstName ?? payload.first_name ?? payload.firstName ?? null,
-              last_name: contactSrc.last_name ?? contactSrc.lastName ?? payload.last_name ?? payload.lastName ?? null,
-              email: contactSrc.email ?? payload.email ?? null,
-              phone: contactSrc.phone ?? payload.phone ?? null,
-              address: contactSrc.address ?? contactSrc.address1 ?? payload.address ?? payload.address1 ?? null,
-              city: contactSrc.city ?? payload.city ?? null,
-              state: contactSrc.state ?? payload.state ?? null,
-              postal_code: contactSrc.postal_code ?? contactSrc.postalCode ?? contactSrc.zip ?? payload.postal_code ?? payload.postalCode ?? payload.zip ?? null,
+              first_name: pick(contactSrc.first_name, contactSrc.firstName, payload.first_name, payload.firstName),
+              last_name: pick(contactSrc.last_name, contactSrc.lastName, payload.last_name, payload.lastName),
+              email: pick(contactSrc.email, payload.email),
+              phone: pick(contactSrc.phone, payload.phone),
+              address: pick(contactSrc.address, contactSrc.address1, payload.address, payload.address1, payload.full_address, loc.address, loc.fullAddress),
+              city: pick(contactSrc.city, payload.city, loc.city),
+              state: pick(contactSrc.state, payload.state, loc.state),
+              postal_code: pick(contactSrc.postal_code, contactSrc.postalCode, contactSrc.zip, payload.postal_code, payload.postalCode, payload.zip, loc.postalCode, loc.postal_code),
             }, { onConflict: "highlevel_contact_id" })
             .select("id")
             .maybeSingle();
           contact_id = c?.id ?? null;
         }
 
-        // Resolve job type from calendar/job type hint, fallback to first active type
-        const jobTypeHint =
-          payload.job_type_slug ??
-          payload.jobType ??
-          appt.job_type ??
-          appt.calendar_name ??
-          appt.calendarName ??
-          null;
-
+        // Job type
+        const jobTypeHint = pick(
+          custom.job_type_slug, custom.jobType,
+          payload.job_type_slug, payload.jobType,
+          appt.job_type, appt.calendar_name, appt.calendarName,
+          Array.isArray(payload.Service) ? payload.Service[0] : payload.Service,
+        );
         let job_type_id: string | null = null;
         if (jobTypeHint) {
+          const hint = String(jobTypeHint).toLowerCase().trim();
           const { data: jt } = await supabaseAdmin
             .from("job_types")
             .select("id")
-            .or(`slug.eq.${String(jobTypeHint).toLowerCase()},name.ilike.${jobTypeHint}`)
+            .or(`slug.eq.${hint},name.ilike.${jobTypeHint}`)
             .maybeSingle();
           job_type_id = jt?.id ?? null;
         }
         if (!job_type_id) {
           const { data: def } = await supabaseAdmin
-            .from("job_types")
-            .select("id")
-            .eq("active", true)
-            .order("created_at", { ascending: true })
-            .limit(1)
-            .maybeSingle();
+            .from("job_types").select("id").eq("active", true)
+            .order("created_at", { ascending: true }).limit(1).maybeSingle();
           job_type_id = def?.id ?? null;
         }
         if (!job_type_id) return new Response("No job_types configured", { status: 500 });
 
-        // Map status
-        const rawStatus = String(payload.status ?? appt.status ?? "scheduled").toLowerCase();
+        // Status
+        const rawStatus = String(pick(custom.status, payload.status, appt.status) ?? "scheduled").toLowerCase();
         type JobStatus = "scheduled" | "in_progress" | "completed" | "cancelled";
         const status: JobStatus =
           rawStatus === "in_progress" ? "in_progress"
@@ -100,24 +109,19 @@ export const Route = createFileRoute("/api/public/highlevel/appointment")({
           : rawStatus === "cancelled" || rawStatus === "canceled" ? "cancelled"
           : "scheduled";
 
-        // Resolve assignee by email
+        // Assignee
         let assigned_to: string | null = null;
-        const assigneeEmail = payload.assignee_email ?? appt.assignee_email ?? null;
+        const assigneeEmail = pick(custom.assignee_email, payload.assignee_email, appt.assignee_email);
         if (assigneeEmail) {
           const { data: prof } = await supabaseAdmin.from("profiles").select("id").eq("email", assigneeEmail).maybeSingle();
           assigned_to = prof?.id ?? null;
         }
 
-        const scheduled_for = appt.start_time ?? appt.startTime ?? appt.scheduled_for ?? payload.scheduled_for ?? null;
-        const due_date = appt.due_date ?? payload.due_date ?? (scheduled_for ? String(scheduled_for).slice(0, 10) : null);
-        const price_cents =
-          payload.price_cents ??
-          appt.price_cents ??
-          (payload.price ? Math.round(Number(payload.price) * 100) : null) ??
-          (appt.price ? Math.round(Number(appt.price) * 100) : null) ??
-          null;
+        const scheduled_for = pick(custom.scheduled_for, appt.start_time, appt.startTime, appt.scheduled_for, payload.scheduled_for);
+        const due_date = pick(custom.due_date, appt.due_date, payload.due_date) ?? (scheduled_for ? String(scheduled_for).slice(0, 10) : null);
+        const price_cents = toCents(pick(custom.price_cents, payload.price_cents, appt.price_cents, custom.price, payload.price, appt.price));
+        const notes = pick(custom.notes, appt.notes, payload.notes, payload.Message);
 
-        // Create or update job
         const { data: job, error: jerr } = await supabaseAdmin
           .from("jobs")
           .upsert({
@@ -127,30 +131,23 @@ export const Route = createFileRoute("/api/public/highlevel/appointment")({
             assigned_to,
             status,
             price_cents,
-            currency: payload.currency ?? appt.currency ?? "AUD",
+            currency: pick(custom.currency, payload.currency, appt.currency) ?? "AUD",
             scheduled_for,
             due_date,
-            notes: appt.notes ?? payload.notes ?? null,
+            notes,
             highlevel_payload: payload,
           }, { onConflict: "highlevel_appointment_id" })
           .select("id")
           .maybeSingle();
         if (jerr || !job) return new Response(jerr?.message ?? "Insert failed", { status: 500 });
 
-        // Seed checklist progress from active template (idempotent via unique constraint)
+        // Seed checklist
         const { data: tpl } = await supabaseAdmin
-          .from("checklist_templates")
-          .select("id")
-          .eq("job_type_id", job_type_id)
-          .eq("active", true)
-          .limit(1)
-          .maybeSingle();
+          .from("checklist_templates").select("id")
+          .eq("job_type_id", job_type_id).eq("active", true).limit(1).maybeSingle();
         if (tpl) {
           const { data: items } = await supabaseAdmin
-            .from("checklist_items")
-            .select("*")
-            .eq("template_id", tpl.id)
-            .order("position");
+            .from("checklist_items").select("*").eq("template_id", tpl.id).order("position");
           if (items && items.length) {
             const rows = items.map((it) => ({
               job_id: job.id,
