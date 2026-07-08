@@ -18,6 +18,7 @@ import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as AuthenticatedJobsJobIdRouteImport } from './routes/_authenticated/jobs.$jobId'
 import { Route as AuthenticatedAdminTeamRouteImport } from './routes/_authenticated/admin.team'
+import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authenticated/admin.settings'
 import { Route as AuthenticatedAdminJobsRouteImport } from './routes/_authenticated/admin.jobs'
 import { Route as AuthenticatedAdminContactsRouteImport } from './routes/_authenticated/admin.contacts'
 import { Route as AuthenticatedAdminChecklistsRouteImport } from './routes/_authenticated/admin.checklists'
@@ -66,6 +67,12 @@ const AuthenticatedAdminTeamRoute = AuthenticatedAdminTeamRouteImport.update({
   path: '/team',
   getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
+const AuthenticatedAdminSettingsRoute =
+  AuthenticatedAdminSettingsRouteImport.update({
+    id: '/settings',
+    path: '/settings',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminJobsRoute = AuthenticatedAdminJobsRouteImport.update({
   id: '/jobs',
   path: '/jobs',
@@ -93,6 +100,7 @@ export interface FileRoutesByFullPath {
   '/admin/checklists': typeof AuthenticatedAdminChecklistsRoute
   '/admin/contacts': typeof AuthenticatedAdminContactsRoute
   '/admin/jobs': typeof AuthenticatedAdminJobsRoute
+  '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/team': typeof AuthenticatedAdminTeamRoute
   '/jobs/$jobId': typeof AuthenticatedJobsJobIdRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
@@ -105,6 +113,7 @@ export interface FileRoutesByTo {
   '/admin/checklists': typeof AuthenticatedAdminChecklistsRoute
   '/admin/contacts': typeof AuthenticatedAdminContactsRoute
   '/admin/jobs': typeof AuthenticatedAdminJobsRoute
+  '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/team': typeof AuthenticatedAdminTeamRoute
   '/jobs/$jobId': typeof AuthenticatedJobsJobIdRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
@@ -120,6 +129,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/checklists': typeof AuthenticatedAdminChecklistsRoute
   '/_authenticated/admin/contacts': typeof AuthenticatedAdminContactsRoute
   '/_authenticated/admin/jobs': typeof AuthenticatedAdminJobsRoute
+  '/_authenticated/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/_authenticated/admin/team': typeof AuthenticatedAdminTeamRoute
   '/_authenticated/jobs/$jobId': typeof AuthenticatedJobsJobIdRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
@@ -135,6 +145,7 @@ export interface FileRouteTypes {
     | '/admin/checklists'
     | '/admin/contacts'
     | '/admin/jobs'
+    | '/admin/settings'
     | '/admin/team'
     | '/jobs/$jobId'
     | '/admin/'
@@ -147,6 +158,7 @@ export interface FileRouteTypes {
     | '/admin/checklists'
     | '/admin/contacts'
     | '/admin/jobs'
+    | '/admin/settings'
     | '/admin/team'
     | '/jobs/$jobId'
     | '/admin'
@@ -161,6 +173,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/checklists'
     | '/_authenticated/admin/contacts'
     | '/_authenticated/admin/jobs'
+    | '/_authenticated/admin/settings'
     | '/_authenticated/admin/team'
     | '/_authenticated/jobs/$jobId'
     | '/_authenticated/admin/'
@@ -237,6 +250,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminTeamRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/settings': {
+      id: '/_authenticated/admin/settings'
+      path: '/settings'
+      fullPath: '/admin/settings'
+      preLoaderRoute: typeof AuthenticatedAdminSettingsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/jobs': {
       id: '/_authenticated/admin/jobs'
       path: '/jobs'
@@ -265,6 +285,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminChecklistsRoute: typeof AuthenticatedAdminChecklistsRoute
   AuthenticatedAdminContactsRoute: typeof AuthenticatedAdminContactsRoute
   AuthenticatedAdminJobsRoute: typeof AuthenticatedAdminJobsRoute
+  AuthenticatedAdminSettingsRoute: typeof AuthenticatedAdminSettingsRoute
   AuthenticatedAdminTeamRoute: typeof AuthenticatedAdminTeamRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
 }
@@ -273,6 +294,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminChecklistsRoute: AuthenticatedAdminChecklistsRoute,
   AuthenticatedAdminContactsRoute: AuthenticatedAdminContactsRoute,
   AuthenticatedAdminJobsRoute: AuthenticatedAdminJobsRoute,
+  AuthenticatedAdminSettingsRoute: AuthenticatedAdminSettingsRoute,
   AuthenticatedAdminTeamRoute: AuthenticatedAdminTeamRoute,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
 }
