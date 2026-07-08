@@ -180,3 +180,30 @@ export const deleteArea = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+export const listPolygons = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await requireAdmin(context.supabase, context.userId);
+    const { data, error } = await context.supabase.from("worker_polygons").select("*");
+    if (error) throw new Error(error.message);
+    return data ?? [];
+  });
+
+export const savePolygon = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { user_id: string; points: { lat: number; lng: number }[] }) =>
+    z.object({
+      user_id: z.string().uuid(),
+      points: z.array(z.object({ lat: z.number(), lng: z.number() })).max(500),
+    }).parse(d),
+  )
+  .handler(async ({ context, data }) => {
+    await requireAdmin(context.supabase, context.userId);
+    const { error } = await context.supabase
+      .from("worker_polygons")
+      .upsert({ user_id: data.user_id, points: data.points, updated_at: new Date().toISOString() });
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
