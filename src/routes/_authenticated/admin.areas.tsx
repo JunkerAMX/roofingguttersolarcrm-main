@@ -196,10 +196,10 @@ function AreasPage() {
       const poly = new g.maps.Polygon({
         paths: [pts],
         fillColor: color,
-        fillOpacity: isSelected ? 0.22 : 0.1,
+        fillOpacity: isSelected ? 0.3 : 0.22,
         strokeColor: color,
         strokeWeight: isSelected ? 3 : 2,
-        strokeOpacity: isSelected ? 1 : 0.5,
+        strokeOpacity: 1,
         clickable: !isSelected, // let map clicks pass through the active worker's polygon so we can add pins/vertices
         editable: isSelected,
         draggable: false,
