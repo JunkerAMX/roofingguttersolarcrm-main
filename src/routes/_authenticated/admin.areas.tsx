@@ -85,17 +85,23 @@ function AreasPage() {
   const [mapReady, setMapReady] = useState(false);
 
   useEffect(() => {
-    if (!mapEl.current) return;
+    if (!mapEl.current || mapRef.current) return;
     let cancelled = false;
     loadMaps()
       .then((g) => {
-        if (cancelled || !mapEl.current) return;
+        if (cancelled || !mapEl.current || mapRef.current) return;
         mapRef.current = new g.maps.Map(mapEl.current, {
           center: { lat: -33.8688, lng: 151.2093 },
           zoom: 10,
           streetViewControl: false,
           mapTypeControl: false,
           fullscreenControl: false,
+        });
+        // Force a resize once mounted so tiles paint even if container sized late.
+        requestAnimationFrame(() => {
+          if (mapRef.current && window.google) {
+            window.google.maps.event.trigger(mapRef.current, "resize");
+          }
         });
         setMapReady(true);
       })
