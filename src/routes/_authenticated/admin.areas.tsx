@@ -265,7 +265,7 @@ function AreasPage() {
         }
       }
     }
-    setDrawMode(false);
+    
     if (!points.length) { toast.error("Area too small"); return; }
     bulk.mutate({ user_id: uid, points: points.slice(0, 60) });
   };
