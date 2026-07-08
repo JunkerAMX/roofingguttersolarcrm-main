@@ -187,7 +187,7 @@ function AreasPage() {
       const isSelected = uid === selectedWorker;
       const color = workerColor.get(uid) ?? "#16a34a";
       const poly = new g.maps.Polygon({
-        paths: pts,
+        paths: [pts],
         fillColor: color,
         fillOpacity: isSelected ? 0.22 : 0.1,
         strokeColor: color,
