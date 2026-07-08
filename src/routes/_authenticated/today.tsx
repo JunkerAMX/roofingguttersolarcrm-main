@@ -3,8 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { AppShell } from "@/components/app-shell";
 import { listMyJobs } from "@/lib/jobs.functions";
-import { MapPin, Clock, DollarSign, CheckCircle2 } from "lucide-react";
-import { format } from "date-fns";
+import { MapPin, Clock, DollarSign, CheckCircle2, Lock } from "lucide-react";
+import { format, formatDistanceToNow } from "date-fns";
 
 export const Route = createFileRoute("/_authenticated/today")({
   component: TodayPage,
@@ -54,12 +54,17 @@ function TodayPage() {
 
 function JobCard({ job }: { job: any }) {
   const price = job.price_cents ? `$${(job.price_cents / 100).toFixed(2)}` : null;
-  const statusColor = {
-    scheduled: "bg-brand-yellow/30 text-yellow-900",
-    in_progress: "bg-brand-lime/30 text-green-900",
-    completed: "bg-brand-green text-white",
-    cancelled: "bg-muted text-muted-foreground",
-  }[job.status as string] ?? "bg-muted";
+  const startMs = job.scheduled_for ? new Date(job.scheduled_for).getTime() : null;
+  const isActive = startMs ? startMs <= Date.now() : true;
+  const statusColor = !isActive
+    ? "bg-brand-yellow/30 text-yellow-900"
+    : ({
+        scheduled: "bg-brand-lime/30 text-green-900",
+        in_progress: "bg-brand-lime/30 text-green-900",
+        completed: "bg-brand-green text-white",
+        cancelled: "bg-muted text-muted-foreground",
+      }[job.status as string] ?? "bg-muted");
+  const statusLabel = !isActive ? "upcoming" : (job.status as string).replace("_", " ");
 
   return (
     <Link
@@ -75,7 +80,7 @@ function JobCard({ job }: { job: any }) {
           <p className="text-xs text-muted-foreground">{job.job_type?.name ?? "Job"}</p>
         </div>
         <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${statusColor}`}>
-          {job.status.replace("_", " ")}
+          {statusLabel}
         </span>
       </div>
       {job.contact?.address && (
@@ -86,8 +91,11 @@ function JobCard({ job }: { job: any }) {
       )}
       {job.scheduled_for && (
         <div className="mb-1 flex items-center gap-2 text-sm text-foreground/80">
-          <Clock className="h-4 w-4 text-brand-green" />
-          <span>{format(new Date(job.scheduled_for), "h:mm a")}</span>
+          {isActive ? <Clock className="h-4 w-4 text-brand-green" /> : <Lock className="h-4 w-4 text-yellow-700" />}
+          <span>
+            {format(new Date(job.scheduled_for), "EEE h:mm a")}
+            {!isActive && startMs && <span className="ml-2 text-xs text-muted-foreground">· starts in {formatDistanceToNow(new Date(startMs))}</span>}
+          </span>
         </div>
       )}
       {price && (

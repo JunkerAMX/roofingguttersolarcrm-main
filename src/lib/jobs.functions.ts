@@ -28,17 +28,22 @@ export const listMyJobs = createServerFn({ method: "GET" })
     let q = supabase
       .from("jobs")
       .select("*, contact:contacts(*), job_type:job_types(*), assignee:profiles!jobs_assigned_to_fkey(id, full_name, email)")
-      .order("due_date", { ascending: true })
       .order("scheduled_for", { ascending: true });
 
     if (!isAdmin) q = q.eq("assigned_to", userId);
 
-    const today = new Date();
-    const todayStr = today.toISOString().slice(0, 10);
-    const in7 = new Date(today.getTime() + 7 * 86400000).toISOString().slice(0, 10);
+    const now = new Date();
+    // Workers see jobs starting within the next 24 hours, plus already-active
+    // (started but not completed) jobs from the past few days.
+    const windowEnd = new Date(now.getTime() + 24 * 3600 * 1000).toISOString();
+    const windowStart = new Date(now.getTime() - 3 * 86400000).toISOString();
+    const in7 = new Date(now.getTime() + 7 * 86400000).toISOString();
 
-    if (data.scope === "today") q = q.eq("due_date", todayStr).neq("status", "cancelled");
-    else if (data.scope === "upcoming") q = q.gte("due_date", todayStr).lte("due_date", in7).neq("status", "cancelled");
+    if (data.scope === "today") {
+      q = q.gte("scheduled_for", windowStart).lte("scheduled_for", windowEnd).neq("status", "completed").neq("status", "cancelled");
+    } else if (data.scope === "upcoming") {
+      q = q.gte("scheduled_for", now.toISOString()).lte("scheduled_for", in7).neq("status", "cancelled");
+    }
 
     const { data: jobs, error } = await q;
     if (error) throw new Error(error.message);
@@ -77,6 +82,13 @@ export const toggleChecklistItem = createServerFn({ method: "POST" })
       .eq("id", data.progressId)
       .maybeSingle();
     if (pErr || !prog) throw new Error("Not found");
+
+    // Gate: job cannot be worked until its scheduled start time has arrived.
+    const jobStart = prog.job?.scheduled_for ? new Date(prog.job.scheduled_for).getTime() : null;
+    if (data.completed && jobStart && jobStart > Date.now()) {
+      throw new Error("Job isn't active yet — you can start ticking tasks once the appointment time arrives.");
+    }
+
 
     // Payment trigger: verify prior items complete + fire HighLevel webhook
     if (data.completed && prog.input_type === "payment_trigger") {
@@ -174,6 +186,11 @@ export const uploadJobPhoto = createServerFn({ method: "POST" })
   )
   .handler(async ({ context, data }) => {
     const { supabase, userId } = context;
+    const { data: jobRow } = await supabase.from("jobs").select("scheduled_for").eq("id", data.jobId).maybeSingle();
+    const jobStart = jobRow?.scheduled_for ? new Date(jobRow.scheduled_for).getTime() : null;
+    if (jobStart && jobStart > Date.now()) {
+      throw new Error("Job isn't active yet — you can start uploading photos once the appointment time arrives.");
+    }
     const bytes = Uint8Array.from(atob(data.fileBase64), (c) => c.charCodeAt(0));
     const path = `${data.jobId}/${data.kind}-${Date.now()}.${data.ext}`;
     const { error: upErr } = await supabase.storage
