@@ -80,7 +80,7 @@ function JobCard({ job }: { job: any }) {
           <p className="text-xs text-muted-foreground">{job.job_type?.name ?? "Job"}</p>
         </div>
         <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${statusColor}`}>
-          {job.status.replace("_", " ")}
+          {statusLabel}
         </span>
       </div>
       {job.contact?.address && (
@@ -91,8 +91,11 @@ function JobCard({ job }: { job: any }) {
       )}
       {job.scheduled_for && (
         <div className="mb-1 flex items-center gap-2 text-sm text-foreground/80">
-          <Clock className="h-4 w-4 text-brand-green" />
-          <span>{format(new Date(job.scheduled_for), "h:mm a")}</span>
+          {isActive ? <Clock className="h-4 w-4 text-brand-green" /> : <Lock className="h-4 w-4 text-yellow-700" />}
+          <span>
+            {format(new Date(job.scheduled_for), "EEE h:mm a")}
+            {!isActive && startMs && <span className="ml-2 text-xs text-muted-foreground">· starts in {formatDistanceToNow(new Date(startMs))}</span>}
+          </span>
         </div>
       )}
       {price && (
