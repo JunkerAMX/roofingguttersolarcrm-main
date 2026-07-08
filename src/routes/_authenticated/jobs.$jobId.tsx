@@ -3,8 +3,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState, useRef } from "react";
 import { AppShell } from "@/components/app-shell";
-import { getJob, toggleChecklistItem, uploadJobPhoto, getPhotoUrl } from "@/lib/jobs.functions";
-import { ArrowLeft, MapPin, Phone, Mail, DollarSign, Camera, Check, Lock, ImageIcon } from "lucide-react";
+import { getJob, toggleChecklistItem, uploadJobPhoto, getPhotoUrl, markJobDone } from "@/lib/jobs.functions";
+import { ArrowLeft, MapPin, Phone, Mail, DollarSign, Camera, Check, Lock, ImageIcon, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
