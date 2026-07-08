@@ -4,12 +4,33 @@ import { useServerFn } from "@tanstack/react-start";
 import { AppShell } from "@/components/app-shell";
 import { listMyJobs } from "@/lib/jobs.functions";
 import { MapPin, Clock, DollarSign, CheckCircle2, Lock } from "lucide-react";
-import { format, formatDistanceToNow } from "date-fns";
+import { format, formatDistanceToNow, isToday, isTomorrow, isYesterday, startOfDay } from "date-fns";
 
 export const Route = createFileRoute("/_authenticated/today")({
   component: TodayPage,
   errorComponent: ({ error }) => <div className="p-8 text-destructive">{error.message}</div>,
 });
+
+function sectionLabel(date: Date) {
+  if (isToday(date)) return "Today";
+  if (isTomorrow(date)) return "Tomorrow";
+  if (isYesterday(date)) return "Yesterday";
+  return format(date, "EEEE, d MMMM yyyy");
+}
+
+function groupJobsByDay(jobs: any[]) {
+  const groups = new Map<string, { label: string; date: Date; jobs: any[] }>();
+  for (const job of jobs) {
+    if (!job.scheduled_for) continue;
+    const date = startOfDay(new Date(job.scheduled_for));
+    const key = date.toISOString();
+    if (!groups.has(key)) {
+      groups.set(key, { label: sectionLabel(date), date, jobs: [] });
+    }
+    groups.get(key)!.jobs.push(job);
+  }
+  return Array.from(groups.values()).sort((a, b) => a.date.getTime() - b.date.getTime());
+}
 
 function TodayPage() {
   const fn = useServerFn(listMyJobs);
@@ -17,6 +38,8 @@ function TodayPage() {
     queryKey: ["jobs", "today"],
     queryFn: () => fn({ data: { scope: "today" } }),
   });
+
+  const sections = groupJobsByDay(jobs);
 
   return (
     <AppShell>
@@ -44,8 +67,17 @@ function TodayPage() {
           <p className="mt-1 text-sm text-muted-foreground">No jobs scheduled for today.</p>
         </div>
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2">
-          {jobs.map((j: any) => <JobCard key={j.id} job={j} />)}
+        <div className="space-y-8">
+          {sections.map((section) => (
+            <section key={section.date.toISOString()}>
+              <h2 className="sticky top-0 z-10 mb-3 bg-background/95 py-2 font-display text-lg font-semibold text-foreground">
+                {section.label}
+              </h2>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {section.jobs.map((j: any) => <JobCard key={j.id} job={j} />)}
+              </div>
+            </section>
+          ))}
         </div>
       )}
     </AppShell>
