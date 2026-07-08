@@ -18,6 +18,7 @@ function JobDetail() {
   const qc = useQueryClient();
   const fn = useServerFn(getJob);
   const toggleFn = useServerFn(toggleChecklistItem);
+  const markDoneFn = useServerFn(markJobDone);
   const { data, isLoading } = useQuery({
     queryKey: ["job", jobId],
     queryFn: () => fn({ data: { jobId } }),
@@ -26,6 +27,16 @@ function JobDetail() {
   const toggle = useMutation({
     mutationFn: (v: { progressId: string; completed: boolean }) => toggleFn({ data: v }),
     onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["job", jobId] });
+      qc.invalidateQueries({ queryKey: ["jobs"] });
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const markDone = useMutation({
+    mutationFn: () => markDoneFn({ data: { jobId } }),
+    onSuccess: () => {
+      toast.success("Job marked as done 🎉");
       qc.invalidateQueries({ queryKey: ["job", jobId] });
       qc.invalidateQueries({ queryKey: ["jobs"] });
     },
