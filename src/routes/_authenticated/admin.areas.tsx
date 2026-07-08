@@ -219,23 +219,19 @@ function AreasPage() {
     });
   }, [mapReady, polygons, workers, selectedWorker, workerColor]);
 
-  // Map click: pin mode adds marker, draw mode appends vertex to selected worker's polygon (and saves).
+  // Map click always appends a vertex to the selected worker's polygon (auto-saves).
   useEffect(() => {
     if (!mapReady || !mapRef.current || !window.google) return;
     const g = window.google;
     const listener = mapRef.current.addListener("click", (e: any) => {
       const uid = selectedRef.current;
       if (!uid) { toast.error("Select a worker first"); return; }
-      if (drawModeRef.current) {
-        const poly = polysRef.current.get(uid);
-        if (!poly) return;
-        poly.getPath().push(e.latLng); // triggers insert_at → auto-save
-        return;
-      }
-      add.mutate({ user_id: uid, lat: e.latLng.lat(), lng: e.latLng.lng() });
+      const poly = polysRef.current.get(uid);
+      if (!poly) return;
+      poly.getPath().push(e.latLng);
     });
     return () => g.maps.event.removeListener(listener);
-  }, [mapReady, add]);
+  }, [mapReady]);
 
   const clearPolygon = () => {
     if (!selectedWorker) return;
