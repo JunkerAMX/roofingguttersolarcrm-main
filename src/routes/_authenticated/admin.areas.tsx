@@ -30,7 +30,7 @@ function loadMaps(): Promise<any> {
   mapsPromise = new Promise((resolve, reject) => {
     window.__initGmap = () => resolve(window.google);
     const s = document.createElement("script");
-    s.src = `https://maps.googleapis.com/maps/api/js?key=${key}&loading=async&callback=__initGmap&channel=${channel ?? ""}`;
+    s.src = `https://maps.googleapis.com/maps/api/js?key=${key}&libraries=drawing,geometry&loading=async&callback=__initGmap&channel=${channel ?? ""}`;
     s.async = true;
     s.onerror = () => { mapsPromise = null; reject(new Error("Failed to load Google Maps")); };
     document.head.appendChild(s);
