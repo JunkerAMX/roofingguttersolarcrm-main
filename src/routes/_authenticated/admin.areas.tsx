@@ -297,6 +297,22 @@ function AreasPage() {
               >
                 <Pencil className="h-3.5 w-3.5" /> Draw area
               </button>
+              {drawMode && (
+                <>
+                  <button
+                    onClick={finishPolygon}
+                    className="rounded-full bg-brand-green px-3 py-1.5 text-xs font-semibold text-white shadow hover:brightness-110"
+                  >
+                    Finish
+                  </button>
+                  <button
+                    onClick={() => { clearPolygon(); setDrawMode(false); }}
+                    className="rounded-full bg-background/90 px-3 py-1.5 text-xs font-semibold shadow hover:bg-background"
+                  >
+                    Cancel
+                  </button>
+                </>
+              )}
             </div>
           )}
           {(add.isPending || bulk.isPending || move.isPending) && (
