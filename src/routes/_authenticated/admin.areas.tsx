@@ -110,8 +110,10 @@ function AreasPage() {
     mutationFn: () => clearAllFn(),
     onSuccess: () => {
       toast.success("Cleared all workers");
+      // Reset every on-map polygon to empty (sync effect won't touch existing polys).
+      polysRef.current.forEach((poly) => poly.setPath([]));
+      qc.setQueryData(["areas", "polygons"], []);
       qc.invalidateQueries({ queryKey: ["areas", "list"] });
-      qc.invalidateQueries({ queryKey: ["areas", "polygons"] });
     },
     onError: (e: any) => toast.error(e.message),
   });
