@@ -30,7 +30,7 @@ function loadMaps(): Promise<any> {
   mapsPromise = new Promise((resolve, reject) => {
     window.__initGmap = () => resolve(window.google);
     const s = document.createElement("script");
-    s.src = `https://maps.googleapis.com/maps/api/js?key=${key}&libraries=drawing,geometry&loading=async&callback=__initGmap&channel=${channel ?? ""}`;
+    s.src = `https://maps.googleapis.com/maps/api/js?key=${key}&libraries=geometry&loading=async&callback=__initGmap&channel=${channel ?? ""}`;
     s.async = true;
     s.onerror = () => { mapsPromise = null; reject(new Error("Failed to load Google Maps")); };
     document.head.appendChild(s);
@@ -134,99 +134,86 @@ function AreasPage() {
     return () => { cancelled = true; };
   }, []);
 
-  // Handle clicks on map — always use latest selectedWorker. Ignored in draw mode.
+  // Handle clicks on map — pin mode adds a marker, draw mode appends a polygon vertex.
   const selectedRef = useRef(selectedWorker);
   selectedRef.current = selectedWorker;
   const drawModeRef = useRef(drawMode);
   drawModeRef.current = drawMode;
+  const polyRef = useRef<any>(null);
+  const pathRef = useRef<any[]>([]);
+
+  const clearPolygon = () => {
+    if (polyRef.current) { polyRef.current.setMap(null); polyRef.current = null; }
+    pathRef.current = [];
+  };
+
   useEffect(() => {
     if (!mapReady || !mapRef.current || !window.google) return;
+    const g = window.google;
     const listener = mapRef.current.addListener("click", (e: any) => {
-      if (drawModeRef.current) return;
+      if (drawModeRef.current) {
+        const uid = selectedRef.current;
+        if (!uid) { toast.error("Select a worker first"); return; }
+        pathRef.current = [...pathRef.current, e.latLng];
+        if (!polyRef.current) {
+          polyRef.current = new g.maps.Polygon({
+            paths: pathRef.current,
+            fillColor: "#16a34a",
+            fillOpacity: 0.15,
+            strokeColor: "#16a34a",
+            strokeWeight: 2,
+            clickable: false,
+            editable: true,
+            map: mapRef.current,
+          });
+        } else {
+          polyRef.current.setPath(pathRef.current);
+        }
+        return;
+      }
       const uid = selectedRef.current;
       if (!uid) { toast.error("Select a worker first"); return; }
       add.mutate({ user_id: uid, lat: e.latLng.lat(), lng: e.latLng.lng() });
     });
-    return () => window.google.maps.event.removeListener(listener);
+    return () => g.maps.event.removeListener(listener);
   }, [mapReady, add]);
 
-  // Render markers (draggable)
+  // When leaving draw mode without finishing, clear any in-progress polygon.
   useEffect(() => {
-    if (!mapReady || !mapRef.current || !window.google) return;
-    markersRef.current.forEach((m) => m.setMap(null));
-    markersRef.current = areas.map((a: any) => {
-      const color = workerColor.get(a.user_id) ?? "#16a34a";
-      const marker = new window.google.maps.Marker({
-        position: { lat: a.lat, lng: a.lng },
-        map: mapRef.current,
-        draggable: true,
-        title: `${a.worker?.full_name ?? "Worker"} — ${a.postcode ?? "no postcode"} (drag to move)`,
-        icon: {
-          path: window.google.maps.SymbolPath.CIRCLE,
-          fillColor: color,
-          fillOpacity: 1,
-          strokeColor: "#ffffff",
-          strokeWeight: 2,
-          scale: 9,
-        },
-      });
-      const info = new window.google.maps.InfoWindow({
-        content: `<div style="font:13px sans-serif"><b>${a.worker?.full_name ?? "Worker"}</b><br/>${a.postcode ?? "?"} ${a.suburb ?? ""}</div>`,
-      });
-      marker.addListener("click", () => info.open({ anchor: marker, map: mapRef.current }));
-      marker.addListener("dragend", (e: any) => {
-        move.mutate({ id: a.id, lat: e.latLng.lat(), lng: e.latLng.lng() });
-      });
-      return marker;
-    });
-  }, [areas, mapReady, workerColor, move]);
+    if (!drawMode) clearPolygon();
+  }, [drawMode]);
 
-  // Drawing manager for lasso/polygon
-  const drawingRef = useRef<any>(null);
-  useEffect(() => {
-    if (!mapReady || !mapRef.current || !window.google?.maps?.drawing) return;
-    if (!drawingRef.current) {
-      drawingRef.current = new window.google.maps.drawing.DrawingManager({
-        drawingMode: null,
-        drawingControl: false,
-        polygonOptions: {
-          fillColor: "#16a34a",
-          fillOpacity: 0.15,
-          strokeColor: "#16a34a",
-          strokeWeight: 2,
-          clickable: false,
-          editable: false,
-          zIndex: 1,
-        },
-      });
-      drawingRef.current.setMap(mapRef.current);
-      window.google.maps.event.addListener(drawingRef.current, "polygoncomplete", (poly: any) => {
-        const uid = selectedRef.current;
-        if (!uid) { toast.error("Select a worker first"); poly.setMap(null); return; }
-        const bounds = new window.google.maps.LatLngBounds();
-        poly.getPath().forEach((p: any) => bounds.extend(p));
-        const ne = bounds.getNorthEast(), sw = bounds.getSouthWest();
-        const steps = 7; // 7x7 = 49 candidate points
-        const points: { lat: number; lng: number }[] = [];
-        for (let i = 0; i <= steps; i++) {
-          for (let j = 0; j <= steps; j++) {
-            const lat = sw.lat() + ((ne.lat() - sw.lat()) * i) / steps;
-            const lng = sw.lng() + ((ne.lng() - sw.lng()) * j) / steps;
-            const pt = new window.google.maps.LatLng(lat, lng);
-            if (window.google.maps.geometry.poly.containsLocation(pt, poly)) {
-              points.push({ lat, lng });
-            }
-          }
-        }
-        poly.setMap(null);
-        setDrawMode(false);
-        drawingRef.current.setDrawingMode(null);
-        if (!points.length) { toast.error("Area too small — draw a larger shape"); return; }
-        bulk.mutate({ user_id: uid, points: points.slice(0, 60) });
-      });
+  const finishPolygon = () => {
+    const uid = selectedRef.current;
+    const g = window.google;
+    if (!uid) { toast.error("Select a worker first"); return; }
+    if (!polyRef.current || pathRef.current.length < 3) {
+      toast.error("Click at least 3 points on the map");
+      return;
     }
-    drawingRef.current.setDrawingMode(drawMode ? window.google.maps.drawing.OverlayType.POLYGON : null);
-  }, [mapReady, drawMode, bulk]);
+    // Use the (possibly edited) current path from the polygon.
+    const path = polyRef.current.getPath();
+    const bounds = new g.maps.LatLngBounds();
+    path.forEach((p: any) => bounds.extend(p));
+    const ne = bounds.getNorthEast(), sw = bounds.getSouthWest();
+    const steps = 7;
+    const points: { lat: number; lng: number }[] = [];
+    for (let i = 0; i <= steps; i++) {
+      for (let j = 0; j <= steps; j++) {
+        const lat = sw.lat() + ((ne.lat() - sw.lat()) * i) / steps;
+        const lng = sw.lng() + ((ne.lng() - sw.lng()) * j) / steps;
+        const pt = new g.maps.LatLng(lat, lng);
+        if (g.maps.geometry.poly.containsLocation(pt, polyRef.current)) {
+          points.push({ lat, lng });
+        }
+      }
+    }
+    clearPolygon();
+    setDrawMode(false);
+    if (!points.length) { toast.error("Area too small — draw a larger shape"); return; }
+    bulk.mutate({ user_id: uid, points: points.slice(0, 60) });
+  };
+
 
 
 
@@ -251,7 +238,7 @@ function AreasPage() {
     <div className="space-y-6">
       <div>
         <h2 className="font-display text-2xl font-semibold">Service Areas</h2>
-        <p className="text-sm text-muted-foreground">Pick a worker. Click to drop pins, drag to move, or switch to <b>Draw area</b> and lasso a region to auto-add every postcode inside.</p>
+        <p className="text-sm text-muted-foreground">Pick a worker. Click to drop pins, drag to move, or switch to <b>Draw area</b>, click points around a region and hit <b>Finish</b> to auto-add every postcode inside.</p>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[280px_1fr]">
@@ -310,6 +297,22 @@ function AreasPage() {
               >
                 <Pencil className="h-3.5 w-3.5" /> Draw area
               </button>
+              {drawMode && (
+                <>
+                  <button
+                    onClick={finishPolygon}
+                    className="rounded-full bg-brand-green px-3 py-1.5 text-xs font-semibold text-white shadow hover:brightness-110"
+                  >
+                    Finish
+                  </button>
+                  <button
+                    onClick={() => { clearPolygon(); setDrawMode(false); }}
+                    className="rounded-full bg-background/90 px-3 py-1.5 text-xs font-semibold shadow hover:bg-background"
+                  >
+                    Cancel
+                  </button>
+                </>
+              )}
             </div>
           )}
           {(add.isPending || bulk.isPending || move.isPending) && (
