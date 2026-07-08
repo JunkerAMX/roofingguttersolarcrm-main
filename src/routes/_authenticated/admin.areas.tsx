@@ -156,8 +156,14 @@ function AreasPage() {
 
   const save = useMutation({
     mutationFn: (v: { user_id: string; points: { lat: number; lng: number }[] }) => savePolyFn({ data: v }),
+    onSuccess: (_r, v) => {
+      // Keep the query cache in sync so re-renders don't rebuild the polygon from stale (empty) data.
+      qc.setQueryData(["areas", "polygons"], (old: any[] = []) => {
+        const others = (old ?? []).filter((p: any) => p.user_id !== v.user_id);
+        return [...others, { user_id: v.user_id, points: v.points, updated_at: new Date().toISOString() }];
+      });
+    },
     onError: (e: any) => toast.error(e.message),
-    // Don't invalidate on every drag save — it would re-render and drop the in-progress edit handles.
   });
 
   // Debounced save when a polygon path is edited.
@@ -172,52 +178,74 @@ function AreasPage() {
     }, 600));
   };
 
-  // (Re)render all worker polygons whenever data or selection changes.
+  const buildPoly = (uid: string, pts: { lat: number; lng: number }[]) => {
+    const g = window.google;
+    const color = workerColor.get(uid) ?? "#16a34a";
+    const poly = new g.maps.Polygon({
+      paths: [pts],
+      fillColor: color,
+      strokeColor: color,
+      strokeOpacity: 1,
+      draggable: false,
+      map: mapRef.current,
+    });
+    // Non-select click selects the worker.
+    listenersRef.current.push(poly.addListener("click", () => {
+      if (selectedRef.current !== uid) setSelectedWorker(uid);
+    }));
+    // Path edit auto-saves for the active worker.
+    const path = poly.getPath();
+    ["set_at", "insert_at", "remove_at"].forEach((ev) => {
+      listenersRef.current.push(g.maps.event.addListener(path, ev, () => {
+        if (selectedRef.current === uid) schedulePolySave(uid, poly);
+      }));
+    });
+    return poly;
+  };
+
+  // Sync polygons to data (create/update, don't wipe on selection change).
   useEffect(() => {
     if (!mapReady || !mapRef.current || !window.google) return;
-    const g = window.google;
-    // clear
-    polysRef.current.forEach((p) => p.setMap(null));
-    polysRef.current.clear();
-    listenersRef.current.forEach((l) => g.maps.event.removeListener(l));
-    listenersRef.current = [];
-
-    // Ensure every worker has an entry so admins can add to any of them.
     const byUser = new Map<string, { lat: number; lng: number }[]>();
     for (const w of workers as any[]) byUser.set(w.id, []);
     for (const p of polygons as any[]) {
       const pts = Array.isArray(p.points) ? p.points : [];
       byUser.set(p.user_id, pts);
     }
-
-    byUser.forEach((pts, uid) => {
-      const isSelected = uid === selectedWorker;
-      const color = workerColor.get(uid) ?? "#16a34a";
-      const poly = new g.maps.Polygon({
-        paths: [pts],
-        fillColor: color,
-        fillOpacity: isSelected ? 0.3 : 0.22,
-        strokeColor: color,
-        strokeWeight: isSelected ? 3 : 2,
-        strokeOpacity: 1,
-        clickable: !isSelected, // let map clicks pass through the active worker's polygon so we can add pins/vertices
-        editable: isSelected,
-        draggable: false,
-        zIndex: isSelected ? 10 : 1,
-        map: mapRef.current,
-      });
-      // Clicking a non-selected polygon selects that worker.
-      if (!isSelected) {
-        listenersRef.current.push(poly.addListener("click", () => setSelectedWorker(uid)));
-      } else {
-        const path = poly.getPath();
-        ["set_at", "insert_at", "remove_at"].forEach((ev) => {
-          listenersRef.current.push(g.maps.event.addListener(path, ev, () => schedulePolySave(uid, poly)));
-        });
-      }
-      polysRef.current.set(uid, poly);
+    // Remove polys for workers that no longer exist.
+    polysRef.current.forEach((poly, uid) => {
+      if (!byUser.has(uid)) { poly.setMap(null); polysRef.current.delete(uid); }
     });
-  }, [mapReady, polygons, workers, selectedWorker, workerColor]);
+    // Create or update each worker's polygon.
+    byUser.forEach((pts, uid) => {
+      let poly = polysRef.current.get(uid);
+      if (!poly) {
+        poly = buildPoly(uid, pts);
+        polysRef.current.set(uid, poly);
+      } else {
+        // Only overwrite the path if it actually differs (avoid clobbering in-progress edits).
+        const current: { lat: number; lng: number }[] = [];
+        poly.getPath().forEach((p: any) => current.push({ lat: p.lat(), lng: p.lng() }));
+        const same = current.length === pts.length && current.every((c, i) => c.lat === pts[i].lat && c.lng === pts[i].lng);
+        if (!same) poly.setPath(pts);
+      }
+    });
+  }, [mapReady, polygons, workers]);
+
+  // Restyle polygons when selection changes (no rebuild).
+  useEffect(() => {
+    polysRef.current.forEach((poly, uid) => {
+      const isSelected = uid === selectedWorker;
+      poly.setOptions({
+        fillOpacity: isSelected ? 0.3 : 0.22,
+        strokeWeight: isSelected ? 3 : 2,
+        clickable: !isSelected,
+        editable: isSelected,
+        zIndex: isSelected ? 10 : 1,
+      });
+    });
+  }, [selectedWorker, polygons, workers]);
+
 
   // Map click always appends a vertex to the selected worker's polygon (auto-saves).
   useEffect(() => {
