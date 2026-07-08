@@ -456,6 +456,24 @@ export type Database = {
           },
         ]
       }
+      worker_polygons: {
+        Row: {
+          points: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          points?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          points?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
