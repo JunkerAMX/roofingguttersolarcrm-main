@@ -130,6 +130,16 @@ export const listContacts = createServerFn({ method: "GET" })
     return data ?? [];
   });
 
+export const deleteContact = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ context, data }) => {
+    await requireAdmin(context.supabase, context.userId);
+    const { error } = await context.supabase.from("contacts").delete().eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
 export const listAllJobs = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
