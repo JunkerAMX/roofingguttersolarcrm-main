@@ -22,6 +22,7 @@ import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authen
 import { Route as AuthenticatedAdminJobsRouteImport } from './routes/_authenticated/admin.jobs'
 import { Route as AuthenticatedAdminContactsRouteImport } from './routes/_authenticated/admin.contacts'
 import { Route as AuthenticatedAdminChecklistsRouteImport } from './routes/_authenticated/admin.checklists'
+import { Route as AuthenticatedAdminAreasRouteImport } from './routes/_authenticated/admin.areas'
 import { Route as ApiPublicHighlevelContactRouteImport } from './routes/api/public/highlevel/contact'
 import { Route as ApiPublicHighlevelAppointmentRouteImport } from './routes/api/public/highlevel/appointment'
 
@@ -92,6 +93,11 @@ const AuthenticatedAdminChecklistsRoute =
     path: '/checklists',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminAreasRoute = AuthenticatedAdminAreasRouteImport.update({
+  id: '/areas',
+  path: '/areas',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
 const ApiPublicHighlevelContactRoute =
   ApiPublicHighlevelContactRouteImport.update({
     id: '/api/public/highlevel/contact',
@@ -111,6 +117,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/today': typeof AuthenticatedTodayRoute
   '/upcoming': typeof AuthenticatedUpcomingRoute
+  '/admin/areas': typeof AuthenticatedAdminAreasRoute
   '/admin/checklists': typeof AuthenticatedAdminChecklistsRoute
   '/admin/contacts': typeof AuthenticatedAdminContactsRoute
   '/admin/jobs': typeof AuthenticatedAdminJobsRoute
@@ -126,6 +133,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/today': typeof AuthenticatedTodayRoute
   '/upcoming': typeof AuthenticatedUpcomingRoute
+  '/admin/areas': typeof AuthenticatedAdminAreasRoute
   '/admin/checklists': typeof AuthenticatedAdminChecklistsRoute
   '/admin/contacts': typeof AuthenticatedAdminContactsRoute
   '/admin/jobs': typeof AuthenticatedAdminJobsRoute
@@ -144,6 +152,7 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/today': typeof AuthenticatedTodayRoute
   '/_authenticated/upcoming': typeof AuthenticatedUpcomingRoute
+  '/_authenticated/admin/areas': typeof AuthenticatedAdminAreasRoute
   '/_authenticated/admin/checklists': typeof AuthenticatedAdminChecklistsRoute
   '/_authenticated/admin/contacts': typeof AuthenticatedAdminContactsRoute
   '/_authenticated/admin/jobs': typeof AuthenticatedAdminJobsRoute
@@ -162,6 +171,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/today'
     | '/upcoming'
+    | '/admin/areas'
     | '/admin/checklists'
     | '/admin/contacts'
     | '/admin/jobs'
@@ -177,6 +187,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/today'
     | '/upcoming'
+    | '/admin/areas'
     | '/admin/checklists'
     | '/admin/contacts'
     | '/admin/jobs'
@@ -194,6 +205,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/today'
     | '/_authenticated/upcoming'
+    | '/_authenticated/admin/areas'
     | '/_authenticated/admin/checklists'
     | '/_authenticated/admin/contacts'
     | '/_authenticated/admin/jobs'
@@ -306,6 +318,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminChecklistsRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/areas': {
+      id: '/_authenticated/admin/areas'
+      path: '/areas'
+      fullPath: '/admin/areas'
+      preLoaderRoute: typeof AuthenticatedAdminAreasRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/api/public/highlevel/contact': {
       id: '/api/public/highlevel/contact'
       path: '/api/public/highlevel/contact'
@@ -324,6 +343,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedAdminRouteChildren {
+  AuthenticatedAdminAreasRoute: typeof AuthenticatedAdminAreasRoute
   AuthenticatedAdminChecklistsRoute: typeof AuthenticatedAdminChecklistsRoute
   AuthenticatedAdminContactsRoute: typeof AuthenticatedAdminContactsRoute
   AuthenticatedAdminJobsRoute: typeof AuthenticatedAdminJobsRoute
@@ -333,6 +353,7 @@ interface AuthenticatedAdminRouteChildren {
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
+  AuthenticatedAdminAreasRoute: AuthenticatedAdminAreasRoute,
   AuthenticatedAdminChecklistsRoute: AuthenticatedAdminChecklistsRoute,
   AuthenticatedAdminContactsRoute: AuthenticatedAdminContactsRoute,
   AuthenticatedAdminJobsRoute: AuthenticatedAdminJobsRoute,
