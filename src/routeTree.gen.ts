@@ -17,6 +17,7 @@ import { Route as AuthenticatedTodayRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as AuthenticatedJobsJobIdRouteImport } from './routes/_authenticated/jobs.$jobId'
+import { Route as AuthenticatedAdminTeamRouteImport } from './routes/_authenticated/admin.team'
 import { Route as AuthenticatedAdminChecklistsRouteImport } from './routes/_authenticated/admin.checklists'
 
 const AuthRoute = AuthRouteImport.update({
@@ -58,6 +59,11 @@ const AuthenticatedJobsJobIdRoute = AuthenticatedJobsJobIdRouteImport.update({
   path: '/jobs/$jobId',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAdminTeamRoute = AuthenticatedAdminTeamRouteImport.update({
+  id: '/team',
+  path: '/team',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
 const AuthenticatedAdminChecklistsRoute =
   AuthenticatedAdminChecklistsRouteImport.update({
     id: '/checklists',
@@ -72,6 +78,7 @@ export interface FileRoutesByFullPath {
   '/today': typeof AuthenticatedTodayRoute
   '/upcoming': typeof AuthenticatedUpcomingRoute
   '/admin/checklists': typeof AuthenticatedAdminChecklistsRoute
+  '/admin/team': typeof AuthenticatedAdminTeamRoute
   '/jobs/$jobId': typeof AuthenticatedJobsJobIdRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
 }
@@ -81,6 +88,7 @@ export interface FileRoutesByTo {
   '/today': typeof AuthenticatedTodayRoute
   '/upcoming': typeof AuthenticatedUpcomingRoute
   '/admin/checklists': typeof AuthenticatedAdminChecklistsRoute
+  '/admin/team': typeof AuthenticatedAdminTeamRoute
   '/jobs/$jobId': typeof AuthenticatedJobsJobIdRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
 }
@@ -93,6 +101,7 @@ export interface FileRoutesById {
   '/_authenticated/today': typeof AuthenticatedTodayRoute
   '/_authenticated/upcoming': typeof AuthenticatedUpcomingRoute
   '/_authenticated/admin/checklists': typeof AuthenticatedAdminChecklistsRoute
+  '/_authenticated/admin/team': typeof AuthenticatedAdminTeamRoute
   '/_authenticated/jobs/$jobId': typeof AuthenticatedJobsJobIdRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
 }
@@ -105,6 +114,7 @@ export interface FileRouteTypes {
     | '/today'
     | '/upcoming'
     | '/admin/checklists'
+    | '/admin/team'
     | '/jobs/$jobId'
     | '/admin/'
   fileRoutesByTo: FileRoutesByTo
@@ -114,6 +124,7 @@ export interface FileRouteTypes {
     | '/today'
     | '/upcoming'
     | '/admin/checklists'
+    | '/admin/team'
     | '/jobs/$jobId'
     | '/admin'
   id:
@@ -125,6 +136,7 @@ export interface FileRouteTypes {
     | '/_authenticated/today'
     | '/_authenticated/upcoming'
     | '/_authenticated/admin/checklists'
+    | '/_authenticated/admin/team'
     | '/_authenticated/jobs/$jobId'
     | '/_authenticated/admin/'
   fileRoutesById: FileRoutesById
@@ -193,6 +205,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedJobsJobIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin/team': {
+      id: '/_authenticated/admin/team'
+      path: '/team'
+      fullPath: '/admin/team'
+      preLoaderRoute: typeof AuthenticatedAdminTeamRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/checklists': {
       id: '/_authenticated/admin/checklists'
       path: '/checklists'
@@ -205,11 +224,13 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminChecklistsRoute: typeof AuthenticatedAdminChecklistsRoute
+  AuthenticatedAdminTeamRoute: typeof AuthenticatedAdminTeamRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminChecklistsRoute: AuthenticatedAdminChecklistsRoute,
+  AuthenticatedAdminTeamRoute: AuthenticatedAdminTeamRoute,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
 }
 
