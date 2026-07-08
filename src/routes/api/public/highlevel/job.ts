@@ -66,11 +66,11 @@ export const Route = createFileRoute("/api/public/highlevel/job")({
 
         // Map status
         const rawStatus = String(payload.status ?? appt.status ?? "scheduled").toLowerCase();
-        const status = ["scheduled", "in_progress", "completed", "cancelled"].includes(rawStatus)
-          ? rawStatus
-          : rawStatus === "confirmed" || rawStatus === "booked" ? "scheduled"
-          : rawStatus === "done" ? "completed"
-          : rawStatus === "canceled" ? "cancelled"
+        type JobStatus = "scheduled" | "in_progress" | "completed" | "cancelled";
+        const status: JobStatus =
+          rawStatus === "in_progress" ? "in_progress"
+          : rawStatus === "completed" || rawStatus === "done" ? "completed"
+          : rawStatus === "cancelled" || rawStatus === "canceled" ? "cancelled"
           : "scheduled";
 
         const scheduled_for = appt.start_time ?? appt.startTime ?? appt.scheduled_for ?? payload.scheduled_for ?? null;
