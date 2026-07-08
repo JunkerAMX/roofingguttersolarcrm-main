@@ -159,7 +159,7 @@ export const Route = createFileRoute("/api/public/highlevel/appointment")({
         );
         const tz = pick(custom.timezone, payload.timezone, appt.selectedTimezone, appt.timezone);
         const scheduled_for = normalizeScheduledFor(rawScheduled, tz);
-        const due_date = toDateOnly(pick(custom.due_date, appt.due_date, payload.due_date)) ?? toDateOnly(scheduled_for);
+        const due_date = toDateOnly(pick(custom.due_date, appt.due_date, payload.due_date), tz) ?? toDateOnly(scheduled_for, tz);
         // Price sent in whole dollars (e.g. 249) → converted to cents for storage.
         const price_cents = toCents(pick(custom.price, payload.price, appt.price, custom.price_cents, payload.price_cents, appt.price_cents));
         const notes = pick(custom.notes, appt.notes, payload.notes, payload.Message);
