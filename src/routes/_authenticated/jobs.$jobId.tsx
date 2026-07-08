@@ -3,8 +3,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState, useRef } from "react";
 import { AppShell } from "@/components/app-shell";
-import { getJob, toggleChecklistItem, uploadJobPhoto, getPhotoUrl } from "@/lib/jobs.functions";
-import { ArrowLeft, MapPin, Phone, Mail, DollarSign, Camera, Check, Lock, ImageIcon } from "lucide-react";
+import { getJob, toggleChecklistItem, uploadJobPhoto, getPhotoUrl, markJobDone } from "@/lib/jobs.functions";
+import { ArrowLeft, MapPin, Phone, Mail, DollarSign, Camera, Check, Lock, ImageIcon, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -18,6 +18,7 @@ function JobDetail() {
   const qc = useQueryClient();
   const fn = useServerFn(getJob);
   const toggleFn = useServerFn(toggleChecklistItem);
+  const markDoneFn = useServerFn(markJobDone);
   const { data, isLoading } = useQuery({
     queryKey: ["job", jobId],
     queryFn: () => fn({ data: { jobId } }),
@@ -26,6 +27,16 @@ function JobDetail() {
   const toggle = useMutation({
     mutationFn: (v: { progressId: string; completed: boolean }) => toggleFn({ data: v }),
     onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["job", jobId] });
+      qc.invalidateQueries({ queryKey: ["jobs"] });
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const markDone = useMutation({
+    mutationFn: () => markDoneFn({ data: { jobId } }),
+    onSuccess: () => {
+      toast.success("Job marked as done 🎉");
       qc.invalidateQueries({ queryKey: ["job", jobId] });
       qc.invalidateQueries({ queryKey: ["jobs"] });
     },
@@ -121,10 +132,31 @@ function JobDetail() {
           </div>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-4 pb-28 lg:pb-4">
           <PhotoGallery jobId={jobId} photos={data.photos} />
         </div>
       </div>
+
+      {total > 0 && done === total && job.status !== "completed" && (
+        <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 p-4 pb-[calc(env(safe-area-inset-bottom)+1rem)]">
+          <div className="mx-auto max-w-md">
+            <button
+              onClick={() => markDone.mutate()}
+              disabled={markDone.isPending}
+              className="pointer-events-auto flex w-full items-center justify-center gap-2 rounded-2xl bg-brand-green py-4 text-base font-semibold text-white shadow-2xl shadow-brand-green/40 transition-transform active:scale-[0.98] disabled:opacity-70"
+            >
+              <CheckCircle2 className="h-5 w-5" />
+              {markDone.isPending ? "Saving…" : "Mark job as done"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {job.status === "completed" && (
+        <div className="mt-4 flex items-center justify-center gap-2 rounded-2xl border border-brand-green/40 bg-brand-green/10 p-4 text-brand-green">
+          <CheckCircle2 className="h-5 w-5" /> <span className="font-semibold">Job completed</span>
+        </div>
+      )}
     </AppShell>
   );
 }
