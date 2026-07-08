@@ -16,21 +16,24 @@ export const Route = createFileRoute("/api/public/highlevel/contact")({
           contact.contactId ??
           payload.contact_id ??
           payload.contactId ??
-          payload.id;
-        if (!highlevel_contact_id) return new Response("Missing highlevel_contact_id", { status: 400 });
+          payload.id ??
+          `unknown-${Date.now()}`;
+
+        // Stash raw payload in notes so we can see what HighLevel actually sends
+        const debugNotes = `RAW PAYLOAD:\n${raw.slice(0, 4000)}`;
 
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
         const { error } = await supabaseAdmin.from("contacts").upsert({
           highlevel_contact_id: String(highlevel_contact_id),
-          first_name: contact.first_name ?? contact.firstName ?? null,
-          last_name: contact.last_name ?? contact.lastName ?? null,
-          email: contact.email ?? null,
-          phone: contact.phone ?? null,
-          address: contact.address ?? contact.address1 ?? null,
-          city: contact.city ?? null,
-          state: contact.state ?? null,
-          postal_code: contact.postal_code ?? contact.postalCode ?? contact.zip ?? null,
-          notes: contact.notes ?? null,
+          first_name: contact.first_name ?? contact.firstName ?? payload.first_name ?? payload.firstName ?? null,
+          last_name: contact.last_name ?? contact.lastName ?? payload.last_name ?? payload.lastName ?? null,
+          email: contact.email ?? payload.email ?? null,
+          phone: contact.phone ?? payload.phone ?? null,
+          address: contact.address ?? contact.address1 ?? payload.address ?? payload.address1 ?? null,
+          city: contact.city ?? payload.city ?? null,
+          state: contact.state ?? payload.state ?? null,
+          postal_code: contact.postal_code ?? contact.postalCode ?? contact.zip ?? payload.postal_code ?? payload.postalCode ?? payload.zip ?? null,
+          notes: contact.notes ?? payload.notes ?? debugNotes,
         }, { onConflict: "highlevel_contact_id" });
         if (error) return new Response(error.message, { status: 500 });
         return Response.json({ ok: true });
