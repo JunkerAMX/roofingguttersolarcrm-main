@@ -24,6 +24,33 @@ function toDateOnly(v: any): string | null {
   return d.toISOString().slice(0, 10);
 }
 
+function tzOffsetMinutes(tz: string, at: Date): number {
+  const dtf = new Intl.DateTimeFormat("en-US", {
+    timeZone: tz, hour12: false,
+    year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", second: "2-digit",
+  });
+  const p: any = {};
+  for (const part of dtf.formatToParts(at)) p[part.type] = part.value;
+  const hour = +p.hour === 24 ? 0 : +p.hour;
+  const asUTC = Date.UTC(+p.year, +p.month - 1, +p.day, hour, +p.minute, +p.second);
+  return (asUTC - at.getTime()) / 60000;
+}
+
+// If the string has no timezone, treat its wall-clock as being in `tz`.
+function normalizeScheduledFor(v: any, tz: string | null): string | null {
+  if (!v) return null;
+  const s = String(v).trim();
+  if (!s) return null;
+  const hasTz = /Z$|[+\-]\d{2}:?\d{2}$/.test(s);
+  const d = new Date(s);
+  if (Number.isNaN(d.getTime())) return null;
+  if (hasTz || !tz) return d.toISOString();
+  const guess = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), d.getUTCHours(), d.getUTCMinutes(), d.getUTCSeconds());
+  const offset = tzOffsetMinutes(tz, new Date(guess));
+  return new Date(guess - offset * 60000).toISOString();
+}
+
 export const Route = createFileRoute("/api/public/highlevel/appointment")({
   server: {
     handlers: {
@@ -121,13 +148,14 @@ export const Route = createFileRoute("/api/public/highlevel/appointment")({
           assigned_to = prof?.id ?? null;
         }
 
-        const scheduled_for = pick(
+        const rawScheduled = pick(
           custom.scheduled_for,
           appt.start_time, appt.startTime, appt.scheduled_for,
           payload.start_time, payload.startTime, payload.scheduled_for,
           payload.appointment_start_time, payload.appointmentStartTime,
         );
-        // Due date = HL appointment start date (YYYY-MM-DD), or explicit override.
+        const tz = pick(custom.timezone, payload.timezone, appt.selectedTimezone, appt.timezone);
+        const scheduled_for = normalizeScheduledFor(rawScheduled, tz);
         const due_date = toDateOnly(pick(custom.due_date, appt.due_date, payload.due_date)) ?? toDateOnly(scheduled_for);
         // Price sent in whole dollars (e.g. 249) → converted to cents for storage.
         const price_cents = toCents(pick(custom.price, payload.price, appt.price, custom.price_cents, payload.price_cents, appt.price_cents));
