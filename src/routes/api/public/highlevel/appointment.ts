@@ -9,15 +9,19 @@ function pick(...vals: any[]) {
   return null;
 }
 
+// Price arrives in whole dollars (e.g. 249). Store as cents.
 function toCents(v: any): number | null {
   if (v === undefined || v === null || v === "") return null;
-  if (typeof v === "number") return Math.round(v);
-  const cleaned = String(v).replace(/[^0-9.-]/g, "");
-  if (!cleaned) return null;
-  const n = Number(cleaned);
-  if (Number.isNaN(n)) return null;
-  // If the string looked like dollars (contained a decimal), convert to cents.
-  return String(v).includes(".") ? Math.round(n * 100) : Math.round(n);
+  const cleaned = typeof v === "number" ? v : Number(String(v).replace(/[^0-9.-]/g, ""));
+  if (Number.isNaN(cleaned) || cleaned === 0) return cleaned === 0 ? 0 : null;
+  return Math.round(cleaned * 100);
+}
+
+function toDateOnly(v: any): string | null {
+  if (!v) return null;
+  const d = new Date(v);
+  if (Number.isNaN(d.getTime())) return String(v).slice(0, 10);
+  return d.toISOString().slice(0, 10);
 }
 
 export const Route = createFileRoute("/api/public/highlevel/appointment")({
