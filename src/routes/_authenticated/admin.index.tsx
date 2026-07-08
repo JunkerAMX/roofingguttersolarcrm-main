@@ -67,12 +67,14 @@ function AdminHome() {
   "highlevel_contact_id": "abc123",
   "job_type_slug": "gutter-cleaning",
   "scheduled_for": "2026-07-09T09:00:00Z",
-  "due_date": "2026-07-09",
-  "price_cents": 25000,
+  "price": 249,
   "currency": "AUD",
   "assignee_email": "worker@rgs.com",
   "notes": "Two-storey house, ladder access from side"
 }`}</pre>
+            <p className="mt-2 text-xs text-muted-foreground">
+              <code className="rounded bg-secondary px-1">price</code> is whole dollars (e.g. 249). <code className="rounded bg-secondary px-1">due_date</code> is auto-set from the appointment start date if not provided.
+            </p>
             <p className="mt-2 text-xs text-muted-foreground">
               You can also send HighLevel&apos;s native shape with <code className="rounded bg-secondary px-1">appointment</code> and{" "}
               <code className="rounded bg-secondary px-1">contact</code> objects. Only one appointment per request.
