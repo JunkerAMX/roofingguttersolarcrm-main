@@ -27,12 +27,29 @@ function JobDetail() {
 
   const toggle = useMutation({
     mutationFn: (v: { progressId: string; completed: boolean }) => toggleFn({ data: v }),
-    onSuccess: () => {
+    onMutate: async (v) => {
+      await qc.cancelQueries({ queryKey: ["job", jobId] });
+      const prev = qc.getQueryData<any>(["job", jobId]);
+      if (prev) {
+        qc.setQueryData(["job", jobId], {
+          ...prev,
+          progress: prev.progress.map((p: any) =>
+            p.id === v.progressId ? { ...p, completed: v.completed, completed_at: v.completed ? new Date().toISOString() : null } : p,
+          ),
+        });
+      }
+      return { prev };
+    },
+    onError: (e: any, _v, ctx) => {
+      if (ctx?.prev) qc.setQueryData(["job", jobId], ctx.prev);
+      toast.error(e.message);
+    },
+    onSettled: () => {
       qc.invalidateQueries({ queryKey: ["job", jobId] });
       qc.invalidateQueries({ queryKey: ["jobs"] });
     },
-    onError: (e: any) => toast.error(e.message),
   });
+
 
   const markDone = useMutation({
     mutationFn: () => markDoneFn({ data: { jobId } }),
