@@ -121,9 +121,16 @@ export const Route = createFileRoute("/api/public/highlevel/appointment")({
           assigned_to = prof?.id ?? null;
         }
 
-        const scheduled_for = pick(custom.scheduled_for, appt.start_time, appt.startTime, appt.scheduled_for, payload.scheduled_for);
-        const due_date = pick(custom.due_date, appt.due_date, payload.due_date) ?? (scheduled_for ? String(scheduled_for).slice(0, 10) : null);
-        const price_cents = toCents(pick(custom.price_cents, payload.price_cents, appt.price_cents, custom.price, payload.price, appt.price));
+        const scheduled_for = pick(
+          custom.scheduled_for,
+          appt.start_time, appt.startTime, appt.scheduled_for,
+          payload.start_time, payload.startTime, payload.scheduled_for,
+          payload.appointment_start_time, payload.appointmentStartTime,
+        );
+        // Due date = HL appointment start date (YYYY-MM-DD), or explicit override.
+        const due_date = toDateOnly(pick(custom.due_date, appt.due_date, payload.due_date)) ?? toDateOnly(scheduled_for);
+        // Price sent in whole dollars (e.g. 249) → converted to cents for storage.
+        const price_cents = toCents(pick(custom.price, payload.price, appt.price, custom.price_cents, payload.price_cents, appt.price_cents));
         const notes = pick(custom.notes, appt.notes, payload.notes, payload.Message);
 
         const { data: job, error: jerr } = await supabaseAdmin
