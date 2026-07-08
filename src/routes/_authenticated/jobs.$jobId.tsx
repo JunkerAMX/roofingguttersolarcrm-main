@@ -121,13 +121,24 @@ function JobDetail() {
             <div className="mb-4 h-2 overflow-hidden rounded-full bg-secondary">
               <div className="h-full bg-gradient-to-r from-brand-green to-brand-lime transition-all" style={{ width: `${pct}%` }} />
             </div>
+            {!isActive && jobStartMs && (
+              <div className="mb-4 flex items-start gap-3 rounded-xl border border-brand-yellow/50 bg-brand-yellow/10 p-3 text-sm">
+                <Clock className="mt-0.5 h-5 w-5 shrink-0 text-yellow-800" />
+                <div>
+                  <div className="font-semibold text-yellow-900">Job not active yet</div>
+                  <div className="text-yellow-900/80">
+                    Starts {format(new Date(jobStartMs), "EEE d MMM 'at' h:mm a")} · in {formatDistanceToNow(new Date(jobStartMs))}. You can review the details now — tasks unlock at the appointment time.
+                  </div>
+                </div>
+              </div>
+            )}
             <ul className="space-y-2">
               {progress.map((p: any) => (
                 <ChecklistRow
                   key={p.id}
                   item={p}
                   jobId={jobId}
-                  disabled={p.input_type === "payment_trigger" && !priorAllDone(p.position)}
+                  disabled={!isActive || (p.input_type === "payment_trigger" && !priorAllDone(p.position))}
                   onToggle={(completed) => toggle.mutate({ progressId: p.id, completed })}
                 />
               ))}
