@@ -23,6 +23,7 @@ import { Route as AuthenticatedAdminJobsRouteImport } from './routes/_authentica
 import { Route as AuthenticatedAdminContactsRouteImport } from './routes/_authenticated/admin.contacts'
 import { Route as AuthenticatedAdminChecklistsRouteImport } from './routes/_authenticated/admin.checklists'
 import { Route as ApiPublicHighlevelContactRouteImport } from './routes/api/public/highlevel/contact'
+import { Route as ApiPublicHighlevelAppointmentRouteImport } from './routes/api/public/highlevel/appointment'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -97,6 +98,12 @@ const ApiPublicHighlevelContactRoute =
     path: '/api/public/highlevel/contact',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHighlevelAppointmentRoute =
+  ApiPublicHighlevelAppointmentRouteImport.update({
+    id: '/api/public/highlevel/appointment',
+    path: '/api/public/highlevel/appointment',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -111,6 +118,7 @@ export interface FileRoutesByFullPath {
   '/admin/team': typeof AuthenticatedAdminTeamRoute
   '/jobs/$jobId': typeof AuthenticatedJobsJobIdRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
+  '/api/public/highlevel/appointment': typeof ApiPublicHighlevelAppointmentRoute
   '/api/public/highlevel/contact': typeof ApiPublicHighlevelContactRoute
 }
 export interface FileRoutesByTo {
@@ -125,6 +133,7 @@ export interface FileRoutesByTo {
   '/admin/team': typeof AuthenticatedAdminTeamRoute
   '/jobs/$jobId': typeof AuthenticatedJobsJobIdRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
+  '/api/public/highlevel/appointment': typeof ApiPublicHighlevelAppointmentRoute
   '/api/public/highlevel/contact': typeof ApiPublicHighlevelContactRoute
 }
 export interface FileRoutesById {
@@ -142,6 +151,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/team': typeof AuthenticatedAdminTeamRoute
   '/_authenticated/jobs/$jobId': typeof AuthenticatedJobsJobIdRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
+  '/api/public/highlevel/appointment': typeof ApiPublicHighlevelAppointmentRoute
   '/api/public/highlevel/contact': typeof ApiPublicHighlevelContactRoute
 }
 export interface FileRouteTypes {
@@ -159,6 +169,7 @@ export interface FileRouteTypes {
     | '/admin/team'
     | '/jobs/$jobId'
     | '/admin/'
+    | '/api/public/highlevel/appointment'
     | '/api/public/highlevel/contact'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -173,6 +184,7 @@ export interface FileRouteTypes {
     | '/admin/team'
     | '/jobs/$jobId'
     | '/admin'
+    | '/api/public/highlevel/appointment'
     | '/api/public/highlevel/contact'
   id:
     | '__root__'
@@ -189,6 +201,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/team'
     | '/_authenticated/jobs/$jobId'
     | '/_authenticated/admin/'
+    | '/api/public/highlevel/appointment'
     | '/api/public/highlevel/contact'
   fileRoutesById: FileRoutesById
 }
@@ -196,6 +209,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  ApiPublicHighlevelAppointmentRoute: typeof ApiPublicHighlevelAppointmentRoute
   ApiPublicHighlevelContactRoute: typeof ApiPublicHighlevelContactRoute
 }
 
@@ -299,6 +313,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHighlevelContactRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/highlevel/appointment': {
+      id: '/api/public/highlevel/appointment'
+      path: '/api/public/highlevel/appointment'
+      fullPath: '/api/public/highlevel/appointment'
+      preLoaderRoute: typeof ApiPublicHighlevelAppointmentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -344,6 +365,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  ApiPublicHighlevelAppointmentRoute: ApiPublicHighlevelAppointmentRoute,
   ApiPublicHighlevelContactRoute: ApiPublicHighlevelContactRoute,
 }
 export const routeTree = rootRouteImport
