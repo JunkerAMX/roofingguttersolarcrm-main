@@ -52,6 +52,8 @@ function AreasPage() {
 
   const { data: workers = [] } = useQuery({ queryKey: ["areas", "workers"], queryFn: () => workersFn() });
   const { data: areas = [] } = useQuery({ queryKey: ["areas", "list"], queryFn: () => areasFn() });
+  const { data: polygons = [] } = useQuery({ queryKey: ["areas", "polygons"], queryFn: () => polygonsFn() });
+
 
   const [selectedWorker, setSelectedWorker] = useState<string>("");
   useEffect(() => {
