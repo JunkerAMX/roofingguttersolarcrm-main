@@ -2,9 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { listWorkers, listAreas, addArea, deleteArea, updateArea } from "@/lib/areas.functions";
+import { listWorkers, listAreas, addArea, deleteArea, updateArea, moveArea, bulkAddFromPoints } from "@/lib/areas.functions";
 import { toast } from "sonner";
-import { Copy, Trash2, MapPin } from "lucide-react";
+import { Copy, Trash2, MapPin, Pencil, MousePointer2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/admin/areas")({
@@ -30,7 +30,7 @@ function loadMaps(): Promise<any> {
   mapsPromise = new Promise((resolve, reject) => {
     window.__initGmap = () => resolve(window.google);
     const s = document.createElement("script");
-    s.src = `https://maps.googleapis.com/maps/api/js?key=${key}&loading=async&callback=__initGmap&channel=${channel ?? ""}`;
+    s.src = `https://maps.googleapis.com/maps/api/js?key=${key}&libraries=drawing,geometry&loading=async&callback=__initGmap&channel=${channel ?? ""}`;
     s.async = true;
     s.onerror = () => { mapsPromise = null; reject(new Error("Failed to load Google Maps")); };
     document.head.appendChild(s);
@@ -45,6 +45,8 @@ function AreasPage() {
   const addFn = useServerFn(addArea);
   const delFn = useServerFn(deleteArea);
   const updFn = useServerFn(updateArea);
+  const moveFn = useServerFn(moveArea);
+  const bulkFn = useServerFn(bulkAddFromPoints);
 
   const { data: workers = [] } = useQuery({ queryKey: ["areas", "workers"], queryFn: () => workersFn() });
   const { data: areas = [] } = useQuery({ queryKey: ["areas", "list"], queryFn: () => areasFn() });
@@ -81,6 +83,26 @@ function AreasPage() {
     onError: (e: any) => toast.error(e.message),
   });
 
+  const move = useMutation({
+    mutationFn: (v: { id: string; lat: number; lng: number }) => moveFn({ data: v }),
+    onSuccess: () => {
+      toast.success("Pin moved");
+      qc.invalidateQueries({ queryKey: ["areas", "list"] });
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const bulk = useMutation({
+    mutationFn: (v: { user_id: string; points: { lat: number; lng: number }[] }) => bulkFn({ data: v }),
+    onSuccess: (r: any) => {
+      toast.success(r.added ? `Added ${r.added} postcode${r.added === 1 ? "" : "s"}: ${r.postcodes.join(", ")}` : "No new postcodes in that area");
+      qc.invalidateQueries({ queryKey: ["areas", "list"] });
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const [drawMode, setDrawMode] = useState(false);
+
   // Map bootstrap
   const mapEl = useRef<HTMLDivElement>(null);
   const mapRef = useRef<any>(null);
@@ -112,12 +134,15 @@ function AreasPage() {
     return () => { cancelled = true; };
   }, []);
 
-  // Handle clicks on map — always use latest selectedWorker
+  // Handle clicks on map — always use latest selectedWorker. Ignored in draw mode.
   const selectedRef = useRef(selectedWorker);
   selectedRef.current = selectedWorker;
+  const drawModeRef = useRef(drawMode);
+  drawModeRef.current = drawMode;
   useEffect(() => {
     if (!mapReady || !mapRef.current || !window.google) return;
     const listener = mapRef.current.addListener("click", (e: any) => {
+      if (drawModeRef.current) return;
       const uid = selectedRef.current;
       if (!uid) { toast.error("Select a worker first"); return; }
       add.mutate({ user_id: uid, lat: e.latLng.lat(), lng: e.latLng.lng() });
@@ -125,7 +150,7 @@ function AreasPage() {
     return () => window.google.maps.event.removeListener(listener);
   }, [mapReady, add]);
 
-  // Render markers
+  // Render markers (draggable)
   useEffect(() => {
     if (!mapReady || !mapRef.current || !window.google) return;
     markersRef.current.forEach((m) => m.setMap(null));
@@ -134,7 +159,8 @@ function AreasPage() {
       const marker = new window.google.maps.Marker({
         position: { lat: a.lat, lng: a.lng },
         map: mapRef.current,
-        title: `${a.worker?.full_name ?? "Worker"} — ${a.postcode ?? "no postcode"}`,
+        draggable: true,
+        title: `${a.worker?.full_name ?? "Worker"} — ${a.postcode ?? "no postcode"} (drag to move)`,
         icon: {
           path: window.google.maps.SymbolPath.CIRCLE,
           fillColor: color,
@@ -148,9 +174,61 @@ function AreasPage() {
         content: `<div style="font:13px sans-serif"><b>${a.worker?.full_name ?? "Worker"}</b><br/>${a.postcode ?? "?"} ${a.suburb ?? ""}</div>`,
       });
       marker.addListener("click", () => info.open({ anchor: marker, map: mapRef.current }));
+      marker.addListener("dragend", (e: any) => {
+        move.mutate({ id: a.id, lat: e.latLng.lat(), lng: e.latLng.lng() });
+      });
       return marker;
     });
-  }, [areas, mapReady, workerColor]);
+  }, [areas, mapReady, workerColor, move]);
+
+  // Drawing manager for lasso/polygon
+  const drawingRef = useRef<any>(null);
+  useEffect(() => {
+    if (!mapReady || !mapRef.current || !window.google?.maps?.drawing) return;
+    if (!drawingRef.current) {
+      drawingRef.current = new window.google.maps.drawing.DrawingManager({
+        drawingMode: null,
+        drawingControl: false,
+        polygonOptions: {
+          fillColor: "#16a34a",
+          fillOpacity: 0.15,
+          strokeColor: "#16a34a",
+          strokeWeight: 2,
+          clickable: false,
+          editable: false,
+          zIndex: 1,
+        },
+      });
+      drawingRef.current.setMap(mapRef.current);
+      window.google.maps.event.addListener(drawingRef.current, "polygoncomplete", (poly: any) => {
+        const uid = selectedRef.current;
+        if (!uid) { toast.error("Select a worker first"); poly.setMap(null); return; }
+        const bounds = new window.google.maps.LatLngBounds();
+        poly.getPath().forEach((p: any) => bounds.extend(p));
+        const ne = bounds.getNorthEast(), sw = bounds.getSouthWest();
+        const steps = 7; // 7x7 = 49 candidate points
+        const points: { lat: number; lng: number }[] = [];
+        for (let i = 0; i <= steps; i++) {
+          for (let j = 0; j <= steps; j++) {
+            const lat = sw.lat() + ((ne.lat() - sw.lat()) * i) / steps;
+            const lng = sw.lng() + ((ne.lng() - sw.lng()) * j) / steps;
+            const pt = new window.google.maps.LatLng(lat, lng);
+            if (window.google.maps.geometry.poly.containsLocation(pt, poly)) {
+              points.push({ lat, lng });
+            }
+          }
+        }
+        poly.setMap(null);
+        setDrawMode(false);
+        drawingRef.current.setDrawingMode(null);
+        if (!points.length) { toast.error("Area too small — draw a larger shape"); return; }
+        bulk.mutate({ user_id: uid, points: points.slice(0, 60) });
+      });
+    }
+    drawingRef.current.setDrawingMode(drawMode ? window.google.maps.drawing.OverlayType.POLYGON : null);
+  }, [mapReady, drawMode, bulk]);
+
+
 
   // JSON grouped output
   const grouped = useMemo(() => {
@@ -173,7 +251,7 @@ function AreasPage() {
     <div className="space-y-6">
       <div>
         <h2 className="font-display text-2xl font-semibold">Service Areas</h2>
-        <p className="text-sm text-muted-foreground">Pick a worker, then click the map to drop pins. Postcodes are pulled automatically.</p>
+        <p className="text-sm text-muted-foreground">Pick a worker. Click to drop pins, drag to move, or switch to <b>Draw area</b> and lasso a region to auto-add every postcode inside.</p>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[280px_1fr]">
@@ -212,8 +290,32 @@ function AreasPage() {
           {!mapReady && (
             <div className="absolute inset-0 flex items-center justify-center text-sm text-muted-foreground">Loading map…</div>
           )}
-          {add.isPending && (
-            <div className="absolute left-3 top-3 rounded-full bg-background/90 px-3 py-1 text-xs shadow">Looking up postcode…</div>
+          {mapReady && (
+            <div className="absolute left-3 top-3 flex gap-2">
+              <button
+                onClick={() => setDrawMode(false)}
+                className={cn(
+                  "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold shadow transition-colors",
+                  !drawMode ? "bg-brand-green text-white" : "bg-background/90 text-foreground hover:bg-background",
+                )}
+              >
+                <MousePointer2 className="h-3.5 w-3.5" /> Pin
+              </button>
+              <button
+                onClick={() => setDrawMode(true)}
+                className={cn(
+                  "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold shadow transition-colors",
+                  drawMode ? "bg-brand-green text-white" : "bg-background/90 text-foreground hover:bg-background",
+                )}
+              >
+                <Pencil className="h-3.5 w-3.5" /> Draw area
+              </button>
+            </div>
+          )}
+          {(add.isPending || bulk.isPending || move.isPending) && (
+            <div className="absolute right-3 top-3 rounded-full bg-background/90 px-3 py-1 text-xs shadow">
+              {bulk.isPending ? "Scanning postcodes…" : "Looking up postcode…"}
+            </div>
           )}
         </div>
       </div>
