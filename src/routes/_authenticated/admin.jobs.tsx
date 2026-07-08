@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { listAllJobs, listTeam, assignJob } from "@/lib/admin.functions";
+import { listAllJobs, listTeam, assignJob, deleteJob } from "@/lib/admin.functions";
+import { Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 
