@@ -5,6 +5,7 @@ import { AppShell } from "@/components/app-shell";
 import { listMyJobs } from "@/lib/jobs.functions";
 import { MapPin, Clock, DollarSign, CheckCircle2, Lock } from "lucide-react";
 import { format, formatDistanceToNow, isToday, isTomorrow, isYesterday, startOfDay } from "date-fns";
+import { useNow } from "@/hooks/use-now";
 
 export const Route = createFileRoute("/_authenticated/today")({
   component: TodayPage,
@@ -85,9 +86,10 @@ function TodayPage() {
 }
 
 function JobCard({ job }: { job: any }) {
+  const now = useNow(15000);
   const price = job.price_cents ? `$${(job.price_cents / 100).toFixed(2)}` : null;
   const startMs = job.scheduled_for ? new Date(job.scheduled_for).getTime() : null;
-  const isActive = startMs ? startMs <= Date.now() : true;
+  const isActive = startMs ? startMs <= now : true;
   const statusColor = !isActive
     ? "bg-brand-yellow/30 text-yellow-900"
     : ({

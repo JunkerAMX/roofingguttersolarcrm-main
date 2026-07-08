@@ -8,6 +8,7 @@ import { ArrowLeft, MapPin, Phone, Mail, DollarSign, Camera, Check, Lock, ImageI
 import { format, formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { useNow } from "@/hooks/use-now";
 
 export const Route = createFileRoute("/_authenticated/jobs/$jobId")({
   component: JobDetail,
@@ -68,8 +69,9 @@ function JobDetail() {
   const total = progress.length;
   const pct = total ? Math.round((done / total) * 100) : 0;
   const contact = job.contact;
+  const now = useNow(15000);
   const jobStartMs = job.scheduled_for ? new Date(job.scheduled_for).getTime() : null;
-  const isActive = jobStartMs ? jobStartMs <= Date.now() : true;
+  const isActive = jobStartMs ? jobStartMs <= now : true;
   const priorAllDone = (pos: number) => progress.filter((p: any) => p.position < pos).every((p: any) => p.completed);
 
   return (
