@@ -192,14 +192,16 @@ export const listPolygons = createServerFn({ method: "GET" })
 
 export const savePolygon = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { user_id: string; points: { lat: number; lng: number }[] }) =>
+  .inputValidator((d: { user_id: string; points: { lat: number; lng: number }[]; allowEmpty?: boolean }) =>
     z.object({
       user_id: z.string().uuid(),
       points: z.array(z.object({ lat: z.number(), lng: z.number() })).max(500),
+      allowEmpty: z.boolean().optional(),
     }).parse(d),
   )
   .handler(async ({ context, data }) => {
     await requireAdmin(context.supabase, context.userId);
+    if (data.points.length === 0 && !data.allowEmpty) return { ok: true, ignored: true };
     const { error } = await context.supabase
       .from("worker_polygons")
       .upsert({ user_id: data.user_id, points: data.points, updated_at: new Date().toISOString() });

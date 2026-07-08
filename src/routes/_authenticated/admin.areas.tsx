@@ -17,6 +17,14 @@ const WORKER_COLORS = [
   "#ca8a04", "#db2777", "#4f46e5", "#059669", "#7c3aed", "#e11d48",
 ];
 
+type PolygonPoint = { lat: number; lng: number };
+
+function stableWorkerColor(workerId: string) {
+  let hash = 0;
+  for (let i = 0; i < workerId.length; i++) hash = (hash * 31 + workerId.charCodeAt(i)) >>> 0;
+  return WORKER_COLORS[hash % WORKER_COLORS.length];
+}
+
 declare global {
   interface Window { __initGmap?: () => void; google?: any; }
 }
@@ -50,9 +58,9 @@ function AreasPage() {
   const polygonsFn = useServerFn(listPolygons);
   const savePolyFn = useServerFn(savePolygon);
 
-  const { data: workers = [] } = useQuery({ queryKey: ["areas", "workers"], queryFn: () => workersFn() });
+  const { data: workers = [], isSuccess: workersLoaded } = useQuery({ queryKey: ["areas", "workers"], queryFn: () => workersFn() });
   const { data: areas = [] } = useQuery({ queryKey: ["areas", "list"], queryFn: () => areasFn() });
-  const { data: polygons = [] } = useQuery({ queryKey: ["areas", "polygons"], queryFn: () => polygonsFn() });
+  const { data: polygons = [], isSuccess: polygonsLoaded } = useQuery({ queryKey: ["areas", "polygons"], queryFn: () => polygonsFn() });
 
 
   const [selectedWorker, setSelectedWorker] = useState<string>("");
@@ -62,7 +70,7 @@ function AreasPage() {
 
   const workerColor = useMemo(() => {
     const map = new Map<string, string>();
-    workers.forEach((w: any, i: number) => map.set(w.id, WORKER_COLORS[i % WORKER_COLORS.length]));
+    workers.forEach((w: any) => map.set(w.id, stableWorkerColor(w.id)));
     return map;
   }, [workers]);
 
@@ -156,31 +164,53 @@ function AreasPage() {
   const polysRef = useRef<Map<string, any>>(new Map());
   const listenersRef = useRef<any[]>([]);
 
-  const save = useMutation({
-    mutationFn: (v: { user_id: string; points: { lat: number; lng: number }[] }) => savePolyFn({ data: v }),
-    onSuccess: (_r, v) => {
-      // Keep the query cache in sync so re-renders don't rebuild the polygon from stale (empty) data.
-      qc.setQueryData(["areas", "polygons"], (old: any[] = []) => {
-        const others = (old ?? []).filter((p: any) => p.user_id !== v.user_id);
-        return [...others, { user_id: v.user_id, points: v.points, updated_at: new Date().toISOString() }];
-      });
-    },
-    onError: (e: any) => toast.error(e.message),
-  });
+  const syncPolygonCache = (uid: string, points: PolygonPoint[]) => {
+    qc.setQueryData(["areas", "polygons"], (old: any[] = []) => {
+      const others = (old ?? []).filter((p: any) => p.user_id !== uid);
+      return [...others, { user_id: uid, points, updated_at: new Date().toISOString() }];
+    });
+  };
 
-  // Debounced save when a polygon path is edited.
+  const readPolygonPoints = (poly: any) => {
+    const pts: PolygonPoint[] = [];
+    poly.getPath().forEach((p: any) => pts.push({ lat: p.lat(), lng: p.lng() }));
+    return pts;
+  };
+
+  const queuedSaves = useRef<Map<string, { points: PolygonPoint[]; allowEmpty: boolean }>>(new Map());
+  const activeSaves = useRef<Set<string>>(new Set());
+
+  const flushPolySave = async (uid: string) => {
+    if (activeSaves.current.has(uid)) return;
+    const next = queuedSaves.current.get(uid);
+    if (!next) return;
+    queuedSaves.current.delete(uid);
+    activeSaves.current.add(uid);
+    try {
+      await savePolyFn({ data: { user_id: uid, points: next.points, allowEmpty: next.allowEmpty } });
+      syncPolygonCache(uid, next.points);
+    } catch (e: any) {
+      toast.error(e.message);
+    } finally {
+      activeSaves.current.delete(uid);
+      if (queuedSaves.current.has(uid)) void flushPolySave(uid);
+    }
+  };
+
+  // Debounced, serialized save when a polygon path is edited.
   const saveTimers = useRef<Map<string, any>>(new Map());
-  const schedulePolySave = (uid: string, poly: any) => {
+  const schedulePolySave = (uid: string, poly: any, allowEmpty = false) => {
     const t = saveTimers.current.get(uid);
     if (t) clearTimeout(t);
     saveTimers.current.set(uid, setTimeout(() => {
-      const pts: { lat: number; lng: number }[] = [];
-      poly.getPath().forEach((p: any) => pts.push({ lat: p.lat(), lng: p.lng() }));
-      save.mutate({ user_id: uid, points: pts });
+      const points = readPolygonPoints(poly);
+      if (points.length === 0 && !allowEmpty) return;
+      queuedSaves.current.set(uid, { points, allowEmpty });
+      void flushPolySave(uid);
     }, 600));
   };
 
-  const buildPoly = (uid: string, pts: { lat: number; lng: number }[]) => {
+  const buildPoly = (uid: string, pts: PolygonPoint[]) => {
     const g = window.google;
     const color = workerColor.get(uid) ?? "#16a34a";
     const poly = new g.maps.Polygon({
@@ -208,7 +238,8 @@ function AreasPage() {
   // Sync polygons to data (create/update, don't wipe on selection change).
   useEffect(() => {
     if (!mapReady || !mapRef.current || !window.google) return;
-    const byUser = new Map<string, { lat: number; lng: number }[]>();
+    if (!workersLoaded || !polygonsLoaded) return;
+    const byUser = new Map<string, PolygonPoint[]>();
     for (const w of workers as any[]) byUser.set(w.id, []);
     for (const p of polygons as any[]) {
       const pts = Array.isArray(p.points) ? p.points : [];
@@ -227,13 +258,15 @@ function AreasPage() {
         polysRef.current.set(uid, buildPoly(uid, pts));
       }
     });
-  }, [mapReady, polygons, workers]);
+  }, [mapReady, polygons, workers, workersLoaded, polygonsLoaded]);
 
   // Restyle polygons when selection changes (no rebuild).
   useEffect(() => {
     polysRef.current.forEach((poly, uid) => {
       const isSelected = uid === selectedWorker;
       poly.setOptions({
+        fillColor: workerColor.get(uid) ?? "#16a34a",
+        strokeColor: workerColor.get(uid) ?? "#16a34a",
         fillOpacity: isSelected ? 0.3 : 0.22,
         strokeWeight: isSelected ? 3 : 2,
         clickable: !isSelected,
@@ -241,7 +274,7 @@ function AreasPage() {
         zIndex: isSelected ? 10 : 1,
       });
     });
-  }, [selectedWorker, polygons, workers]);
+  }, [selectedWorker, polygons, workers, workerColor]);
 
 
   // Map click always appends a vertex to the selected worker's polygon (auto-saves).
@@ -261,10 +294,11 @@ function AreasPage() {
   const clearPolygon = () => {
     if (!selectedWorker) return;
     // Reset on-map polygon immediately, then persist.
-    polysRef.current.get(selectedWorker)?.setPath([]);
-    save.mutate({ user_id: selectedWorker, points: [] }, {
-      onSuccess: () => toast.success("Area cleared"),
-    });
+    const poly = polysRef.current.get(selectedWorker);
+    poly?.setPath([]);
+    queuedSaves.current.set(selectedWorker, { points: [], allowEmpty: true });
+    void flushPolySave(selectedWorker);
+    toast.success("Area cleared");
   };
 
   const finishPolygon = () => {
