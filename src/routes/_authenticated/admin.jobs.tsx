@@ -14,6 +14,7 @@ function JobsPage() {
   const listFn = useServerFn(listAllJobs);
   const teamFn = useServerFn(listTeam);
   const assignFn = useServerFn(assignJob);
+  const delFn = useServerFn(deleteJob);
   const qc = useQueryClient();
   const { data: jobs = [] } = useQuery({ queryKey: ["allJobs"], queryFn: () => listFn() });
   const { data: team = [] } = useQuery({ queryKey: ["team"], queryFn: () => teamFn() });
@@ -21,6 +22,12 @@ function JobsPage() {
   const assign = useMutation({
     mutationFn: (v: { jobId: string; assignedTo: string | null }) => assignFn({ data: v }),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["allJobs"] }); toast.success("Assigned"); },
+  });
+
+  const del = useMutation({
+    mutationFn: (id: string) => delFn({ data: { id } }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["allJobs"] }); toast.success("Job deleted"); },
+    onError: (e: any) => toast.error(e?.message ?? "Delete failed"),
   });
 
   return (
