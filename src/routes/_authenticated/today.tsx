@@ -5,6 +5,7 @@ import { AppShell } from "@/components/app-shell";
 import { listMyJobs } from "@/lib/jobs.functions";
 import { MapPin, Clock, DollarSign, CheckCircle2, Lock } from "lucide-react";
 import { format, formatDistanceToNow, isToday, isTomorrow, isYesterday, startOfDay } from "date-fns";
+import { useNow } from "@/hooks/use-now";
 
 export const Route = createFileRoute("/_authenticated/today")({
   component: TodayPage,
