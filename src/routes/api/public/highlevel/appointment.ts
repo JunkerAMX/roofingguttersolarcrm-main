@@ -17,12 +17,15 @@ function toCents(v: any): number | null {
   return Math.round(cleaned * 100);
 }
 
-function toDateOnly(v: any): string | null {
+function toDateOnly(v: any, tz?: string | null): string | null {
   if (!v) return null;
   const d = new Date(v);
   if (Number.isNaN(d.getTime())) return String(v).slice(0, 10);
-  return d.toISOString().slice(0, 10);
+  const zone = tz || "Australia/Sydney";
+  const dtf = new Intl.DateTimeFormat("en-CA", { timeZone: zone, year: "numeric", month: "2-digit", day: "2-digit" });
+  return dtf.format(d); // YYYY-MM-DD in tz
 }
+
 
 function tzOffsetMinutes(tz: string, at: Date): number {
   const dtf = new Intl.DateTimeFormat("en-US", {
@@ -156,7 +159,7 @@ export const Route = createFileRoute("/api/public/highlevel/appointment")({
         );
         const tz = pick(custom.timezone, payload.timezone, appt.selectedTimezone, appt.timezone);
         const scheduled_for = normalizeScheduledFor(rawScheduled, tz);
-        const due_date = toDateOnly(pick(custom.due_date, appt.due_date, payload.due_date)) ?? toDateOnly(scheduled_for);
+        const due_date = toDateOnly(pick(custom.due_date, appt.due_date, payload.due_date), tz) ?? toDateOnly(scheduled_for, tz);
         // Price sent in whole dollars (e.g. 249) → converted to cents for storage.
         const price_cents = toCents(pick(custom.price, payload.price, appt.price, custom.price_cents, payload.price_cents, appt.price_cents));
         const notes = pick(custom.notes, appt.notes, payload.notes, payload.Message);
