@@ -102,6 +102,75 @@ export const updateArea = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export const moveArea = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id: string; lat: number; lng: number }) =>
+    z.object({
+      id: z.string().uuid(),
+      lat: z.number().min(-90).max(90),
+      lng: z.number().min(-180).max(180),
+    }).parse(d),
+  )
+  .handler(async ({ context, data }) => {
+    await requireAdmin(context.supabase, context.userId);
+    const geo = await reverseGeocode(data.lat, data.lng);
+    const { error } = await context.supabase
+      .from("worker_areas")
+      .update({ lat: data.lat, lng: data.lng, postcode: geo.postcode, suburb: geo.suburb, label: geo.formatted })
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const bulkAddFromPoints = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { user_id: string; points: { lat: number; lng: number }[] }) =>
+    z.object({
+      user_id: z.string().uuid(),
+      points: z.array(z.object({ lat: z.number(), lng: z.number() })).min(1).max(60),
+    }).parse(d),
+  )
+  .handler(async ({ context, data }) => {
+    await requireAdmin(context.supabase, context.userId);
+    // Reverse geocode all points in parallel, dedupe by postcode.
+    const results = await Promise.all(
+      data.points.map(async (p) => {
+        try {
+          const g = await reverseGeocode(p.lat, p.lng);
+          return { ...p, ...g };
+        } catch {
+          return { ...p, postcode: null, suburb: null, formatted: null };
+        }
+      }),
+    );
+    // Also skip postcodes this worker already has.
+    const { data: existing } = await context.supabase
+      .from("worker_areas")
+      .select("postcode")
+      .eq("user_id", data.user_id);
+    const have = new Set((existing ?? []).map((r: any) => r.postcode).filter(Boolean));
+    const seen = new Set<string>();
+    const rows: any[] = [];
+    for (const r of results) {
+      if (!r.postcode) continue;
+      if (have.has(r.postcode) || seen.has(r.postcode)) continue;
+      seen.add(r.postcode);
+      rows.push({
+        user_id: data.user_id,
+        lat: r.lat,
+        lng: r.lng,
+        postcode: r.postcode,
+        suburb: r.suburb,
+        label: r.formatted,
+      });
+    }
+    if (rows.length) {
+      const { error } = await context.supabase.from("worker_areas").insert(rows);
+      if (error) throw new Error(error.message);
+    }
+    return { added: rows.length, postcodes: rows.map((r) => r.postcode) };
+  });
+
 export const deleteArea = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
