@@ -27,12 +27,29 @@ function JobDetail() {
 
   const toggle = useMutation({
     mutationFn: (v: { progressId: string; completed: boolean }) => toggleFn({ data: v }),
-    onSuccess: () => {
+    onMutate: async (v) => {
+      await qc.cancelQueries({ queryKey: ["job", jobId] });
+      const prev = qc.getQueryData<any>(["job", jobId]);
+      if (prev) {
+        qc.setQueryData(["job", jobId], {
+          ...prev,
+          progress: prev.progress.map((p: any) =>
+            p.id === v.progressId ? { ...p, completed: v.completed, completed_at: v.completed ? new Date().toISOString() : null } : p,
+          ),
+        });
+      }
+      return { prev };
+    },
+    onError: (e: any, _v, ctx) => {
+      if (ctx?.prev) qc.setQueryData(["job", jobId], ctx.prev);
+      toast.error(e.message);
+    },
+    onSettled: () => {
       qc.invalidateQueries({ queryKey: ["job", jobId] });
       qc.invalidateQueries({ queryKey: ["jobs"] });
     },
-    onError: (e: any) => toast.error(e.message),
   });
+
 
   const markDone = useMutation({
     mutationFn: () => markDoneFn({ data: { jobId } }),
@@ -119,8 +136,9 @@ function JobDetail() {
               <span className="text-sm text-muted-foreground">{done} / {total} done</span>
             </div>
             <div className="mb-4 h-2 overflow-hidden rounded-full bg-secondary">
-              <div className="h-full bg-gradient-to-r from-brand-green to-brand-lime transition-all" style={{ width: `${pct}%` }} />
+              <div className="h-full bg-gradient-to-r from-brand-green to-brand-lime transition-all duration-500 ease-out" style={{ width: `${pct}%` }} />
             </div>
+
             {!isActive && jobStartMs && (
               <div className="mb-4 flex items-start gap-3 rounded-xl border border-brand-yellow/50 bg-brand-yellow/10 p-3 text-sm">
                 <Clock className="mt-0.5 h-5 w-5 shrink-0 text-yellow-800" />
@@ -152,7 +170,7 @@ function JobDetail() {
       </div>
 
       {total > 0 && done === total && job.status !== "completed" && (
-        <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 p-4 pb-[calc(env(safe-area-inset-bottom)+1rem)]">
+        <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 p-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] animate-fade-in">
           <div className="mx-auto max-w-md">
             <button
               onClick={() => markDone.mutate()}
@@ -196,7 +214,7 @@ function ChecklistRow({ item, jobId, disabled, onToggle }: { item: any; jobId: s
           onClick={handleClick}
           disabled={disabled}
           className={cn(
-            "flex w-full items-center gap-3 rounded-xl border p-3 text-left transition-all",
+            "flex w-full items-center gap-3 rounded-xl border p-3 text-left transition-all duration-200 ease-out active:scale-[0.99]",
             item.completed
               ? "border-brand-green/40 bg-brand-green/5"
               : disabled
@@ -207,18 +225,19 @@ function ChecklistRow({ item, jobId, disabled, onToggle }: { item: any; jobId: s
         >
           <span
             className={cn(
-              "flex h-6 w-6 shrink-0 items-center justify-center rounded-md border-2",
-              item.completed ? "border-brand-green bg-brand-green text-white" : "border-border",
+              "flex h-6 w-6 shrink-0 items-center justify-center rounded-md border-2 transition-all duration-200 ease-out",
+              item.completed ? "scale-110 border-brand-green bg-brand-green text-white" : "scale-100 border-border",
             )}
           >
-            {item.completed && <Check className="h-4 w-4" />}
+            {item.completed && <Check className="h-4 w-4 animate-scale-in" />}
             {!item.completed && disabled && <Lock className="h-3 w-3 text-muted-foreground" />}
           </span>
-          <span className="flex-1 text-sm font-medium">{item.title}</span>
+          <span className={cn("flex-1 text-sm font-medium transition-all duration-200", item.completed && "text-muted-foreground line-through")}>{item.title}</span>
           {isPhoto && <Camera className="h-4 w-4 text-brand-green" />}
           {isPayment && <DollarSign className="h-4 w-4 text-brand-yellow" />}
         </button>
       </li>
+
       {uploadOpen && (
         <PhotoUploadDialog
           jobId={jobId}
