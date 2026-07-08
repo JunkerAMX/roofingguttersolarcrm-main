@@ -83,6 +83,13 @@ export const toggleChecklistItem = createServerFn({ method: "POST" })
       .maybeSingle();
     if (pErr || !prog) throw new Error("Not found");
 
+    // Gate: job cannot be worked until its scheduled start time has arrived.
+    const jobStart = prog.job?.scheduled_for ? new Date(prog.job.scheduled_for).getTime() : null;
+    if (data.completed && jobStart && jobStart > Date.now()) {
+      throw new Error("Job isn't active yet — you can start ticking tasks once the appointment time arrives.");
+    }
+
+
     // Payment trigger: verify prior items complete + fire HighLevel webhook
     if (data.completed && prog.input_type === "payment_trigger") {
       const { data: prior } = await supabase
