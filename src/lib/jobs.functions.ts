@@ -126,20 +126,37 @@ export const toggleChecklistItem = createServerFn({ method: "POST" })
       .eq("id", data.progressId);
     if (error) throw new Error(error.message);
 
-    // If all items done, mark job completed
+    // Reflect activity on the job status but do NOT auto-complete —
+    // the worker must explicitly tap "Mark job as done".
     const { data: remaining } = await supabase
       .from("job_checklist_progress")
       .select("completed")
       .eq("job_id", prog.job_id);
-    if ((remaining ?? []).every((r) => r.completed)) {
-      await supabase
-        .from("jobs")
-        .update({ status: "completed", completed_at: new Date().toISOString() })
-        .eq("id", prog.job_id);
-    } else {
+    const anyDone = (remaining ?? []).some((r) => r.completed);
+    if (anyDone) {
       await supabase.from("jobs").update({ status: "in_progress" }).eq("id", prog.job_id);
     }
 
+    return { ok: true };
+  });
+
+export const markJobDone = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { jobId: string }) => z.object({ jobId: z.string().uuid() }).parse(d))
+  .handler(async ({ context, data }) => {
+    const { supabase } = context;
+    const { data: items, error: iErr } = await supabase
+      .from("job_checklist_progress")
+      .select("completed")
+      .eq("job_id", data.jobId);
+    if (iErr) throw new Error(iErr.message);
+    if (!items || items.length === 0) throw new Error("No checklist to complete");
+    if (items.some((i) => !i.completed)) throw new Error("Finish all checklist items first");
+    const { error } = await supabase
+      .from("jobs")
+      .update({ status: "completed", completed_at: new Date().toISOString() })
+      .eq("id", data.jobId);
+    if (error) throw new Error(error.message);
     return { ok: true };
   });
 
