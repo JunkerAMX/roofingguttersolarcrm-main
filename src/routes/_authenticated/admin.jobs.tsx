@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { listAllJobs, listTeam, assignJob } from "@/lib/admin.functions";
+import { listAllJobs, listTeam, assignJob, deleteJob } from "@/lib/admin.functions";
+import { Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 
@@ -13,6 +14,7 @@ function JobsPage() {
   const listFn = useServerFn(listAllJobs);
   const teamFn = useServerFn(listTeam);
   const assignFn = useServerFn(assignJob);
+  const delFn = useServerFn(deleteJob);
   const qc = useQueryClient();
   const { data: jobs = [] } = useQuery({ queryKey: ["allJobs"], queryFn: () => listFn() });
   const { data: team = [] } = useQuery({ queryKey: ["team"], queryFn: () => teamFn() });
@@ -20,6 +22,12 @@ function JobsPage() {
   const assign = useMutation({
     mutationFn: (v: { jobId: string; assignedTo: string | null }) => assignFn({ data: v }),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["allJobs"] }); toast.success("Assigned"); },
+  });
+
+  const del = useMutation({
+    mutationFn: (id: string) => delFn({ data: { id } }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["allJobs"] }); toast.success("Job deleted"); },
+    onError: (e: any) => toast.error(e?.message ?? "Delete failed"),
   });
 
   return (
@@ -32,10 +40,11 @@ function JobsPage() {
             <th className="p-3">Status</th>
             <th className="p-3">Assigned</th>
             <th className="p-3">Price</th>
+            <th className="p-3 w-10"></th>
           </tr>
         </thead>
         <tbody className="divide-y divide-border">
-          {jobs.length === 0 && <tr><td colSpan={5} className="p-8 text-center text-muted-foreground">No jobs yet.</td></tr>}
+          {jobs.length === 0 && <tr><td colSpan={6} className="p-8 text-center text-muted-foreground">No jobs yet.</td></tr>}
           {jobs.map((j: any) => (
             <tr key={j.id} className="hover:bg-secondary/30">
               <td className="p-3">
@@ -56,6 +65,16 @@ function JobsPage() {
                 </select>
               </td>
               <td className="p-3 text-xs">{j.price_cents ? `$${(j.price_cents / 100).toFixed(2)} ${j.currency}` : "—"}</td>
+              <td className="p-3">
+                <button
+                  onClick={() => { if (confirm("Delete this job? This cannot be undone.")) del.mutate(j.id); }}
+                  disabled={del.isPending}
+                  className="rounded-lg p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive disabled:opacity-50"
+                  aria-label="Delete job"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </td>
             </tr>
           ))}
         </tbody>
