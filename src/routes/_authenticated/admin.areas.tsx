@@ -134,12 +134,15 @@ function AreasPage() {
     return () => { cancelled = true; };
   }, []);
 
-  // Handle clicks on map — always use latest selectedWorker
+  // Handle clicks on map — always use latest selectedWorker. Ignored in draw mode.
   const selectedRef = useRef(selectedWorker);
   selectedRef.current = selectedWorker;
+  const drawModeRef = useRef(drawMode);
+  drawModeRef.current = drawMode;
   useEffect(() => {
     if (!mapReady || !mapRef.current || !window.google) return;
     const listener = mapRef.current.addListener("click", (e: any) => {
+      if (drawModeRef.current) return;
       const uid = selectedRef.current;
       if (!uid) { toast.error("Select a worker first"); return; }
       add.mutate({ user_id: uid, lat: e.latLng.lat(), lng: e.latLng.lng() });
@@ -147,7 +150,7 @@ function AreasPage() {
     return () => window.google.maps.event.removeListener(listener);
   }, [mapReady, add]);
 
-  // Render markers
+  // Render markers (draggable)
   useEffect(() => {
     if (!mapReady || !mapRef.current || !window.google) return;
     markersRef.current.forEach((m) => m.setMap(null));
@@ -156,7 +159,8 @@ function AreasPage() {
       const marker = new window.google.maps.Marker({
         position: { lat: a.lat, lng: a.lng },
         map: mapRef.current,
-        title: `${a.worker?.full_name ?? "Worker"} — ${a.postcode ?? "no postcode"}`,
+        draggable: true,
+        title: `${a.worker?.full_name ?? "Worker"} — ${a.postcode ?? "no postcode"} (drag to move)`,
         icon: {
           path: window.google.maps.SymbolPath.CIRCLE,
           fillColor: color,
@@ -170,9 +174,61 @@ function AreasPage() {
         content: `<div style="font:13px sans-serif"><b>${a.worker?.full_name ?? "Worker"}</b><br/>${a.postcode ?? "?"} ${a.suburb ?? ""}</div>`,
       });
       marker.addListener("click", () => info.open({ anchor: marker, map: mapRef.current }));
+      marker.addListener("dragend", (e: any) => {
+        move.mutate({ id: a.id, lat: e.latLng.lat(), lng: e.latLng.lng() });
+      });
       return marker;
     });
-  }, [areas, mapReady, workerColor]);
+  }, [areas, mapReady, workerColor, move]);
+
+  // Drawing manager for lasso/polygon
+  const drawingRef = useRef<any>(null);
+  useEffect(() => {
+    if (!mapReady || !mapRef.current || !window.google?.maps?.drawing) return;
+    if (!drawingRef.current) {
+      drawingRef.current = new window.google.maps.drawing.DrawingManager({
+        drawingMode: null,
+        drawingControl: false,
+        polygonOptions: {
+          fillColor: "#16a34a",
+          fillOpacity: 0.15,
+          strokeColor: "#16a34a",
+          strokeWeight: 2,
+          clickable: false,
+          editable: false,
+          zIndex: 1,
+        },
+      });
+      drawingRef.current.setMap(mapRef.current);
+      window.google.maps.event.addListener(drawingRef.current, "polygoncomplete", (poly: any) => {
+        const uid = selectedRef.current;
+        if (!uid) { toast.error("Select a worker first"); poly.setMap(null); return; }
+        const bounds = new window.google.maps.LatLngBounds();
+        poly.getPath().forEach((p: any) => bounds.extend(p));
+        const ne = bounds.getNorthEast(), sw = bounds.getSouthWest();
+        const steps = 7; // 7x7 = 49 candidate points
+        const points: { lat: number; lng: number }[] = [];
+        for (let i = 0; i <= steps; i++) {
+          for (let j = 0; j <= steps; j++) {
+            const lat = sw.lat() + ((ne.lat() - sw.lat()) * i) / steps;
+            const lng = sw.lng() + ((ne.lng() - sw.lng()) * j) / steps;
+            const pt = new window.google.maps.LatLng(lat, lng);
+            if (window.google.maps.geometry.poly.containsLocation(pt, poly)) {
+              points.push({ lat, lng });
+            }
+          }
+        }
+        poly.setMap(null);
+        setDrawMode(false);
+        drawingRef.current.setDrawingMode(null);
+        if (!points.length) { toast.error("Area too small — draw a larger shape"); return; }
+        bulk.mutate({ user_id: uid, points: points.slice(0, 60) });
+      });
+    }
+    drawingRef.current.setDrawingMode(drawMode ? window.google.maps.drawing.OverlayType.POLYGON : null);
+  }, [mapReady, drawMode, bulk]);
+
+
 
   // JSON grouped output
   const grouped = useMemo(() => {
