@@ -119,7 +119,7 @@ function AreasPage() {
     onSuccess: () => {
       toast.success("Cleared all workers");
       // Reset every on-map polygon to empty (sync effect won't touch existing polys).
-      polysRef.current.forEach((poly) => poly.setPath([]));
+      polysRef.current.forEach((poly) => clearPolyPath(poly));
       qc.setQueryData(["areas", "polygons"], []);
       qc.invalidateQueries({ queryKey: ["areas", "list"] });
     },
@@ -175,6 +175,11 @@ function AreasPage() {
     const pts: PolygonPoint[] = [];
     poly.getPath().forEach((p: any) => pts.push({ lat: p.lat(), lng: p.lng() }));
     return pts;
+  };
+
+  const clearPolyPath = (poly: any) => {
+    const path = poly.getPath();
+    while (path.getLength()) path.removeAt(path.getLength() - 1);
   };
 
   const queuedSaves = useRef<Map<string, { points: PolygonPoint[]; allowEmpty: boolean }>>(new Map());
@@ -295,7 +300,7 @@ function AreasPage() {
     if (!selectedWorker) return;
     // Reset on-map polygon immediately, then persist.
     const poly = polysRef.current.get(selectedWorker);
-    poly?.setPath([]);
+    if (poly) clearPolyPath(poly);
     queuedSaves.current.set(selectedWorker, { points: [], allowEmpty: true });
     void flushPolySave(selectedWorker);
     toast.success("Area cleared");
