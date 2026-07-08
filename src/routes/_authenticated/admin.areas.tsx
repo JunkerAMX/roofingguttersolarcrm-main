@@ -212,14 +212,15 @@ function AreasPage() {
       if (points.length === 0 && !allowEmpty) return;
       queuedSaves.current.set(uid, { points, allowEmpty });
       void flushPolySave(uid);
-    }, 600));
+    }, 250));
   };
 
   const buildPoly = (uid: string, pts: PolygonPoint[]) => {
     const g = window.google;
     const color = workerColor.get(uid) ?? "#16a34a";
+    const path = new g.maps.MVCArray(pts.map((p) => new g.maps.LatLng(p.lat, p.lng)));
     const poly = new g.maps.Polygon({
-      paths: pts,
+      paths: path,
       fillColor: color,
       strokeColor: color,
       strokeOpacity: 1,
@@ -231,7 +232,6 @@ function AreasPage() {
       if (selectedRef.current !== uid) setSelectedWorker(uid);
     }));
     // Path edit auto-saves for the active worker.
-    const path = poly.getPath();
     ["set_at", "insert_at", "remove_at"].forEach((ev) => {
       listenersRef.current.push(g.maps.event.addListener(path, ev, () => {
         if (selectedRef.current === uid) schedulePolySave(uid, poly);
