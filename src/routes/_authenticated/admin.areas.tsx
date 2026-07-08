@@ -289,8 +289,11 @@ function AreasPage() {
     const listener = mapRef.current.addListener("click", (e: any) => {
       const uid = selectedRef.current;
       if (!uid) { toast.error("Select a worker first"); return; }
-      const poly = polysRef.current.get(uid);
-      if (!poly) return;
+      let poly = polysRef.current.get(uid);
+      if (!poly) {
+        poly = buildPoly(uid, []);
+        polysRef.current.set(uid, poly);
+      }
       poly.getPath().push(e.latLng);
     });
     return () => g.maps.event.removeListener(listener);
