@@ -138,65 +138,114 @@ function AreasPage() {
     return () => { cancelled = true; };
   }, []);
 
-  // Handle clicks on map — pin mode adds a marker, draw mode appends a polygon vertex.
   const selectedRef = useRef(selectedWorker);
   selectedRef.current = selectedWorker;
   const drawModeRef = useRef(drawMode);
   drawModeRef.current = drawMode;
-  const polyRef = useRef<any>(null);
-  const pathRef = useRef<any[]>([]);
 
-  const clearPolygon = () => {
-    if (polyRef.current) { polyRef.current.setMap(null); polyRef.current = null; }
-    pathRef.current = [];
+  // Persistent polygons per worker: keyed by user_id, always rendered.
+  const polysRef = useRef<Map<string, any>>(new Map());
+  const listenersRef = useRef<any[]>([]);
+
+  const save = useMutation({
+    mutationFn: (v: { user_id: string; points: { lat: number; lng: number }[] }) => savePolyFn({ data: v }),
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  // Debounced save when a polygon path is edited.
+  const saveTimers = useRef<Map<string, any>>(new Map());
+  const schedulePolySave = (uid: string, poly: any) => {
+    const t = saveTimers.current.get(uid);
+    if (t) clearTimeout(t);
+    saveTimers.current.set(uid, setTimeout(() => {
+      const pts: { lat: number; lng: number }[] = [];
+      poly.getPath().forEach((p: any) => pts.push({ lat: p.lat(), lng: p.lng() }));
+      save.mutate({ user_id: uid, points: pts });
+    }, 600));
   };
 
+  // (Re)render all worker polygons whenever data or selection changes.
+  useEffect(() => {
+    if (!mapReady || !mapRef.current || !window.google) return;
+    const g = window.google;
+    // clear
+    polysRef.current.forEach((p) => p.setMap(null));
+    polysRef.current.clear();
+    listenersRef.current.forEach((l) => g.maps.event.removeListener(l));
+    listenersRef.current = [];
+
+    // Ensure every worker has an entry so admins can add to any of them.
+    const byUser = new Map<string, { lat: number; lng: number }[]>();
+    for (const w of workers as any[]) byUser.set(w.id, []);
+    for (const p of polygons as any[]) {
+      const pts = Array.isArray(p.points) ? p.points : [];
+      byUser.set(p.user_id, pts);
+    }
+
+    byUser.forEach((pts, uid) => {
+      const isSelected = uid === selectedWorker;
+      const color = workerColor.get(uid) ?? "#16a34a";
+      const poly = new g.maps.Polygon({
+        paths: pts,
+        fillColor: color,
+        fillOpacity: isSelected ? 0.22 : 0.1,
+        strokeColor: color,
+        strokeWeight: isSelected ? 3 : 2,
+        strokeOpacity: isSelected ? 1 : 0.5,
+        clickable: !isSelected, // let map clicks pass through the active worker's polygon so we can add pins/vertices
+        editable: isSelected,
+        draggable: false,
+        zIndex: isSelected ? 10 : 1,
+        map: mapRef.current,
+      });
+      // Clicking a non-selected polygon selects that worker.
+      if (!isSelected) {
+        listenersRef.current.push(poly.addListener("click", () => setSelectedWorker(uid)));
+      } else {
+        const path = poly.getPath();
+        ["set_at", "insert_at", "remove_at"].forEach((ev) => {
+          listenersRef.current.push(g.maps.event.addListener(path, ev, () => schedulePolySave(uid, poly)));
+        });
+      }
+      polysRef.current.set(uid, poly);
+    });
+  }, [mapReady, polygons, workers, selectedWorker, workerColor]);
+
+  // Map click: pin mode adds marker, draw mode appends vertex to selected worker's polygon (and saves).
   useEffect(() => {
     if (!mapReady || !mapRef.current || !window.google) return;
     const g = window.google;
     const listener = mapRef.current.addListener("click", (e: any) => {
-      if (drawModeRef.current) {
-        const uid = selectedRef.current;
-        if (!uid) { toast.error("Select a worker first"); return; }
-        pathRef.current = [...pathRef.current, e.latLng];
-        if (!polyRef.current) {
-          polyRef.current = new g.maps.Polygon({
-            paths: pathRef.current,
-            fillColor: "#16a34a",
-            fillOpacity: 0.15,
-            strokeColor: "#16a34a",
-            strokeWeight: 2,
-            clickable: false,
-            editable: true,
-            map: mapRef.current,
-          });
-        } else {
-          polyRef.current.setPath(pathRef.current);
-        }
-        return;
-      }
       const uid = selectedRef.current;
       if (!uid) { toast.error("Select a worker first"); return; }
+      if (drawModeRef.current) {
+        const poly = polysRef.current.get(uid);
+        if (!poly) return;
+        poly.getPath().push(e.latLng); // triggers insert_at → auto-save
+        return;
+      }
       add.mutate({ user_id: uid, lat: e.latLng.lat(), lng: e.latLng.lng() });
     });
     return () => g.maps.event.removeListener(listener);
   }, [mapReady, add]);
 
-  // When leaving draw mode without finishing, clear any in-progress polygon.
-  useEffect(() => {
-    if (!drawMode) clearPolygon();
-  }, [drawMode]);
+  const clearPolygon = () => {
+    if (!selectedWorker) return;
+    save.mutate({ user_id: selectedWorker, points: [] }, {
+      onSuccess: () => {
+        toast.success("Area cleared");
+        qc.invalidateQueries({ queryKey: ["areas", "polygons"] });
+      },
+    });
+  };
 
   const finishPolygon = () => {
     const uid = selectedRef.current;
     const g = window.google;
-    if (!uid) { toast.error("Select a worker first"); return; }
-    if (!polyRef.current || pathRef.current.length < 3) {
-      toast.error("Click at least 3 points on the map");
-      return;
-    }
-    // Use the (possibly edited) current path from the polygon.
-    const path = polyRef.current.getPath();
+    const poly = polysRef.current.get(uid);
+    if (!uid || !poly) return;
+    const path = poly.getPath();
+    if (path.getLength() < 3) { toast.error("Add at least 3 points"); return; }
     const bounds = new g.maps.LatLngBounds();
     path.forEach((p: any) => bounds.extend(p));
     const ne = bounds.getNorthEast(), sw = bounds.getSouthWest();
@@ -207,16 +256,17 @@ function AreasPage() {
         const lat = sw.lat() + ((ne.lat() - sw.lat()) * i) / steps;
         const lng = sw.lng() + ((ne.lng() - sw.lng()) * j) / steps;
         const pt = new g.maps.LatLng(lat, lng);
-        if (g.maps.geometry.poly.containsLocation(pt, polyRef.current)) {
+        if (g.maps.geometry.poly.containsLocation(pt, poly)) {
           points.push({ lat, lng });
         }
       }
     }
-    clearPolygon();
     setDrawMode(false);
-    if (!points.length) { toast.error("Area too small — draw a larger shape"); return; }
+    if (!points.length) { toast.error("Area too small"); return; }
     bulk.mutate({ user_id: uid, points: points.slice(0, 60) });
   };
+
+
 
 
 
