@@ -149,8 +149,6 @@ function AreasPage() {
 
   const selectedRef = useRef(selectedWorker);
   selectedRef.current = selectedWorker;
-  const drawModeRef = useRef(drawMode);
-  drawModeRef.current = drawMode;
 
   // Persistent polygons per worker: keyed by user_id, always rendered.
   const polysRef = useRef<Map<string, any>>(new Map());
