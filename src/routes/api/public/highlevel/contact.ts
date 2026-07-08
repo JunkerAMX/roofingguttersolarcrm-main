@@ -7,6 +7,9 @@ export const Route = createFileRoute("/api/public/highlevel/contact")({
         const raw = await request.text();
         let payload: any;
         try { payload = JSON.parse(raw); } catch { return new Response("Invalid JSON", { status: 400 }); }
+        if (Array.isArray(payload)) {
+          return new Response("Send a single contact object, not an array.", { status: 400 });
+        }
         // Accept HighLevel's native field names as well as our normalized ones
         const contact = payload.contact ?? payload;
         const highlevel_contact_id =
