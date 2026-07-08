@@ -21,18 +21,21 @@ declare global {
   interface Window { __initGmap?: () => void; google?: any; }
 }
 
+let mapsPromise: Promise<any> | null = null;
 function loadMaps(): Promise<any> {
   if (window.google?.maps) return Promise.resolve(window.google);
+  if (mapsPromise) return mapsPromise;
   const key = import.meta.env.VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_BROWSER_KEY;
   const channel = import.meta.env.VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_TRACKING_ID;
-  return new Promise((resolve, reject) => {
+  mapsPromise = new Promise((resolve, reject) => {
     window.__initGmap = () => resolve(window.google);
     const s = document.createElement("script");
     s.src = `https://maps.googleapis.com/maps/api/js?key=${key}&loading=async&callback=__initGmap&channel=${channel ?? ""}`;
     s.async = true;
-    s.onerror = () => reject(new Error("Failed to load Google Maps"));
+    s.onerror = () => { mapsPromise = null; reject(new Error("Failed to load Google Maps")); };
     document.head.appendChild(s);
   });
+  return mapsPromise;
 }
 
 function AreasPage() {
