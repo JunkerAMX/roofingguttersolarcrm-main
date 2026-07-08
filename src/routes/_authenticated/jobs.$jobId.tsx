@@ -136,8 +136,9 @@ function JobDetail() {
               <span className="text-sm text-muted-foreground">{done} / {total} done</span>
             </div>
             <div className="mb-4 h-2 overflow-hidden rounded-full bg-secondary">
-              <div className="h-full bg-gradient-to-r from-brand-green to-brand-lime transition-all" style={{ width: `${pct}%` }} />
+              <div className="h-full bg-gradient-to-r from-brand-green to-brand-lime transition-all duration-500 ease-out" style={{ width: `${pct}%` }} />
             </div>
+
             {!isActive && jobStartMs && (
               <div className="mb-4 flex items-start gap-3 rounded-xl border border-brand-yellow/50 bg-brand-yellow/10 p-3 text-sm">
                 <Clock className="mt-0.5 h-5 w-5 shrink-0 text-yellow-800" />
