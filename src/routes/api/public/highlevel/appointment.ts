@@ -17,12 +17,15 @@ function toCents(v: any): number | null {
   return Math.round(cleaned * 100);
 }
 
-function toDateOnly(v: any): string | null {
+function toDateOnly(v: any, tz?: string | null): string | null {
   if (!v) return null;
   const d = new Date(v);
   if (Number.isNaN(d.getTime())) return String(v).slice(0, 10);
-  return d.toISOString().slice(0, 10);
+  const zone = tz || "Australia/Sydney";
+  const dtf = new Intl.DateTimeFormat("en-CA", { timeZone: zone, year: "numeric", month: "2-digit", day: "2-digit" });
+  return dtf.format(d); // YYYY-MM-DD in tz
 }
+
 
 function tzOffsetMinutes(tz: string, at: Date): number {
   const dtf = new Intl.DateTimeFormat("en-US", {
