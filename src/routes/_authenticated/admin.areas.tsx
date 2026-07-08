@@ -260,11 +260,10 @@ function AreasPage() {
 
   const clearPolygon = () => {
     if (!selectedWorker) return;
+    // Reset on-map polygon immediately, then persist.
+    polysRef.current.get(selectedWorker)?.setPath([]);
     save.mutate({ user_id: selectedWorker, points: [] }, {
-      onSuccess: () => {
-        toast.success("Area cleared");
-        qc.invalidateQueries({ queryKey: ["areas", "polygons"] });
-      },
+      onSuccess: () => toast.success("Area cleared"),
     });
   };
 
