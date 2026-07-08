@@ -207,3 +207,15 @@ export const savePolygon = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export const clearAll = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await requireAdmin(context.supabase, context.userId);
+    const a = await context.supabase.from("worker_areas").delete().not("id", "is", null);
+    if (a.error) throw new Error(a.error.message);
+    const p = await context.supabase.from("worker_polygons").delete().not("user_id", "is", null);
+    if (p.error) throw new Error(p.error.message);
+    return { ok: true };
+  });
+
+

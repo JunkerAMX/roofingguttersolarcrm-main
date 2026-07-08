@@ -2,9 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { listWorkers, listAreas, addArea, deleteArea, updateArea, moveArea, bulkAddFromPoints, listPolygons, savePolygon } from "@/lib/areas.functions";
+import { listWorkers, listAreas, addArea, deleteArea, updateArea, moveArea, bulkAddFromPoints, listPolygons, savePolygon, clearAll } from "@/lib/areas.functions";
 import { toast } from "sonner";
-import { Copy, Trash2, MapPin, Pencil, MousePointer2 } from "lucide-react";
+import { Copy, Trash2, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/admin/areas")({
@@ -105,7 +105,16 @@ function AreasPage() {
     onError: (e: any) => toast.error(e.message),
   });
 
-  const [drawMode, setDrawMode] = useState(false);
+  const clearAllFn = useServerFn(clearAll);
+  const clearAllM = useMutation({
+    mutationFn: () => clearAllFn(),
+    onSuccess: () => {
+      toast.success("Cleared all workers");
+      qc.invalidateQueries({ queryKey: ["areas", "list"] });
+      qc.invalidateQueries({ queryKey: ["areas", "polygons"] });
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
 
   // Map bootstrap
   const mapEl = useRef<HTMLDivElement>(null);
@@ -140,8 +149,6 @@ function AreasPage() {
 
   const selectedRef = useRef(selectedWorker);
   selectedRef.current = selectedWorker;
-  const drawModeRef = useRef(drawMode);
-  drawModeRef.current = drawMode;
 
   // Persistent polygons per worker: keyed by user_id, always rendered.
   const polysRef = useRef<Map<string, any>>(new Map());
@@ -189,10 +196,10 @@ function AreasPage() {
       const poly = new g.maps.Polygon({
         paths: [pts],
         fillColor: color,
-        fillOpacity: isSelected ? 0.22 : 0.1,
+        fillOpacity: isSelected ? 0.3 : 0.22,
         strokeColor: color,
         strokeWeight: isSelected ? 3 : 2,
-        strokeOpacity: isSelected ? 1 : 0.5,
+        strokeOpacity: 1,
         clickable: !isSelected, // let map clicks pass through the active worker's polygon so we can add pins/vertices
         editable: isSelected,
         draggable: false,
@@ -212,23 +219,19 @@ function AreasPage() {
     });
   }, [mapReady, polygons, workers, selectedWorker, workerColor]);
 
-  // Map click: pin mode adds marker, draw mode appends vertex to selected worker's polygon (and saves).
+  // Map click always appends a vertex to the selected worker's polygon (auto-saves).
   useEffect(() => {
     if (!mapReady || !mapRef.current || !window.google) return;
     const g = window.google;
     const listener = mapRef.current.addListener("click", (e: any) => {
       const uid = selectedRef.current;
       if (!uid) { toast.error("Select a worker first"); return; }
-      if (drawModeRef.current) {
-        const poly = polysRef.current.get(uid);
-        if (!poly) return;
-        poly.getPath().push(e.latLng); // triggers insert_at → auto-save
-        return;
-      }
-      add.mutate({ user_id: uid, lat: e.latLng.lat(), lng: e.latLng.lng() });
+      const poly = polysRef.current.get(uid);
+      if (!poly) return;
+      poly.getPath().push(e.latLng);
     });
     return () => g.maps.event.removeListener(listener);
-  }, [mapReady, add]);
+  }, [mapReady]);
 
   const clearPolygon = () => {
     if (!selectedWorker) return;
@@ -262,7 +265,7 @@ function AreasPage() {
         }
       }
     }
-    setDrawMode(false);
+    
     if (!points.length) { toast.error("Area too small"); return; }
     bulk.mutate({ user_id: uid, points: points.slice(0, 60) });
   };
@@ -293,7 +296,7 @@ function AreasPage() {
     <div className="space-y-6">
       <div>
         <h2 className="font-display text-2xl font-semibold">Service Areas</h2>
-        <p className="text-sm text-muted-foreground">Pick a worker. Their area polygon is always visible and editable — <b>drag any point</b> to reshape (auto-saves). Toggle <b>Draw</b> to add new points by clicking, or use <b>Finish</b> to auto-add every postcode inside.</p>
+        <p className="text-sm text-muted-foreground">Pick a worker, then <b>click the map</b> to add points around their area. Drag any point to reshape (auto-saves). Hit <b>Finish → postcodes</b> to auto-add every postcode inside.</p>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[280px_1fr]">
@@ -333,28 +336,10 @@ function AreasPage() {
             <div className="absolute inset-0 flex items-center justify-center text-sm text-muted-foreground">Loading map…</div>
           )}
           {mapReady && (
-            <div className="absolute left-3 top-3 flex gap-2">
-              <button
-                onClick={() => setDrawMode(false)}
-                className={cn(
-                  "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold shadow transition-colors",
-                  !drawMode ? "bg-brand-green text-white" : "bg-background/90 text-foreground hover:bg-background",
-                )}
-              >
-                <MousePointer2 className="h-3.5 w-3.5" /> Pin
-              </button>
-              <button
-                onClick={() => setDrawMode(true)}
-                className={cn(
-                  "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold shadow transition-colors",
-                  drawMode ? "bg-brand-green text-white" : "bg-background/90 text-foreground hover:bg-background",
-                )}
-              >
-                <Pencil className="h-3.5 w-3.5" /> Draw
-              </button>
+            <div className="absolute left-3 top-3 flex flex-wrap gap-2">
               <button
                 onClick={finishPolygon}
-                className="rounded-full bg-background/90 px-3 py-1.5 text-xs font-semibold shadow hover:bg-background"
+                className="rounded-full bg-brand-green px-3 py-1.5 text-xs font-semibold text-white shadow hover:brightness-110"
               >
                 Finish → postcodes
               </button>
@@ -362,7 +347,17 @@ function AreasPage() {
                 onClick={clearPolygon}
                 className="rounded-full bg-background/90 px-3 py-1.5 text-xs font-semibold text-destructive shadow hover:bg-background"
               >
-                Clear area
+                Clear this worker
+              </button>
+              <button
+                onClick={() => {
+                  if (confirm("Delete ALL worker areas and pins across every worker? This cannot be undone.")) {
+                    clearAllM.mutate();
+                  }
+                }}
+                className="rounded-full bg-destructive px-3 py-1.5 text-xs font-semibold text-white shadow hover:brightness-110"
+              >
+                Clear all
               </button>
             </div>
           )}
