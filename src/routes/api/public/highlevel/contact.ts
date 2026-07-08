@@ -1,28 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { createHmac, timingSafeEqual } from "node:crypto";
-
-function verifySignature(rawBody: string, signature: string | null, secret: string): boolean {
-  if (!signature) return false;
-  const expected = createHmac("sha256", secret).update(rawBody).digest("hex");
-  const a = Buffer.from(signature);
-  const b = Buffer.from(expected);
-  if (a.length !== b.length) return false;
-  return timingSafeEqual(a, b);
-}
 
 export const Route = createFileRoute("/api/public/highlevel/contact")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const secret = process.env.HIGHLEVEL_WEBHOOK_SECRET;
-        if (!secret) return new Response("Server not configured", { status: 500 });
         const raw = await request.text();
-        if (!verifySignature(raw, request.headers.get("x-webhook-signature"), secret)) {
-          return new Response("Invalid signature", { status: 401 });
-        }
         let payload: any;
         try { payload = JSON.parse(raw); } catch { return new Response("Invalid JSON", { status: 400 }); }
         if (!payload.highlevel_contact_id) return new Response("Missing highlevel_contact_id", { status: 400 });
+
 
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
         const { error } = await supabaseAdmin.from("contacts").upsert({
