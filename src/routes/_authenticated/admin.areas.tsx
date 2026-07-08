@@ -47,6 +47,8 @@ function AreasPage() {
   const updFn = useServerFn(updateArea);
   const moveFn = useServerFn(moveArea);
   const bulkFn = useServerFn(bulkAddFromPoints);
+  const polygonsFn = useServerFn(listPolygons);
+  const savePolyFn = useServerFn(savePolygon);
 
   const { data: workers = [] } = useQuery({ queryKey: ["areas", "workers"], queryFn: () => workersFn() });
   const { data: areas = [] } = useQuery({ queryKey: ["areas", "list"], queryFn: () => areasFn() });
