@@ -24,6 +24,33 @@ function toDateOnly(v: any): string | null {
   return d.toISOString().slice(0, 10);
 }
 
+function tzOffsetMinutes(tz: string, at: Date): number {
+  const dtf = new Intl.DateTimeFormat("en-US", {
+    timeZone: tz, hour12: false,
+    year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", second: "2-digit",
+  });
+  const p: any = {};
+  for (const part of dtf.formatToParts(at)) p[part.type] = part.value;
+  const hour = +p.hour === 24 ? 0 : +p.hour;
+  const asUTC = Date.UTC(+p.year, +p.month - 1, +p.day, hour, +p.minute, +p.second);
+  return (asUTC - at.getTime()) / 60000;
+}
+
+// If the string has no timezone, treat its wall-clock as being in `tz`.
+function normalizeScheduledFor(v: any, tz: string | null): string | null {
+  if (!v) return null;
+  const s = String(v).trim();
+  if (!s) return null;
+  const hasTz = /Z$|[+\-]\d{2}:?\d{2}$/.test(s);
+  const d = new Date(s);
+  if (Number.isNaN(d.getTime())) return null;
+  if (hasTz || !tz) return d.toISOString();
+  const guess = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), d.getUTCHours(), d.getUTCMinutes(), d.getUTCSeconds());
+  const offset = tzOffsetMinutes(tz, new Date(guess));
+  return new Date(guess - offset * 60000).toISOString();
+}
+
 export const Route = createFileRoute("/api/public/highlevel/appointment")({
   server: {
     handlers: {
