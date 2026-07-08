@@ -218,16 +218,11 @@ function AreasPage() {
     });
     // Create or update each worker's polygon.
     byUser.forEach((pts, uid) => {
-      let poly = polysRef.current.get(uid);
-      if (!poly) {
-        poly = buildPoly(uid, pts);
-        polysRef.current.set(uid, poly);
-      } else {
-        // Only overwrite the path if it actually differs (avoid clobbering in-progress edits).
-        const current: { lat: number; lng: number }[] = [];
-        poly.getPath().forEach((p: any) => current.push({ lat: p.lat(), lng: p.lng() }));
-        const same = current.length === pts.length && current.every((c, i) => c.lat === pts[i].lat && c.lng === pts[i].lng);
-        if (!same) poly.setPath(pts);
+      if (!polysRef.current.has(uid)) {
+        // First time we see this worker — hydrate from data. After this, the on-map
+        // polygon is the source of truth; we never overwrite it from cached data,
+        // so debounced saves can't clobber in-progress edits.
+        polysRef.current.set(uid, buildPoly(uid, pts));
       }
     });
   }, [mapReady, polygons, workers]);
