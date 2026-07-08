@@ -233,9 +233,10 @@ function AreasPage() {
     }));
     // Path edit auto-saves for the active worker.
     ["set_at", "insert_at", "remove_at"].forEach((ev) => {
-      listenersRef.current.push(g.maps.event.addListener(path, ev, () => {
+      const listener = path?.addListener?.(ev, () => {
         if (selectedRef.current === uid) schedulePolySave(uid, poly);
-      }));
+      });
+      if (listener) listenersRef.current.push(listener);
     });
     return poly;
   };
@@ -295,6 +296,7 @@ function AreasPage() {
         polysRef.current.set(uid, poly);
       }
       poly.getPath().push(e.latLng);
+      schedulePolySave(uid, poly);
     });
     return () => g.maps.event.removeListener(listener);
   }, [mapReady]);
