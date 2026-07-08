@@ -292,7 +292,7 @@ function AreasPage() {
     <div className="space-y-6">
       <div>
         <h2 className="font-display text-2xl font-semibold">Service Areas</h2>
-        <p className="text-sm text-muted-foreground">Pick a worker. Click to drop pins, drag to move, or switch to <b>Draw area</b>, click points around a region and hit <b>Finish</b> to auto-add every postcode inside.</p>
+        <p className="text-sm text-muted-foreground">Pick a worker. Their area polygon is always visible and editable — <b>drag any point</b> to reshape (auto-saves). Toggle <b>Draw</b> to add new points by clicking, or use <b>Finish</b> to auto-add every postcode inside.</p>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[280px_1fr]">
