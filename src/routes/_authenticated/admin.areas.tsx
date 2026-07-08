@@ -150,6 +150,7 @@ function AreasPage() {
   const save = useMutation({
     mutationFn: (v: { user_id: string; points: { lat: number; lng: number }[] }) => savePolyFn({ data: v }),
     onError: (e: any) => toast.error(e.message),
+    // Don't invalidate on every drag save — it would re-render and drop the in-progress edit handles.
   });
 
   // Debounced save when a polygon path is edited.
