@@ -54,12 +54,17 @@ function TodayPage() {
 
 function JobCard({ job }: { job: any }) {
   const price = job.price_cents ? `$${(job.price_cents / 100).toFixed(2)}` : null;
-  const statusColor = {
-    scheduled: "bg-brand-yellow/30 text-yellow-900",
-    in_progress: "bg-brand-lime/30 text-green-900",
-    completed: "bg-brand-green text-white",
-    cancelled: "bg-muted text-muted-foreground",
-  }[job.status as string] ?? "bg-muted";
+  const startMs = job.scheduled_for ? new Date(job.scheduled_for).getTime() : null;
+  const isActive = startMs ? startMs <= Date.now() : true;
+  const statusColor = !isActive
+    ? "bg-brand-yellow/30 text-yellow-900"
+    : ({
+        scheduled: "bg-brand-lime/30 text-green-900",
+        in_progress: "bg-brand-lime/30 text-green-900",
+        completed: "bg-brand-green text-white",
+        cancelled: "bg-muted text-muted-foreground",
+      }[job.status as string] ?? "bg-muted");
+  const statusLabel = !isActive ? "upcoming" : (job.status as string).replace("_", " ");
 
   return (
     <Link
