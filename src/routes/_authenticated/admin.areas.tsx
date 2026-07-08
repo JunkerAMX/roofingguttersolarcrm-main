@@ -2,9 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { listWorkers, listAreas, addArea, deleteArea, updateArea, moveArea, bulkAddFromPoints, listPolygons, savePolygon } from "@/lib/areas.functions";
+import { listWorkers, listAreas, addArea, deleteArea, updateArea, moveArea, bulkAddFromPoints, listPolygons, savePolygon, clearAll } from "@/lib/areas.functions";
 import { toast } from "sonner";
-import { Copy, Trash2, MapPin, Pencil, MousePointer2 } from "lucide-react";
+import { Copy, Trash2, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/admin/areas")({
