@@ -132,10 +132,31 @@ function JobDetail() {
           </div>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-4 pb-28 lg:pb-4">
           <PhotoGallery jobId={jobId} photos={data.photos} />
         </div>
       </div>
+
+      {total > 0 && done === total && job.status !== "completed" && (
+        <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 p-4 pb-[calc(env(safe-area-inset-bottom)+1rem)]">
+          <div className="mx-auto max-w-md">
+            <button
+              onClick={() => markDone.mutate()}
+              disabled={markDone.isPending}
+              className="pointer-events-auto flex w-full items-center justify-center gap-2 rounded-2xl bg-brand-green py-4 text-base font-semibold text-white shadow-2xl shadow-brand-green/40 transition-transform active:scale-[0.98] disabled:opacity-70"
+            >
+              <CheckCircle2 className="h-5 w-5" />
+              {markDone.isPending ? "Saving…" : "Mark job as done"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {job.status === "completed" && (
+        <div className="mt-4 flex items-center justify-center gap-2 rounded-2xl border border-brand-green/40 bg-brand-green/10 p-4 text-brand-green">
+          <CheckCircle2 className="h-5 w-5" /> <span className="font-semibold">Job completed</span>
+        </div>
+      )}
     </AppShell>
   );
 }
