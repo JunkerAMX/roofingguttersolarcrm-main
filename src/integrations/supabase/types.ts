@@ -14,16 +14,426 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      app_settings: {
+        Row: {
+          company_name: string
+          default_currency: string
+          highlevel_payment_webhook_url: string | null
+          id: number
+          updated_at: string
+        }
+        Insert: {
+          company_name?: string
+          default_currency?: string
+          highlevel_payment_webhook_url?: string | null
+          id?: number
+          updated_at?: string
+        }
+        Update: {
+          company_name?: string
+          default_currency?: string
+          highlevel_payment_webhook_url?: string | null
+          id?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      checklist_items: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          input_type: Database["public"]["Enums"]["checklist_input_type"]
+          position: number
+          required: boolean
+          template_id: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          input_type?: Database["public"]["Enums"]["checklist_input_type"]
+          position?: number
+          required?: boolean
+          template_id: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          input_type?: Database["public"]["Enums"]["checklist_input_type"]
+          position?: number
+          required?: boolean
+          template_id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checklist_items_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "checklist_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      checklist_templates: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          job_type_id: string
+          name: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          job_type_id: string
+          name: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          job_type_id?: string
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checklist_templates_job_type_id_fkey"
+            columns: ["job_type_id"]
+            isOneToOne: false
+            referencedRelation: "job_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contacts: {
+        Row: {
+          address: string | null
+          city: string | null
+          created_at: string
+          email: string | null
+          first_name: string | null
+          highlevel_contact_id: string | null
+          id: string
+          last_name: string | null
+          notes: string | null
+          phone: string | null
+          postal_code: string | null
+          state: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          city?: string | null
+          created_at?: string
+          email?: string | null
+          first_name?: string | null
+          highlevel_contact_id?: string | null
+          id?: string
+          last_name?: string | null
+          notes?: string | null
+          phone?: string | null
+          postal_code?: string | null
+          state?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          city?: string | null
+          created_at?: string
+          email?: string | null
+          first_name?: string | null
+          highlevel_contact_id?: string | null
+          id?: string
+          last_name?: string | null
+          notes?: string | null
+          phone?: string | null
+          postal_code?: string | null
+          state?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      job_checklist_progress: {
+        Row: {
+          checklist_item_id: string
+          completed: boolean
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          id: string
+          input_type: Database["public"]["Enums"]["checklist_input_type"]
+          job_id: string
+          note: string | null
+          position: number
+          title: string
+        }
+        Insert: {
+          checklist_item_id: string
+          completed?: boolean
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          id?: string
+          input_type: Database["public"]["Enums"]["checklist_input_type"]
+          job_id: string
+          note?: string | null
+          position?: number
+          title: string
+        }
+        Update: {
+          checklist_item_id?: string
+          completed?: boolean
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          id?: string
+          input_type?: Database["public"]["Enums"]["checklist_input_type"]
+          job_id?: string
+          note?: string | null
+          position?: number
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_checklist_progress_checklist_item_id_fkey"
+            columns: ["checklist_item_id"]
+            isOneToOne: false
+            referencedRelation: "checklist_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_checklist_progress_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      job_photos: {
+        Row: {
+          checklist_item_id: string | null
+          created_at: string
+          id: string
+          job_id: string
+          kind: string
+          storage_path: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          checklist_item_id?: string | null
+          created_at?: string
+          id?: string
+          job_id: string
+          kind: string
+          storage_path: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          checklist_item_id?: string | null
+          created_at?: string
+          id?: string
+          job_id?: string
+          kind?: string
+          storage_path?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_photos_checklist_item_id_fkey"
+            columns: ["checklist_item_id"]
+            isOneToOne: false
+            referencedRelation: "checklist_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_photos_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      job_types: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          name: string
+          slug: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          name: string
+          slug: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          name?: string
+          slug?: string
+        }
+        Relationships: []
+      }
+      jobs: {
+        Row: {
+          assigned_to: string | null
+          completed_at: string | null
+          contact_id: string | null
+          created_at: string
+          currency: string
+          due_date: string | null
+          highlevel_appointment_id: string | null
+          highlevel_payload: Json | null
+          id: string
+          job_type_id: string
+          notes: string | null
+          price_cents: number | null
+          scheduled_for: string | null
+          status: Database["public"]["Enums"]["job_status"]
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          completed_at?: string | null
+          contact_id?: string | null
+          created_at?: string
+          currency?: string
+          due_date?: string | null
+          highlevel_appointment_id?: string | null
+          highlevel_payload?: Json | null
+          id?: string
+          job_type_id: string
+          notes?: string | null
+          price_cents?: number | null
+          scheduled_for?: string | null
+          status?: Database["public"]["Enums"]["job_status"]
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          completed_at?: string | null
+          contact_id?: string | null
+          created_at?: string
+          currency?: string
+          due_date?: string | null
+          highlevel_appointment_id?: string | null
+          highlevel_payload?: Json | null
+          id?: string
+          job_type_id?: string
+          notes?: string | null
+          price_cents?: number | null
+          scheduled_for?: string | null
+          status?: Database["public"]["Enums"]["job_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "jobs_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "jobs_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "jobs_job_type_id_fkey"
+            columns: ["job_type_id"]
+            isOneToOne: false
+            referencedRelation: "job_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "worker"
+      checklist_input_type:
+        | "checkbox"
+        | "photo_before"
+        | "photo_after"
+        | "payment_trigger"
+        | "note"
+      job_status: "scheduled" | "in_progress" | "completed" | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +560,16 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "worker"],
+      checklist_input_type: [
+        "checkbox",
+        "photo_before",
+        "photo_after",
+        "payment_trigger",
+        "note",
+      ],
+      job_status: ["scheduled", "in_progress", "completed", "cancelled"],
+    },
   },
 } as const
