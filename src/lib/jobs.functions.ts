@@ -28,17 +28,22 @@ export const listMyJobs = createServerFn({ method: "GET" })
     let q = supabase
       .from("jobs")
       .select("*, contact:contacts(*), job_type:job_types(*), assignee:profiles!jobs_assigned_to_fkey(id, full_name, email)")
-      .order("due_date", { ascending: true })
       .order("scheduled_for", { ascending: true });
 
     if (!isAdmin) q = q.eq("assigned_to", userId);
 
-    const today = new Date();
-    const todayStr = today.toISOString().slice(0, 10);
-    const in7 = new Date(today.getTime() + 7 * 86400000).toISOString().slice(0, 10);
+    const now = new Date();
+    // Workers see jobs starting within the next 24 hours, plus already-active
+    // (started but not completed) jobs from the past few days.
+    const windowEnd = new Date(now.getTime() + 24 * 3600 * 1000).toISOString();
+    const windowStart = new Date(now.getTime() - 3 * 86400000).toISOString();
+    const in7 = new Date(now.getTime() + 7 * 86400000).toISOString();
 
-    if (data.scope === "today") q = q.eq("due_date", todayStr).neq("status", "cancelled");
-    else if (data.scope === "upcoming") q = q.gte("due_date", todayStr).lte("due_date", in7).neq("status", "cancelled");
+    if (data.scope === "today") {
+      q = q.gte("scheduled_for", windowStart).lte("scheduled_for", windowEnd).neq("status", "completed").neq("status", "cancelled");
+    } else if (data.scope === "upcoming") {
+      q = q.gte("scheduled_for", now.toISOString()).lte("scheduled_for", in7).neq("status", "cancelled");
+    }
 
     const { data: jobs, error } = await q;
     if (error) throw new Error(error.message);
