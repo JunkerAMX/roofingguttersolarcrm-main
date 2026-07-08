@@ -105,7 +105,16 @@ function AreasPage() {
     onError: (e: any) => toast.error(e.message),
   });
 
-  const [drawMode, setDrawMode] = useState(false);
+  const clearAllFn = useServerFn(clearAll);
+  const clearAllM = useMutation({
+    mutationFn: () => clearAllFn(),
+    onSuccess: () => {
+      toast.success("Cleared all workers");
+      qc.invalidateQueries({ queryKey: ["areas", "list"] });
+      qc.invalidateQueries({ queryKey: ["areas", "polygons"] });
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
 
   // Map bootstrap
   const mapEl = useRef<HTMLDivElement>(null);
