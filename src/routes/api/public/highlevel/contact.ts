@@ -19,8 +19,6 @@ export const Route = createFileRoute("/api/public/highlevel/contact")({
           payload.id ??
           `unknown-${Date.now()}`;
 
-        // Stash raw payload in notes so we can see what HighLevel actually sends
-        const debugNotes = `RAW PAYLOAD:\n${raw.slice(0, 4000)}`;
 
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
         const { error } = await supabaseAdmin.from("contacts").upsert({
