@@ -60,17 +60,16 @@ function TeamPage() {
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setOpen(false)}>
           <div className="w-full max-w-md rounded-2xl bg-card p-6" onClick={(e) => e.stopPropagation()}>
-            <h3 className="font-display text-lg font-semibold">Add team member</h3>
+            <h3 className="font-display text-lg font-semibold">Invite team member</h3>
+            <p className="mt-1 text-xs text-muted-foreground">They'll get an email to set their username and password.</p>
             <div className="mt-4 space-y-3">
-              <input placeholder="Full name" value={name} onChange={(e) => setName(e.target.value)} className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
               <input placeholder="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
-              <input placeholder="Temporary password (min 8)" type="text" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
               <select value={role} onChange={(e) => setRole(e.target.value as any)} className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm">
                 <option value="worker">Worker</option>
                 <option value="admin">Admin</option>
               </select>
-              <button onClick={() => invite.mutate()} disabled={invite.isPending} className="w-full rounded-lg bg-primary py-2 font-medium text-primary-foreground disabled:opacity-60">
-                {invite.isPending ? "Creating…" : "Create account"}
+              <button onClick={() => invite.mutate()} disabled={invite.isPending || !email} className="w-full rounded-lg bg-primary py-2 font-medium text-primary-foreground disabled:opacity-60">
+                {invite.isPending ? "Sending…" : "Send invite"}
               </button>
             </div>
           </div>
