@@ -363,7 +363,15 @@ function AreasPage() {
       .map((w) => ({ ...w, postcodes: w.postcodes.sort() }));
   }, [workers, areas]);
 
-  const json = JSON.stringify(grouped, null, 2);
+  const csv = useMemo(() => {
+    const esc = (v: string) => {
+      const s = String(v ?? "");
+      return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    };
+    const rows = [["Worker", "Email", "Postcodes"]];
+    for (const w of grouped) rows.push([w.name, w.email, w.postcodes.join(", ")]);
+    return rows.map((r) => r.map(esc).join(",")).join("\n");
+  }, [grouped]);
 
   // Duplicate postcodes: same postcode assigned to more than one worker.
   const duplicatePostcodes = useMemo(() => {
