@@ -14,11 +14,14 @@ export const Route = createFileRoute("/_authenticated/upcoming")({
 
 function UpcomingPage() {
   const fn = useServerFn(listMyJobs);
+  const meFn = useServerFn(getMe);
+  const { data: me } = useQuery({ queryKey: ["me"], queryFn: () => meFn() });
   const { data: jobs = [] } = useQuery({
     queryKey: ["jobs", "upcoming"],
     queryFn: () => fn({ data: { scope: "upcoming" } }),
   });
 
+  const isWorker = !me?.isAdmin;
   const byDate = jobs.reduce((acc: Record<string, any[]>, j: any) => {
     const d = j.due_date ?? "unscheduled";
     (acc[d] ??= []).push(j);
