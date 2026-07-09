@@ -339,7 +339,7 @@ function ChecklistRow({ item, jobId, disabled, pending, onToggle }: { item: any;
   );
 }
 
-function NoteDialog({ title, initial, onClose, onSave }: { title: string; initial: string; onClose: () => void; onSave: (note: string) => void }) {
+function NoteDialog({ title, initial, completed, onClose, onSave, onUnmark }: { title: string; initial: string; completed: boolean; onClose: () => void; onSave: (note: string) => void; onUnmark: () => void }) {
   const [value, setValue] = useState(initial);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -375,17 +375,26 @@ function NoteDialog({ title, initial, onClose, onSave }: { title: string; initia
           placeholder="Write a note…"
           className="w-full resize-none rounded-xl border border-border bg-background p-3 text-sm outline-none focus:border-brand-green focus:ring-2 focus:ring-brand-green/20"
         />
-        <div className="mt-3 flex justify-end gap-2">
-          <button onClick={onClose} className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-secondary">
-            Cancel
-          </button>
-          <button
-            onClick={() => onSave(value.trim())}
-            disabled={!value.trim()}
-            className="rounded-lg bg-brand-green px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md active:scale-[0.97] disabled:opacity-50 disabled:hover:translate-y-0"
-          >
-            Save note
-          </button>
+        <div className="mt-3 flex items-center justify-between gap-2">
+          <div>
+            {completed && (
+              <button onClick={onUnmark} className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-secondary">
+                Unmark
+              </button>
+            )}
+          </div>
+          <div className="flex gap-2">
+            <button onClick={onClose} className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-secondary">
+              Cancel
+            </button>
+            <button
+              onClick={() => onSave(value.trim())}
+              disabled={!value.trim()}
+              className="rounded-lg bg-brand-green px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md active:scale-[0.97] disabled:opacity-50 disabled:hover:translate-y-0"
+            >
+              {completed ? "Update note" : "Save note"}
+            </button>
+          </div>
         </div>
       </div>
     </div>
