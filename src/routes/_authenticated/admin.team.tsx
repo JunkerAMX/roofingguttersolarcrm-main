@@ -17,16 +17,14 @@ function TeamPage() {
   const { data: team = [] } = useQuery({ queryKey: ["team"], queryFn: () => listFn() });
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState("");
-  const [name, setName] = useState("");
-  const [password, setPassword] = useState("");
   const [role, setRole] = useState<"admin" | "worker">("worker");
 
   const invite = useMutation({
-    mutationFn: () => inviteFn({ data: { email, full_name: name, password, role } }),
+    mutationFn: () => inviteFn({ data: { email, role, redirectTo: `${window.location.origin}/accept-invite` } }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["team"] });
-      toast.success("Team member added");
-      setOpen(false); setEmail(""); setName(""); setPassword("");
+      toast.success("Invite email sent");
+      setOpen(false); setEmail("");
     },
     onError: (e: any) => toast.error(e.message),
   });
