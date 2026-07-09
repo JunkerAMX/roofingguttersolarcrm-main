@@ -59,7 +59,7 @@ function TodayPage() {
           {todayPayCents > 0 && (
             <div className="text-right">
               <div className="font-display text-2xl font-semibold text-brand-green">{formatCents(todayPayCents, payCurrency)}</div>
-              <div className="text-xs uppercase tracking-wide text-muted-foreground">{isWorker ? "today's pay" : "worker pay today"}</div>
+              <div className="text-xs uppercase tracking-wide text-muted-foreground">today's pay</div>
             </div>
           )}
           <div className="text-right">
