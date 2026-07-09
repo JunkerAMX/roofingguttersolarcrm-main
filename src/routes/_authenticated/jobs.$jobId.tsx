@@ -241,9 +241,8 @@ function JobDetail() {
         </div>
       )}
 
-      <div className="mt-6">
-        <JobMessages jobId={job.id} currentUserId={me?.userId} />
-      </div>
+      <MessageButtonAndDialog jobId={job.id} currentUserId={me?.userId} />
+
     </AppShell>
   );
 }
