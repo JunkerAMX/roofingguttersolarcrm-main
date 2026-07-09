@@ -5,7 +5,7 @@ import { useState, useRef, useEffect } from "react";
 import { AppShell } from "@/components/app-shell";
 import { getJob, getMe, toggleChecklistItem, uploadJobPhoto, getPhotoUrl, markJobDone } from "@/lib/jobs.functions";
 import { calculateWorkerPayCents, formatWorkerPay } from "@/lib/pay";
-import { ArrowLeft, MapPin, Phone, Mail, DollarSign, Wallet, Camera, Check, Lock, ImageIcon, CheckCircle2, Clock } from "lucide-react";
+import { ArrowLeft, MapPin, Phone, Mail, DollarSign, Wallet, Camera, Check, Lock, ImageIcon, CheckCircle2, Clock, StickyNote, X } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
