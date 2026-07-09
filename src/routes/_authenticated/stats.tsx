@@ -9,11 +9,19 @@ import { format } from "date-fns";
 import { useMemo } from "react";
 
 export const Route = createFileRoute("/_authenticated/stats")({
-  component: MyJobsPage,
+  component: StatsPage,
   errorComponent: ({ error }) => <div className="p-8 text-destructive">{error.message}</div>,
 });
 
-function MyJobsPage() {
+function StatsPage() {
+  const meFn = useServerFn(getMe);
+  const { data: me, isLoading: meLoading } = useQuery({ queryKey: ["me"], queryFn: () => meFn() });
+  if (meLoading) return <AppShell><div className="h-64 animate-pulse rounded-2xl bg-secondary" /></AppShell>;
+  if (!me?.isAdmin) return <AppShell><div className="rounded-2xl border p-8 text-center text-muted-foreground">Admin access required.</div></AppShell>;
+  return <StatsInner />;
+}
+
+function StatsInner() {
   const fn = useServerFn(listMyJobs);
   const meFn = useServerFn(getMe);
   const { data: me } = useQuery({ queryKey: ["me"], queryFn: () => meFn() });
