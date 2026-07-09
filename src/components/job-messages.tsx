@@ -22,11 +22,29 @@ export function JobMessages({ jobId, currentUserId }: { jobId: string; currentUs
 
   const send = useMutation({
     mutationFn: (body: string) => sendFn({ data: { jobId, body } }),
-    onSuccess: () => {
+    onMutate: async (body: string) => {
       setText("");
+      await qc.cancelQueries({ queryKey: ["jobMessages", jobId] });
+      const prev = qc.getQueryData<any[]>(["jobMessages", jobId]) ?? [];
+      const optimistic = {
+        id: `optimistic-${Date.now()}`,
+        job_id: jobId,
+        sender_id: currentUserId,
+        body,
+        created_at: new Date().toISOString(),
+        sender: null,
+        _optimistic: true,
+      };
+      qc.setQueryData(["jobMessages", jobId], [...prev, optimistic]);
+      return { prev };
+    },
+    onError: (e: any, _body, ctx) => {
+      if (ctx?.prev) qc.setQueryData(["jobMessages", jobId], ctx.prev);
+      toast.error(e?.message ?? "Send failed");
+    },
+    onSettled: () => {
       qc.invalidateQueries({ queryKey: ["jobMessages", jobId] });
     },
-    onError: (e: any) => toast.error(e?.message ?? "Send failed"),
   });
 
   useEffect(() => {
