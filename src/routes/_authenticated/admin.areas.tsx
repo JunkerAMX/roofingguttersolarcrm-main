@@ -332,8 +332,8 @@ function AreasPage() {
     const se = new g.maps.LatLng(sw.lat(), ne.lng());
     const widthM = spherical.computeDistanceBetween(nw, ne);
     const heightM = spherical.computeDistanceBetween(nw, sw);
-    const SPACING = 600; // metres
-    const MAX_STEPS = 40;
+    const SPACING = 300; // metres — dense enough to catch small urban postcodes
+    const MAX_STEPS = 120;
     const stepsX = Math.min(MAX_STEPS, Math.max(4, Math.ceil(widthM / SPACING)));
     const stepsY = Math.min(MAX_STEPS, Math.max(4, Math.ceil(heightM / SPACING)));
     const points: { lat: number; lng: number }[] = [];
@@ -348,8 +348,7 @@ function AreasPage() {
       }
     }
     if (!points.length) { toast.error("Area too small"); return; }
-    // Chunk to respect server cap (60 points per call).
-    const CHUNK = 60;
+    const CHUNK = 300;
     const chunks: { lat: number; lng: number }[][] = [];
     for (let i = 0; i < points.length; i += CHUNK) chunks.push(points.slice(i, i + CHUNK));
     toast.message(`Scanning ${points.length} points across ${chunks.length} batch${chunks.length === 1 ? "" : "es"}…`);
