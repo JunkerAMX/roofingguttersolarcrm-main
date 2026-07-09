@@ -31,9 +31,11 @@ export const sendJobMessage = createServerFn({ method: "POST" })
     const { data: msg, error } = await supabase
       .from("job_messages")
       .insert({ job_id: data.jobId, sender_id: userId, body: data.body })
-      .select("*, sender:profiles!job_messages_sender_id_fkey(id, full_name, email)")
+      .select("*")
       .single();
     if (error) throw new Error(error.message);
+    const { data: senderRow } = await supabase.from("profiles").select("id, full_name, email").eq("id", userId).maybeSingle();
+    const msgWithSender = { ...msg, sender: senderRow ?? null };
 
     // Notify the other party via service role
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
