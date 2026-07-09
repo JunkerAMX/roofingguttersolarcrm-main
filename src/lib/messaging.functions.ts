@@ -72,7 +72,7 @@ export const sendJobMessage = createServerFn({ method: "POST" })
         })),
       );
     }
-    return msg;
+    return msgWithSender;
   });
 
 export const listNotifications = createServerFn({ method: "GET" })
