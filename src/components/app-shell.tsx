@@ -31,18 +31,9 @@ export function AppShell({ children }: { children: ReactNode }) {
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-40 border-b border-border/60 bg-background/95 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
-          <div className="flex items-center gap-2">
-            <Link
-              to="/settings"
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-secondary text-foreground transition-all duration-200 ease-out hover:bg-secondary/80 active:scale-[0.92]"
-              aria-label="Settings"
-            >
-              <User className="h-5 w-5" />
-            </Link>
-            <Link to="/today" className="flex items-center gap-2">
-              <img src={logo} alt="Roofing.Gutter.Solar" className="h-9 w-auto" />
-            </Link>
-          </div>
+          <Link to="/today" className="flex items-center gap-2">
+            <img src={logo} alt="Roofing.Gutter.Solar" className="h-9 w-auto" />
+          </Link>
 
           <nav className="hidden items-center gap-1 md:flex">
             {nav.map((n) => {
