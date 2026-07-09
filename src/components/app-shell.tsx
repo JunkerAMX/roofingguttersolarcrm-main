@@ -65,9 +65,13 @@ export function AppShell({ children }: { children: ReactNode }) {
 
           <div className="flex items-center gap-2">
             <NotificationBell userId={me?.userId} />
-            <div className="hidden h-8 w-8 items-center justify-center rounded-full bg-secondary sm:flex">
-              <User className="h-4 w-4 text-muted-foreground" />
-            </div>
+            <Link
+              to="/settings"
+              aria-label="Settings"
+              className="hidden h-8 w-8 items-center justify-center rounded-full bg-secondary text-muted-foreground transition-all duration-200 ease-out hover:bg-secondary/80 hover:text-foreground active:scale-[0.92] sm:flex"
+            >
+              <User className="h-4 w-4" />
+            </Link>
             <button
               onClick={() => setMenuOpen((v) => !v)}
               className="rounded-lg p-2 text-foreground transition-all duration-200 ease-out hover:bg-secondary active:scale-[0.92] md:hidden"
