@@ -323,9 +323,14 @@ function ChecklistRow({ item, jobId, disabled, pending, onToggle }: { item: any;
         <NoteDialog
           title={item.title}
           initial={item.note ?? ""}
+          completed={!!item.completed}
           onClose={() => setNoteOpen(false)}
           onSave={(note) => {
             onToggle(true, note);
+            setNoteOpen(false);
+          }}
+          onUnmark={() => {
+            onToggle(false);
             setNoteOpen(false);
           }}
         />
