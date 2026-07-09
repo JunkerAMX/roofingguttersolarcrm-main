@@ -63,7 +63,7 @@ function ContactsPage() {
               </div>
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <button className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-destructive/10 hover:text-destructive" aria-label="Delete contact">
+                  <button className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-all duration-200 ease-out hover:bg-destructive/10 hover:text-destructive active:scale-[0.92]" aria-label="Delete contact">
                     <Trash2 className="h-4 w-4" />
                   </button>
                 </AlertDialogTrigger>

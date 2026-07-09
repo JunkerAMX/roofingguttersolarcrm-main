@@ -457,7 +457,7 @@ function AreasPage() {
                     key={w.id}
                     onClick={() => setSelectedWorker(w.id)}
                     className={cn(
-                      "flex w-full items-center gap-2 rounded-lg border p-2 text-left text-sm transition-colors",
+                      "flex w-full items-center gap-2 rounded-lg border p-2 text-left text-sm transition-all duration-200 ease-out active:scale-[0.98]",
                       active ? "border-brand-green bg-brand-green/5" : "border-border hover:bg-secondary",
                     )}
                   >
@@ -483,13 +483,13 @@ function AreasPage() {
             <div className="absolute left-3 top-3 flex flex-wrap gap-2">
               <button
                 onClick={finishPolygon}
-                className="rounded-full bg-brand-green px-3 py-1.5 text-xs font-semibold text-white shadow hover:brightness-110"
+                className="rounded-full bg-brand-green px-3 py-1.5 text-xs font-semibold text-white shadow transition-all duration-200 ease-out hover:-translate-y-px hover:shadow-md hover:brightness-110 active:scale-[0.95]"
               >
                 Finish → postcodes
               </button>
               <button
                 onClick={clearPolygon}
-                className="rounded-full bg-background/90 px-3 py-1.5 text-xs font-semibold text-destructive shadow hover:bg-background"
+                className="rounded-full bg-background/90 px-3 py-1.5 text-xs font-semibold text-destructive shadow transition-all duration-200 ease-out hover:-translate-y-px hover:bg-background active:scale-[0.95]"
               >
                 Clear this worker
               </button>
@@ -499,7 +499,7 @@ function AreasPage() {
                     clearAllM.mutate();
                   }
                 }}
-                className="rounded-full bg-destructive px-3 py-1.5 text-xs font-semibold text-white shadow hover:brightness-110"
+                className="rounded-full bg-destructive px-3 py-1.5 text-xs font-semibold text-white shadow transition-all duration-200 ease-out hover:-translate-y-px hover:shadow-md hover:brightness-110 active:scale-[0.95]"
               >
                 Clear all
               </button>
@@ -552,7 +552,7 @@ function AreasPage() {
                   <td className="p-2 text-muted-foreground">{a.suburb ?? "—"}</td>
                   <td className="p-2 text-muted-foreground truncate max-w-[240px]">{a.label ?? "—"}</td>
                   <td className="p-2 text-right">
-                    <button onClick={() => del.mutate(a.id)} className="rounded p-1 text-destructive hover:bg-destructive/10">
+                    <button onClick={() => del.mutate(a.id)} className="rounded p-1 text-destructive transition-all duration-200 ease-out hover:bg-destructive/10 active:scale-[0.92]">
                       <Trash2 className="h-4 w-4" />
                     </button>
                   </td>
@@ -574,7 +574,7 @@ function AreasPage() {
           <div className="flex gap-2">
             <button
               onClick={() => { navigator.clipboard.writeText(csv); toast.success("Copied"); }}
-              className="flex items-center gap-1 rounded-lg bg-brand-green px-3 py-1.5 text-xs font-semibold text-white"
+              className="flex items-center gap-1 rounded-lg bg-brand-green px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-all duration-200 ease-out hover:-translate-y-px hover:shadow-sm hover:brightness-110 active:scale-[0.95]"
             >
               <Copy className="h-3 w-3" /> Copy
             </button>
@@ -588,7 +588,7 @@ function AreasPage() {
                 a.click();
                 URL.revokeObjectURL(url);
               }}
-              className="rounded-lg border border-border px-3 py-1.5 text-xs font-semibold"
+              className="rounded-lg border border-border px-3 py-1.5 text-xs font-semibold transition-all duration-200 ease-out hover:-translate-y-px hover:bg-secondary active:scale-[0.95]"
             >
               Download
             </button>

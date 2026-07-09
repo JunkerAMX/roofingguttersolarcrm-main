@@ -42,7 +42,7 @@ function AdminLayout() {
               key={t.to}
               to={t.to}
               className={cn(
-                "flex items-center gap-2 whitespace-nowrap border-b-2 px-3 py-2 text-sm font-medium transition-colors",
+                "flex items-center gap-2 whitespace-nowrap border-b-2 px-3 py-2 text-sm font-medium transition-all duration-200 ease-out active:scale-[0.98]",
                 active ? "border-brand-green text-brand-green" : "border-transparent text-muted-foreground hover:text-foreground",
               )}
             >

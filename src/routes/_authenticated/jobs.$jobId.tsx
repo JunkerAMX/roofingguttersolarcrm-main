@@ -178,7 +178,7 @@ function JobDetail() {
             <button
               onClick={() => markDone.mutate()}
               disabled={markDone.isPending}
-              className="pointer-events-auto flex w-full items-center justify-center gap-2 rounded-2xl bg-brand-green py-4 text-base font-semibold text-white shadow-2xl shadow-brand-green/40 transition-transform active:scale-[0.98] disabled:opacity-70"
+              className="pointer-events-auto flex w-full items-center justify-center gap-2 rounded-2xl bg-brand-green py-4 text-base font-semibold text-white shadow-2xl shadow-brand-green/40 transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[0_8px_30px_-6px_rgba(74,163,74,0.45)] active:scale-[0.97] disabled:opacity-70"
             >
               <CheckCircle2 className="h-5 w-5" />
               {markDone.isPending ? "Saving…" : "Mark job as done"}
@@ -295,12 +295,12 @@ function PhotoUploadDialog({ jobId, progressId, kind, title, onClose }: { jobId:
         <button
           onClick={() => inputRef.current?.click()}
           disabled={uploading}
-          className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-4 font-medium text-primary-foreground disabled:opacity-60"
+          className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-4 font-medium text-primary-foreground shadow-sm transition-all duration-200 ease-out hover:-translate-y-px hover:shadow-md active:scale-[0.97] disabled:opacity-60"
         >
           <Camera className="h-5 w-5" />
           {uploading ? "Uploading…" : "Take / Choose photo"}
         </button>
-        <button onClick={onClose} className="mt-2 w-full rounded-xl py-2 text-sm text-muted-foreground hover:bg-secondary">
+        <button onClick={onClose} className="mt-2 w-full rounded-xl py-2 text-sm text-muted-foreground transition-all duration-200 ease-out hover:bg-secondary active:scale-[0.98]">
           Cancel
         </button>
       </div>

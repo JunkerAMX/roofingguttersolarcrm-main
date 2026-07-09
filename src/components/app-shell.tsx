@@ -41,14 +41,14 @@ export function AppShell({ children }: { children: ReactNode }) {
             {nav.map((n) => {
               const active = pathname === n.to || (n.to !== "/today" && pathname.startsWith(n.to));
               return (
-                <Link
-                  key={n.to}
-                  to={n.to}
-                  className={cn(
-                    "flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                    active ? "bg-primary text-primary-foreground" : "text-foreground/70 hover:bg-secondary hover:text-foreground",
-                  )}
-                >
+              <Link
+                key={n.to}
+                to={n.to}
+                className={cn(
+                  "flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 ease-out active:scale-[0.98]",
+                  active ? "bg-primary text-primary-foreground" : "text-foreground/70 hover:bg-secondary hover:text-foreground",
+                )}
+              >
                   <n.icon className="h-4 w-4" />
                   {n.label}
                 </Link>
@@ -63,14 +63,14 @@ export function AppShell({ children }: { children: ReactNode }) {
             </div>
             <button
               onClick={signOut}
-              className="hidden rounded-lg p-2 text-foreground/60 hover:bg-secondary hover:text-foreground md:block"
+              className="hidden rounded-lg p-2 text-foreground/60 transition-all duration-200 ease-out hover:bg-secondary hover:text-foreground active:scale-[0.92] md:block"
               aria-label="Sign out"
             >
               <LogOut className="h-4 w-4" />
             </button>
             <button
               onClick={() => setMenuOpen((v) => !v)}
-              className="rounded-lg p-2 text-foreground hover:bg-secondary md:hidden"
+              className="rounded-lg p-2 text-foreground transition-all duration-200 ease-out hover:bg-secondary active:scale-[0.92] md:hidden"
               aria-label="Menu"
             >
               {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -85,13 +85,13 @@ export function AppShell({ children }: { children: ReactNode }) {
                   key={n.to}
                   to={n.to}
                   onClick={() => setMenuOpen(false)}
-                  className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-foreground/80 hover:bg-secondary"
+                  className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-foreground/80 transition-all duration-200 ease-out hover:bg-secondary active:scale-[0.98]"
                 >
                   <n.icon className="h-4 w-4" />
                   {n.label}
                 </Link>
               ))}
-              <button onClick={signOut} className="mt-1 flex items-center gap-3 rounded-lg px-3 py-3 text-left text-sm font-medium text-destructive hover:bg-destructive/10">
+              <button onClick={signOut} className="mt-1 flex items-center gap-3 rounded-lg px-3 py-3 text-left text-sm font-medium text-destructive transition-all duration-200 ease-out hover:bg-destructive/10 active:scale-[0.98]">
                 <LogOut className="h-4 w-4" /> Sign out
               </button>
             </nav>

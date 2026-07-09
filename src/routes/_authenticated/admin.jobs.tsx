@@ -66,14 +66,14 @@ function JobsPage() {
               </td>
               <td className="p-3 text-xs">{j.price_cents ? `$${(j.price_cents / 100).toFixed(2)} ${j.currency}` : "—"}</td>
               <td className="p-3">
-                <button
-                  onClick={() => { if (confirm("Delete this job? This cannot be undone.")) del.mutate(j.id); }}
-                  disabled={del.isPending}
-                  className="rounded-lg p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive disabled:opacity-50"
-                  aria-label="Delete job"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
+              <button
+                onClick={() => { if (confirm("Delete this job? This cannot be undone.")) del.mutate(j.id); }}
+                disabled={del.isPending}
+                className="rounded-lg p-2 text-muted-foreground transition-all duration-200 ease-out hover:bg-destructive/10 hover:text-destructive active:scale-[0.92] disabled:opacity-50"
+                aria-label="Delete job"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
               </td>
             </tr>
           ))}

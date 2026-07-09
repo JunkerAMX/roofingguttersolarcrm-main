@@ -56,7 +56,7 @@ function ChecklistsPage() {
                 input_type: "checkbox",
                 position: (t.items[t.items.length - 1]?.position ?? 0) + 1,
               })}
-              className="flex items-center gap-1 rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground"
+              className="flex items-center gap-1 rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground shadow-sm transition-all duration-200 ease-out hover:-translate-y-px hover:shadow-md active:scale-[0.97]"
             >
               <Plus className="h-4 w-4" /> Add item
             </button>
@@ -78,8 +78,8 @@ function ChecklistsPage() {
                       <div className="font-medium">{item.title}</div>
                       <div className="text-xs text-muted-foreground">{INPUT_TYPES.find(x => x.value === item.input_type)?.label}</div>
                     </div>
-                    <button onClick={() => setEditingId(item.id)} className="rounded-lg px-3 py-1 text-sm hover:bg-secondary">Edit</button>
-                    <button onClick={() => confirm("Delete?") && del.mutate(item.id)} className="rounded-lg p-2 text-destructive hover:bg-destructive/10">
+                    <button onClick={() => setEditingId(item.id)} className="rounded-lg px-3 py-1 text-sm transition-all duration-200 ease-out hover:bg-secondary active:scale-[0.95]">Edit</button>
+                    <button onClick={() => confirm("Delete?") && del.mutate(item.id)} className="rounded-lg p-2 text-destructive transition-all duration-200 ease-out hover:bg-destructive/10 active:scale-[0.92]">
                       <Trash2 className="h-4 w-4" />
                     </button>
                   </div>
@@ -108,8 +108,8 @@ function ItemEditor({ item, onCancel, onSave }: { item: any; onCancel: () => voi
         <input type="number" value={position} onChange={(e) => setPosition(Number(e.target.value))} className="rounded-lg border border-input bg-background px-3 py-2 text-sm" />
       </div>
       <div className="flex gap-2">
-        <button onClick={() => onSave({ title, input_type: inputType, position })} className="rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground">Save</button>
-        <button onClick={onCancel} className="rounded-lg px-3 py-1.5 text-sm hover:bg-secondary">Cancel</button>
+        <button onClick={() => onSave({ title, input_type: inputType, position })} className="rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground shadow-sm transition-all duration-200 ease-out hover:-translate-y-px hover:shadow-sm active:scale-[0.97]">Save</button>
+        <button onClick={onCancel} className="rounded-lg px-3 py-1.5 text-sm transition-all duration-200 ease-out hover:bg-secondary active:scale-[0.95]">Cancel</button>
       </div>
     </div>
   );

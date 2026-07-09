@@ -39,7 +39,7 @@ function TeamPage() {
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
-        <button onClick={() => setOpen(true)} className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">
+        <button onClick={() => setOpen(true)} className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-all duration-200 ease-out hover:-translate-y-px hover:shadow-md active:scale-[0.97]">
           <Plus className="h-4 w-4" /> Add team member
         </button>
       </div>
@@ -61,7 +61,7 @@ function TeamPage() {
                 <button
                   onClick={() => { if (confirm(`Revoke access for ${m.email}? This deletes their account.`)) remove.mutate(m.id); }}
                   disabled={remove.isPending}
-                  className="ml-2 rounded-lg p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive disabled:opacity-50"
+                  className="ml-2 rounded-lg p-2 text-muted-foreground transition-all duration-200 ease-out hover:bg-destructive/10 hover:text-destructive active:scale-[0.92] disabled:opacity-50"
                   aria-label="Revoke access"
                 >
                   <Trash2 className="h-4 w-4" />
@@ -83,7 +83,7 @@ function TeamPage() {
                 <option value="worker">Worker</option>
                 <option value="admin">Admin</option>
               </select>
-              <button onClick={() => invite.mutate()} disabled={invite.isPending || !email} className="w-full rounded-lg bg-primary py-2 font-medium text-primary-foreground disabled:opacity-60">
+              <button onClick={() => invite.mutate()} disabled={invite.isPending || !email} className="w-full rounded-lg bg-primary py-2 font-medium text-primary-foreground shadow-sm transition-all duration-200 ease-out hover:-translate-y-px hover:shadow-md active:scale-[0.97] disabled:opacity-60">
                 {invite.isPending ? "Sending…" : "Send invite"}
               </button>
             </div>

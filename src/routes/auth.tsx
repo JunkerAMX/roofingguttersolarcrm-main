@@ -103,16 +103,16 @@ function AuthPage() {
             </div>
             <button
               disabled={loading}
-              className="w-full rounded-lg bg-primary py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:brightness-110 disabled:opacity-60"
+              className="w-full rounded-lg bg-primary py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-all duration-200 ease-out hover:-translate-y-px hover:shadow-md hover:brightness-110 active:scale-[0.97] disabled:opacity-60"
             >
               {loading ? "Please wait…" : mode === "signin" ? "Sign in" : "Create account"}
             </button>
           </form>
           <div className="mt-6 text-center text-sm text-muted-foreground">
             {mode === "signin" ? (
-              <>New here? <button className="font-medium text-primary hover:underline" onClick={() => setMode("signup")}>Create an account</button></>
+              <>New here? <button className="font-medium text-primary underline-offset-4 transition-colors hover:underline active:scale-95" onClick={() => setMode("signup")}>Create an account</button></>
             ) : (
-              <>Have an account? <button className="font-medium text-primary hover:underline" onClick={() => setMode("signin")}>Sign in</button></>
+              <>Have an account? <button className="font-medium text-primary underline-offset-4 transition-colors hover:underline active:scale-95" onClick={() => setMode("signin")}>Sign in</button></>
             )}
           </div>
         </div>
