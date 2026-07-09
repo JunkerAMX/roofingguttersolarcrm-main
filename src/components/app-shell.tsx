@@ -63,14 +63,14 @@ export function AppShell({ children }: { children: ReactNode }) {
             </div>
             <button
               onClick={signOut}
-              className="hidden rounded-lg p-2 text-foreground/60 hover:bg-secondary hover:text-foreground md:block"
+              className="hidden rounded-lg p-2 text-foreground/60 transition-all duration-200 ease-out hover:bg-secondary hover:text-foreground active:scale-[0.92] md:block"
               aria-label="Sign out"
             >
               <LogOut className="h-4 w-4" />
             </button>
             <button
               onClick={() => setMenuOpen((v) => !v)}
-              className="rounded-lg p-2 text-foreground hover:bg-secondary md:hidden"
+              className="rounded-lg p-2 text-foreground transition-all duration-200 ease-out hover:bg-secondary active:scale-[0.92] md:hidden"
               aria-label="Menu"
             >
               {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
