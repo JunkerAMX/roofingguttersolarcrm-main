@@ -78,8 +78,8 @@ function ChecklistsPage() {
                       <div className="font-medium">{item.title}</div>
                       <div className="text-xs text-muted-foreground">{INPUT_TYPES.find(x => x.value === item.input_type)?.label}</div>
                     </div>
-                    <button onClick={() => setEditingId(item.id)} className="rounded-lg px-3 py-1 text-sm hover:bg-secondary">Edit</button>
-                    <button onClick={() => confirm("Delete?") && del.mutate(item.id)} className="rounded-lg p-2 text-destructive hover:bg-destructive/10">
+                    <button onClick={() => setEditingId(item.id)} className="rounded-lg px-3 py-1 text-sm transition-all duration-200 ease-out hover:bg-secondary active:scale-[0.95]">Edit</button>
+                    <button onClick={() => confirm("Delete?") && del.mutate(item.id)} className="rounded-lg p-2 text-destructive transition-all duration-200 ease-out hover:bg-destructive/10 active:scale-[0.92]">
                       <Trash2 className="h-4 w-4" />
                     </button>
                   </div>
