@@ -240,6 +240,10 @@ function JobDetail() {
           <CheckCircle2 className="h-5 w-5" /> <span className="font-semibold">Job completed</span>
         </div>
       )}
+
+      <div className="mt-6">
+        <JobMessages jobId={job.id} currentUserId={me?.userId} />
+      </div>
     </AppShell>
   );
 }
