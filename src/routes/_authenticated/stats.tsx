@@ -30,6 +30,7 @@ function StatsInner() {
     queryKey: ["jobs", "all"],
     queryFn: () => fn({ data: { scope: "all" } }),
   });
+  const [msgJobId, setMsgJobId] = useState<string | null>(null);
 
   const isAdmin = true;
 
