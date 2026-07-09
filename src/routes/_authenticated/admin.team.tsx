@@ -54,10 +54,18 @@ function TeamPage() {
                 <div className="font-medium">{m.full_name || m.email}</div>
                 <div className="text-xs text-muted-foreground">{m.email}</div>
               </div>
-              <div className="flex gap-1">
+              <div className="flex items-center gap-1">
                 {m.roles.map((r: string) => (
                   <span key={r} className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-semibold uppercase">{r}</span>
                 ))}
+                <button
+                  onClick={() => { if (confirm(`Revoke access for ${m.email}? This deletes their account.`)) remove.mutate(m.id); }}
+                  disabled={remove.isPending}
+                  className="ml-2 rounded-lg p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive disabled:opacity-50"
+                  aria-label="Revoke access"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
               </div>
             </li>
           ))}
