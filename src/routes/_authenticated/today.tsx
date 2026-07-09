@@ -99,7 +99,7 @@ function TodayPage() {
   );
 }
 
-function JobCard({ job, showPay }: { job: any; showPay?: boolean }) {
+function JobCard({ job, showPay, isWorker }: { job: any; showPay?: boolean; isWorker?: boolean }) {
   const now = useNow(15000);
   const price = job.price_cents ? `$${(job.price_cents / 100).toFixed(2)}` : null;
   const startMs = job.scheduled_for ? new Date(job.scheduled_for).getTime() : null;
