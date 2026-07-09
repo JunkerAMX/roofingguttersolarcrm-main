@@ -197,25 +197,40 @@ function JobDetail() {
         </div>
       </div>
 
-      {total > 0 && done === total && job.status !== "completed" && (
-        <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 p-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] animate-fade-in">
-          <div className="mx-auto max-w-md">
-            {isWorker && calculateWorkerPayCents(job.price_cents) > 0 && (
-              <div className="pointer-events-auto mb-2 text-center text-sm font-medium text-brand-green">
-                Complete this job to earn {formatWorkerPay(job.price_cents)}
-              </div>
-            )}
-            <button
-              onClick={() => markDone.mutate()}
-              disabled={markDone.isPending}
-              className="pointer-events-auto flex w-full items-center justify-center gap-2 rounded-2xl bg-brand-green py-4 text-base font-semibold text-white shadow-2xl shadow-brand-green/40 transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[0_8px_30px_-6px_rgba(74,163,74,0.45)] active:scale-[0.97] disabled:opacity-70"
-            >
-              <CheckCircle2 className="h-5 w-5" />
-              {markDone.isPending ? "Saving…" : "Mark job as done"}
-            </button>
+      {total > 0 && job.status !== "completed" && (() => {
+        const allDone = done === total;
+        const remaining = total - done;
+        return (
+          <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 p-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] animate-fade-in">
+            <div className="mx-auto max-w-md">
+              {allDone && isWorker && calculateWorkerPayCents(job.price_cents) > 0 && (
+                <div className="pointer-events-auto mb-2 text-center text-sm font-medium text-brand-green">
+                  Complete this job to earn {formatWorkerPay(job.price_cents)}
+                </div>
+              )}
+              <button
+                onClick={() => allDone && markDone.mutate()}
+                disabled={!allDone || markDone.isPending}
+                aria-disabled={!allDone}
+                className={cn(
+                  "pointer-events-auto flex w-full items-center justify-center gap-2 rounded-2xl py-4 text-base font-semibold shadow-2xl transition-all duration-200 ease-out disabled:cursor-not-allowed",
+                  allDone
+                    ? "bg-brand-green text-white shadow-brand-green/40 hover:-translate-y-0.5 hover:shadow-[0_8px_30px_-6px_rgba(74,163,74,0.45)] active:scale-[0.97] disabled:opacity-70"
+                    : "bg-muted text-muted-foreground shadow-black/10",
+                )}
+              >
+                {allDone ? <CheckCircle2 className="h-5 w-5" /> : <Lock className="h-5 w-5" />}
+                {markDone.isPending
+                  ? "Saving…"
+                  : allDone
+                  ? "Mark job as done"
+                  : `Complete ${remaining} more ${remaining === 1 ? "task" : "tasks"} to finish`}
+              </button>
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
+
 
       {job.status === "completed" && (
         <div className="mt-4 flex items-center justify-center gap-2 rounded-2xl border border-brand-green/40 bg-brand-green/10 p-4 text-brand-green">

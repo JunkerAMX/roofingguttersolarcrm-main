@@ -32,9 +32,6 @@ export function AppShell({ children }: { children: ReactNode }) {
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
           <Link to="/today" className="flex items-center gap-2">
             <img src={logo} alt="Roofing.Gutter.Solar" className="h-9 w-auto" />
-            <span className="hidden font-display text-sm font-semibold text-brand-green sm:inline">
-              RGS Field
-            </span>
           </Link>
 
           <nav className="hidden items-center gap-1 md:flex">
