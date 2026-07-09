@@ -17,7 +17,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   const nav = [
     { to: "/today", label: "Today", icon: Home },
-    { to: "/my-jobs", label: "My Jobs", icon: Briefcase },
+    ...(me?.isAdmin ? [{ to: "/stats", label: "Stats", icon: BarChart3 }] : []),
     ...(me?.isAdmin ? [{ to: "/admin", label: "Admin", icon: Settings }] : []),
     { to: "/settings", label: "Settings", icon: User },
   ];
