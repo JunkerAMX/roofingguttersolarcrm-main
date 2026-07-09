@@ -273,7 +273,7 @@ function ChecklistRow({ item, jobId, disabled, pending, onToggle }: { item: any;
             "flex w-full items-center gap-3 rounded-xl border p-3 text-left transition-all duration-200 ease-out active:scale-[0.99]",
             item.completed
               ? "border-brand-green/40 bg-brand-green/5"
-              : disabled || pending
+              : disabled
               ? "border-border bg-muted/30 opacity-60"
               : "border-border bg-background hover:border-brand-lime hover:bg-brand-lime/5",
             isPayment && !disabled && !item.completed && "border-brand-yellow bg-brand-yellow/10",
@@ -286,7 +286,7 @@ function ChecklistRow({ item, jobId, disabled, pending, onToggle }: { item: any;
             )}
           >
             {item.completed && <Check className="h-4 w-4 animate-scale-in" />}
-            {!item.completed && (disabled || pending) && <Lock className="h-3 w-3 text-muted-foreground" />}
+            {!item.completed && disabled && !pending && <Lock className="h-3 w-3 text-muted-foreground" />}
           </span>
           <span className={cn("flex-1 text-sm font-medium transition-all duration-200", item.completed && "text-muted-foreground line-through")}>{item.title}</span>
           {isPhoto && <Camera className="h-4 w-4 text-brand-green" />}
@@ -323,9 +323,14 @@ function ChecklistRow({ item, jobId, disabled, pending, onToggle }: { item: any;
         <NoteDialog
           title={item.title}
           initial={item.note ?? ""}
+          completed={!!item.completed}
           onClose={() => setNoteOpen(false)}
           onSave={(note) => {
             onToggle(true, note);
+            setNoteOpen(false);
+          }}
+          onUnmark={() => {
+            onToggle(false);
             setNoteOpen(false);
           }}
         />
@@ -334,7 +339,7 @@ function ChecklistRow({ item, jobId, disabled, pending, onToggle }: { item: any;
   );
 }
 
-function NoteDialog({ title, initial, onClose, onSave }: { title: string; initial: string; onClose: () => void; onSave: (note: string) => void }) {
+function NoteDialog({ title, initial, completed, onClose, onSave, onUnmark }: { title: string; initial: string; completed: boolean; onClose: () => void; onSave: (note: string) => void; onUnmark: () => void }) {
   const [value, setValue] = useState(initial);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -370,17 +375,26 @@ function NoteDialog({ title, initial, onClose, onSave }: { title: string; initia
           placeholder="Write a note…"
           className="w-full resize-none rounded-xl border border-border bg-background p-3 text-sm outline-none focus:border-brand-green focus:ring-2 focus:ring-brand-green/20"
         />
-        <div className="mt-3 flex justify-end gap-2">
-          <button onClick={onClose} className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-secondary">
-            Cancel
-          </button>
-          <button
-            onClick={() => onSave(value.trim())}
-            disabled={!value.trim()}
-            className="rounded-lg bg-brand-green px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md active:scale-[0.97] disabled:opacity-50 disabled:hover:translate-y-0"
-          >
-            Save note
-          </button>
+        <div className="mt-3 flex items-center justify-between gap-2">
+          <div>
+            {completed && (
+              <button onClick={onUnmark} className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-secondary">
+                Unmark
+              </button>
+            )}
+          </div>
+          <div className="flex gap-2">
+            <button onClick={onClose} className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-secondary">
+              Cancel
+            </button>
+            <button
+              onClick={() => onSave(value.trim())}
+              disabled={!value.trim()}
+              className="rounded-lg bg-brand-green px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md active:scale-[0.97] disabled:opacity-50 disabled:hover:translate-y-0"
+            >
+              {completed ? "Update note" : "Save note"}
+            </button>
+          </div>
         </div>
       </div>
     </div>

@@ -1,0 +1,1 @@
+UPDATE public.job_checklist_progress p SET input_type = ci.input_type FROM public.checklist_items ci WHERE p.checklist_item_id = ci.id AND p.input_type IS DISTINCT FROM ci.input_type;
