@@ -155,7 +155,7 @@ function JobCard({ job, showPay, isWorker }: { job: any; showPay?: boolean; isWo
       {showPay && calculateWorkerPayCents(job.price_cents) > 0 && (
         <div className="mt-2 inline-flex items-center gap-2 rounded-lg bg-brand-green/10 px-2.5 py-1 text-sm font-semibold text-brand-green">
           <Wallet className="h-4 w-4" />
-          <span>You earn {formatWorkerPay(job.price_cents, job.currency)}</span>
+          <span>{isWorker ? "You earn" : "Worker pay"} {formatWorkerPay(job.price_cents, job.currency)}</span>
         </div>
       )}
     </Link>
