@@ -127,11 +127,11 @@ export const Route = createFileRoute("/api/public/highlevel/appointment")({
 
         if (existingId) {
           const { data: c } = await supabaseAdmin.from("contacts")
-            .update(contactRow).eq("id", existingId).select("id").maybeSingle();
+            .update(contactRow as any).eq("id", existingId).select("id").maybeSingle();
           contact_id = c?.id ?? existingId;
         } else if (Object.keys(contactRow).length > 0) {
           const { data: c } = await supabaseAdmin.from("contacts")
-            .insert(contactRow).select("id").maybeSingle();
+            .insert(contactRow as any).select("id").maybeSingle();
           contact_id = c?.id ?? null;
         }
 
