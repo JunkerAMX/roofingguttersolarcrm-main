@@ -99,7 +99,7 @@ function TodayPage() {
   );
 }
 
-function JobCard({ job }: { job: any }) {
+function JobCard({ job, showPay }: { job: any; showPay?: boolean }) {
   const now = useNow(15000);
   const price = job.price_cents ? `$${(job.price_cents / 100).toFixed(2)}` : null;
   const startMs = job.scheduled_for ? new Date(job.scheduled_for).getTime() : null;
@@ -150,6 +150,12 @@ function JobCard({ job }: { job: any }) {
         <div className="flex items-center gap-2 text-sm font-medium text-foreground">
           <DollarSign className="h-4 w-4 text-brand-green" />
           <span>{price} {job.currency}</span>
+        </div>
+      )}
+      {showPay && (
+        <div className="mt-2 inline-flex items-center gap-2 rounded-lg bg-brand-green/10 px-2.5 py-1 text-sm font-semibold text-brand-green">
+          <Wallet className="h-4 w-4" />
+          <span>You earn {formatWorkerPay(job.currency)}</span>
         </div>
       )}
     </Link>
