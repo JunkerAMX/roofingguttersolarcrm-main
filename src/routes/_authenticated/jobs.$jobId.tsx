@@ -200,35 +200,49 @@ function JobDetail() {
         </div>
       </div>
 
-      {total > 0 && job.status !== "completed" && (() => {
-        const allDone = done === total;
+      {(() => {
+        const allDone = total > 0 && done === total;
         const remaining = total - done;
+        const showDone = total > 0 && job.status !== "completed";
         return (
           <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 p-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] animate-fade-in">
             <div className="mx-auto max-w-md">
-              {allDone && isWorker && calculateWorkerPayCents(job.price_cents) > 0 && (
+              {showDone && allDone && isWorker && calculateWorkerPayCents(job.price_cents) > 0 && (
                 <div className="pointer-events-auto mb-2 text-center text-sm font-medium text-brand-green">
                   Complete this job to earn {formatWorkerPay(job.price_cents)}
                 </div>
               )}
-              <button
-                onClick={() => allDone && markDone.mutate()}
-                disabled={!allDone || markDone.isPending}
-                aria-disabled={!allDone}
-                className={cn(
-                  "pointer-events-auto flex w-full items-center justify-center gap-2 rounded-2xl py-4 text-base font-semibold shadow-2xl transition-all duration-200 ease-out disabled:cursor-not-allowed",
-                  allDone
-                    ? "bg-brand-green text-white shadow-brand-green/40 hover:-translate-y-0.5 hover:shadow-[0_8px_30px_-6px_rgba(74,163,74,0.45)] active:scale-[0.97] disabled:opacity-70"
-                    : "bg-muted text-muted-foreground shadow-black/10",
+              <div className="pointer-events-auto flex items-stretch gap-2">
+                <button
+                  onClick={() => setMsgOpen(true)}
+                  className="flex h-auto shrink-0 items-center justify-center gap-2 rounded-2xl bg-card border border-border px-4 text-sm font-semibold shadow-xl transition-all hover:-translate-y-0.5 active:scale-95"
+                  aria-label="Messages"
+                >
+                  <MessageSquare className="h-5 w-5 text-brand-green" />
+                </button>
+                {showDone && (
+                  <button
+                    onClick={() => allDone && markDone.mutate()}
+                    disabled={!allDone || markDone.isPending}
+                    aria-disabled={!allDone}
+                    className={cn(
+                      "flex flex-1 items-center justify-center gap-2 rounded-2xl py-4 text-base font-semibold shadow-2xl transition-all duration-200 ease-out disabled:cursor-not-allowed",
+                      allDone
+                        ? "bg-brand-green text-white shadow-brand-green/40 hover:-translate-y-0.5 hover:shadow-[0_8px_30px_-6px_rgba(74,163,74,0.45)] active:scale-[0.97] disabled:opacity-70"
+                        : "bg-muted text-muted-foreground shadow-black/10",
+                    )}
+                  >
+                    {allDone ? <CheckCircle2 className="h-5 w-5" /> : <Lock className="h-5 w-5" />}
+                    <span className="truncate">
+                      {markDone.isPending
+                        ? "Saving…"
+                        : allDone
+                        ? "Mark job as done"
+                        : `${remaining} more ${remaining === 1 ? "task" : "tasks"}`}
+                    </span>
+                  </button>
                 )}
-              >
-                {allDone ? <CheckCircle2 className="h-5 w-5" /> : <Lock className="h-5 w-5" />}
-                {markDone.isPending
-                  ? "Saving…"
-                  : allDone
-                  ? "Mark job as done"
-                  : `Complete ${remaining} more ${remaining === 1 ? "task" : "tasks"} to finish`}
-              </button>
+              </div>
             </div>
           </div>
         );
@@ -241,7 +255,8 @@ function JobDetail() {
         </div>
       )}
 
-      <MessageButtonAndDialog jobId={job.id} currentUserId={me?.userId} />
+      {msgOpen && <MessagesDialog jobId={job.id} currentUserId={me?.userId} onClose={() => setMsgOpen(false)} />}
+
 
     </AppShell>
   );
