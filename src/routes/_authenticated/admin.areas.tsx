@@ -574,7 +574,7 @@ function AreasPage() {
           <div className="flex gap-2">
             <button
               onClick={() => { navigator.clipboard.writeText(csv); toast.success("Copied"); }}
-              className="flex items-center gap-1 rounded-lg bg-brand-green px-3 py-1.5 text-xs font-semibold text-white"
+              className="flex items-center gap-1 rounded-lg bg-brand-green px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-all duration-200 ease-out hover:-translate-y-px hover:shadow-sm hover:brightness-110 active:scale-[0.95]"
             >
               <Copy className="h-3 w-3" /> Copy
             </button>
@@ -588,7 +588,7 @@ function AreasPage() {
                 a.click();
                 URL.revokeObjectURL(url);
               }}
-              className="rounded-lg border border-border px-3 py-1.5 text-xs font-semibold"
+              className="rounded-lg border border-border px-3 py-1.5 text-xs font-semibold transition-all duration-200 ease-out hover:-translate-y-px hover:bg-secondary active:scale-[0.95]"
             >
               Download
             </button>
