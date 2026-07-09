@@ -2,11 +2,12 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { AppShell } from "@/components/app-shell";
+import { MessagesDialog } from "@/components/messages-dialog";
 import { listMyJobs, getMe } from "@/lib/jobs.functions";
 import { calculateWorkerPayCents, formatCents, formatWorkerPay } from "@/lib/pay";
-import { MapPin, Wallet, CheckCircle2, Clock, Briefcase, DollarSign, Users } from "lucide-react";
+import { MapPin, Wallet, CheckCircle2, Clock, Briefcase, DollarSign, Users, MessageSquare } from "lucide-react";
 import { format } from "date-fns";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 export const Route = createFileRoute("/_authenticated/stats")({
   component: StatsPage,
