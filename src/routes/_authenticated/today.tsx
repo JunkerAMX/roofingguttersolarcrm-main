@@ -59,7 +59,7 @@ function TodayPage() {
           {todayPayCents > 0 && (
             <div className="text-right">
               <div className="font-display text-2xl font-semibold text-brand-green">{formatCents(todayPayCents, payCurrency)}</div>
-              <div className="text-xs uppercase tracking-wide text-muted-foreground">{isWorker ? "today's pay" : "worker pay today"}</div>
+              <div className="text-xs uppercase tracking-wide text-muted-foreground">today's pay</div>
             </div>
           )}
           <div className="text-right">
@@ -155,7 +155,7 @@ function JobCard({ job, showPay, isWorker }: { job: any; showPay?: boolean; isWo
       {showPay && calculateWorkerPayCents(job.price_cents) > 0 && (
         <div className="mt-2 inline-flex items-center gap-2 rounded-lg bg-brand-green/10 px-2.5 py-1 text-sm font-semibold text-brand-green">
           <Wallet className="h-4 w-4" />
-          <span>{isWorker ? "You earn" : "Worker pay"} {formatWorkerPay(job.price_cents, job.currency)}</span>
+          <span>Your pay {formatWorkerPay(job.price_cents)}</span>
         </div>
       )}
     </Link>

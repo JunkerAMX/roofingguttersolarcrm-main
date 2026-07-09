@@ -109,9 +109,15 @@ function JobDetail() {
               {job.price_cents && (
                 <div className="text-right">
                   <div className="font-display text-2xl font-bold text-brand-green">
-                    ${(job.price_cents / 100).toFixed(2)}
+                    ${Math.round(job.price_cents / 100).toLocaleString()}
                   </div>
                   <div className="text-xs text-muted-foreground">{job.currency}</div>
+                  {calculateWorkerPayCents(job.price_cents) > 0 && (
+                    <div className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-brand-green/10 px-2 py-1 text-xs font-semibold text-brand-green">
+                      <Wallet className="h-3.5 w-3.5" />
+                      Your pay {formatWorkerPay(job.price_cents)}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -148,20 +154,8 @@ function JobDetail() {
             )}
           </div>
 
-          {calculateWorkerPayCents(job.price_cents) > 0 && (
-            <div className="rounded-2xl border border-brand-green/20 bg-brand-green/5 p-6">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-green/15 text-brand-green">
-                  <Wallet className="h-5 w-5" />
-                </div>
-                <div>
-                  <div className="text-xs font-semibold uppercase tracking-wide text-brand-green/80">{isWorker ? "Your pay" : "Worker pay"}</div>
-                  <div className="font-display text-2xl font-bold text-brand-green">{formatWorkerPay(job.price_cents, job.currency)}</div>
-                </div>
-              </div>
-              <p className="mt-2 text-sm text-brand-green/80">{isWorker ? "You'll receive this amount once the job is completed." : "The assigned worker earns this once the job is completed."}</p>
-            </div>
-          )}
+
+
 
           <div className="rounded-2xl border border-border bg-card p-6">
             <div className="mb-4 flex items-center justify-between">
@@ -208,7 +202,7 @@ function JobDetail() {
           <div className="mx-auto max-w-md">
             {isWorker && calculateWorkerPayCents(job.price_cents) > 0 && (
               <div className="pointer-events-auto mb-2 text-center text-sm font-medium text-brand-green">
-                Complete this job to earn {formatWorkerPay(job.price_cents, job.currency)}
+                Complete this job to earn {formatWorkerPay(job.price_cents)}
               </div>
             )}
             <button
