@@ -540,15 +540,31 @@ function AreasPage() {
 
       <div className="rounded-2xl border border-border bg-card">
         <div className="flex items-center justify-between border-b border-border p-4">
-          <h3 className="font-display font-semibold">JSON output</h3>
-          <button
-            onClick={() => { navigator.clipboard.writeText(json); toast.success("Copied"); }}
-            className="flex items-center gap-1 rounded-lg bg-brand-green px-3 py-1.5 text-xs font-semibold text-white"
-          >
-            <Copy className="h-3 w-3" /> Copy
-          </button>
+          <h3 className="font-display font-semibold">CSV output (Google Sheets)</h3>
+          <div className="flex gap-2">
+            <button
+              onClick={() => { navigator.clipboard.writeText(csv); toast.success("Copied"); }}
+              className="flex items-center gap-1 rounded-lg bg-brand-green px-3 py-1.5 text-xs font-semibold text-white"
+            >
+              <Copy className="h-3 w-3" /> Copy
+            </button>
+            <button
+              onClick={() => {
+                const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `worker-areas-${new Date().toISOString().slice(0, 10)}.csv`;
+                a.click();
+                URL.revokeObjectURL(url);
+              }}
+              className="rounded-lg border border-border px-3 py-1.5 text-xs font-semibold"
+            >
+              Download
+            </button>
+          </div>
         </div>
-        <pre className="max-h-80 overflow-auto p-4 text-xs">{json}</pre>
+        <pre className="max-h-80 overflow-auto p-4 text-xs">{csv}</pre>
       </div>
     </div>
   );
