@@ -36,12 +36,17 @@ function groupJobsByDay(jobs: any[]) {
 
 function TodayPage() {
   const fn = useServerFn(listMyJobs);
+  const meFn = useServerFn(getMe);
+  const { data: me } = useQuery({ queryKey: ["me"], queryFn: () => meFn() });
   const { data: jobs = [], isLoading } = useQuery({
     queryKey: ["jobs", "today"],
     queryFn: () => fn({ data: { scope: "today" } }),
   });
 
+  const isWorker = !me?.isAdmin;
   const sections = groupJobsByDay(jobs);
+  const todayPayCents = isWorker ? jobs.length * WORKER_PAY_CENTS : 0;
+  const payCurrency = jobs[0]?.currency ?? "";
 
   return (
     <AppShell>
@@ -50,9 +55,17 @@ function TodayPage() {
           <h1 className="font-display text-3xl font-bold">Today</h1>
           <p className="text-sm text-muted-foreground">{format(new Date(), "EEEE, d MMMM yyyy")}</p>
         </div>
-        <div className="text-right">
-          <div className="font-display text-2xl font-semibold text-brand-green">{jobs.length}</div>
-          <div className="text-xs uppercase tracking-wide text-muted-foreground">jobs</div>
+        <div className="flex items-center gap-4">
+          {isWorker && (
+            <div className="text-right">
+              <div className="font-display text-2xl font-semibold text-brand-green">{formatCents(todayPayCents, payCurrency)}</div>
+              <div className="text-xs uppercase tracking-wide text-muted-foreground">today's pay</div>
+            </div>
+          )}
+          <div className="text-right">
+            <div className="font-display text-2xl font-semibold text-brand-green">{jobs.length}</div>
+            <div className="text-xs uppercase tracking-wide text-muted-foreground">jobs</div>
+          </div>
         </div>
       </div>
 
