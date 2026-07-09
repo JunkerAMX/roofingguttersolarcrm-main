@@ -503,3 +503,42 @@ function PhotoGallery({ jobId, photos }: { jobId: string; photos: any[] }) {
     </div>
   );
 }
+
+function MessageButtonAndDialog({ jobId, currentUserId }: { jobId: string; currentUserId?: string }) {
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open]);
+  return (
+    <>
+      <button
+        onClick={() => setOpen(true)}
+        className="fixed bottom-24 right-4 z-30 flex h-14 w-14 items-center justify-center rounded-full bg-brand-green text-white shadow-xl transition-all hover:-translate-y-0.5 hover:shadow-2xl active:scale-95 lg:bottom-6"
+        aria-label="Messages"
+      >
+        <MessageSquare className="h-6 w-6" />
+      </button>
+      {open && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-0 sm:items-center sm:p-4 animate-fade-in" onClick={() => setOpen(false)}>
+          <div
+            className="flex w-full max-w-lg flex-col overflow-hidden rounded-t-2xl border border-border bg-card shadow-xl animate-scale-in sm:rounded-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-border px-4 py-3">
+              <h3 className="font-display text-base font-semibold">Messages</h3>
+              <button onClick={() => setOpen(false)} className="rounded-lg p-1 text-muted-foreground hover:bg-secondary hover:text-foreground" aria-label="Close">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="max-h-[80vh] overflow-hidden">
+              <JobMessages jobId={jobId} currentUserId={currentUserId} />
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
