@@ -2,9 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
-import { listTeam, inviteWorker } from "@/lib/admin.functions";
+import { listTeam, inviteWorker, deleteTeamMember } from "@/lib/admin.functions";
 import { toast } from "sonner";
-import { Plus, Shield, User } from "lucide-react";
+import { Plus, Shield, Trash2, User } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/team")({
   component: TeamPage,
