@@ -7,6 +7,7 @@ import { getMe } from "@/lib/jobs.functions";
 import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/logo.png";
 import { cn } from "@/lib/utils";
+import { NotificationBell } from "@/components/notification-bell";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const router = useRouter();
