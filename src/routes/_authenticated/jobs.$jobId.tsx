@@ -295,12 +295,12 @@ function PhotoUploadDialog({ jobId, progressId, kind, title, onClose }: { jobId:
         <button
           onClick={() => inputRef.current?.click()}
           disabled={uploading}
-          className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-4 font-medium text-primary-foreground disabled:opacity-60"
+          className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-4 font-medium text-primary-foreground shadow-sm transition-all duration-200 ease-out hover:-translate-y-px hover:shadow-md active:scale-[0.97] disabled:opacity-60"
         >
           <Camera className="h-5 w-5" />
           {uploading ? "Uploading…" : "Take / Choose photo"}
         </button>
-        <button onClick={onClose} className="mt-2 w-full rounded-xl py-2 text-sm text-muted-foreground hover:bg-secondary">
+        <button onClick={onClose} className="mt-2 w-full rounded-xl py-2 text-sm text-muted-foreground transition-all duration-200 ease-out hover:bg-secondary active:scale-[0.98]">
           Cancel
         </button>
       </div>
