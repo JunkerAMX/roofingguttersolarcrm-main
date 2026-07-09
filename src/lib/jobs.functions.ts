@@ -91,7 +91,11 @@ export const toggleChecklistItem = createServerFn({ method: "POST" })
 
 
     // Payment trigger: verify prior items complete + fire HighLevel webhook
+    let paymentTrigger = false;
+    let paymentSent = false;
+    let webhookConfigured = false;
     if (data.completed && prog.input_type === "payment_trigger") {
+      paymentTrigger = true;
       const { data: prior } = await supabase
         .from("job_checklist_progress")
         .select("completed, position")
@@ -103,13 +107,14 @@ export const toggleChecklistItem = createServerFn({ method: "POST" })
       // Fire webhook to HighLevel
       const { data: settings } = await supabase.from("app_settings").select("*").eq("id", 1).maybeSingle();
       if (settings?.highlevel_payment_webhook_url) {
+        webhookConfigured = true;
         const { data: full } = await supabase
           .from("jobs")
           .select("*, contact:contacts(*)")
           .eq("id", prog.job_id)
           .maybeSingle();
         try {
-          await fetch(settings.highlevel_payment_webhook_url, {
+          const res = await fetch(settings.highlevel_payment_webhook_url, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -121,6 +126,7 @@ export const toggleChecklistItem = createServerFn({ method: "POST" })
               contact: full?.contact,
             }),
           });
+          if (res.ok) paymentSent = true;
         } catch (e) {
           console.error("HL webhook failed", e);
         }
@@ -149,7 +155,7 @@ export const toggleChecklistItem = createServerFn({ method: "POST" })
       await supabase.from("jobs").update({ status: "in_progress" }).eq("id", prog.job_id);
     }
 
-    return { ok: true };
+    return { ok: true, paymentTrigger, paymentSent, webhookConfigured };
   });
 
 export const markJobDone = createServerFn({ method: "POST" })
