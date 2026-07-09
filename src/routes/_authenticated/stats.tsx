@@ -60,26 +60,17 @@ function StatsInner() {
   return (
     <AppShell>
       <div className="mb-6">
-        <h1 className="font-display text-3xl font-bold">My Jobs</h1>
-        <p className="text-sm text-muted-foreground">
-          {isAdmin ? "All jobs across the team" : "Everything assigned to you"}
-        </p>
+        <h1 className="font-display text-3xl font-bold">Stats</h1>
+        <p className="text-sm text-muted-foreground">Business overview & team performance</p>
       </div>
 
       <div className="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
         <StatCard icon={CheckCircle2} label="Completed" value={String(done.length)} tone="green" />
         <StatCard icon={Clock} label="Outstanding" value={String(due.length)} tone="yellow" />
-        {isAdmin ? (
-          <>
-            <StatCard icon={DollarSign} label="Revenue earned" value={formatCents(totalRevenueDone, currency)} tone="green" />
-            <StatCard icon={Briefcase} label="Revenue pending" value={formatCents(totalRevenuePending, currency)} tone="muted" />
-          </>
-        ) : (
-          <>
-            <StatCard icon={Wallet} label="You've earned" value={formatCents(totalEarned, currency)} tone="green" />
-            <StatCard icon={Wallet} label="Pending pay" value={formatCents(totalPending, currency)} tone="muted" />
-          </>
-        )}
+        <StatCard icon={DollarSign} label="Revenue earned" value={formatCents(totalRevenueDone, currency)} tone="green" />
+        <StatCard icon={Briefcase} label="Revenue pending" value={formatCents(totalRevenuePending, currency)} tone="muted" />
+        <StatCard icon={Wallet} label="Worker pay owed" value={formatCents(totalPayDone, currency)} tone="green" />
+        <StatCard icon={Wallet} label="Worker pay pending" value={formatCents(totalPayPending, currency)} tone="muted" />
       </div>
 
       {isAdmin && perWorker.length > 0 && (
