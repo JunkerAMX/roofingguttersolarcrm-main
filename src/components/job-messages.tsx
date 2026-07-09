@@ -76,14 +76,14 @@ export function JobMessages({ jobId, currentUserId }: { jobId: string; currentUs
         ) : (
           msgs.map((m: any) => {
             const mine = m.sender_id === currentUserId;
-            const name = m.sender?.full_name || m.sender?.email || "User";
+            const name = mine ? "You" : (m.sender?.full_name || m.sender?.email || "User");
             return (
               <div key={m.id} className={cn("flex flex-col", mine ? "items-end" : "items-start")}>
                 <div className={cn(
                   "max-w-[80%] rounded-2xl px-3 py-2 text-sm",
                   mine ? "bg-brand-green text-white" : "bg-secondary text-foreground",
                 )}>
-                  {!mine && <div className="mb-0.5 text-[10px] font-semibold uppercase tracking-wide opacity-70">{name}</div>}
+                  <div className="mb-0.5 text-[10px] font-semibold uppercase tracking-wide opacity-70">{name}</div>
                   <div className="whitespace-pre-wrap break-words">{m.body}</div>
                 </div>
                 <div className="mt-0.5 text-[10px] text-muted-foreground">
