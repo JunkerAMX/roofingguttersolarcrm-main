@@ -185,11 +185,12 @@ function JobDetail() {
             )}
             <ul className="space-y-2">
               {progress.map((p: any) => (
-                <ChecklistRow
+              <ChecklistRow
                   key={p.id}
                   item={p}
                   jobId={jobId}
-                  disabled={!isActive || (p.input_type === "payment_trigger" && !priorAllDone(p.position))}
+                  pending={toggle.isPending && toggle.variables?.progressId === p.id}
+                  disabled={!isActive || toggle.isPending && toggle.variables?.progressId === p.id || (p.input_type === "payment_trigger" && !priorAllDone(p.position))}
                   onToggle={(completed) => toggle.mutate({ progressId: p.id, completed })}
                 />
               ))}
