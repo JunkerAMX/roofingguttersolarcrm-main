@@ -1,11 +1,11 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { AppShell } from "@/components/app-shell";
 import { getJob, getMe, toggleChecklistItem, uploadJobPhoto, getPhotoUrl, markJobDone } from "@/lib/jobs.functions";
 import { calculateWorkerPayCents, formatWorkerPay } from "@/lib/pay";
-import { ArrowLeft, MapPin, Phone, Mail, DollarSign, Wallet, Camera, Check, Lock, ImageIcon, CheckCircle2, Clock } from "lucide-react";
+import { ArrowLeft, MapPin, Phone, Mail, DollarSign, Wallet, Camera, Check, Lock, ImageIcon, CheckCircle2, Clock, StickyNote, X } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -30,7 +30,7 @@ function JobDetail() {
   });
 
   const toggle = useMutation({
-    mutationFn: (v: { progressId: string; completed: boolean }) => toggleFn({ data: v }),
+    mutationFn: (v: { progressId: string; completed: boolean; note?: string }) => toggleFn({ data: v }),
     onMutate: async (v) => {
       await qc.cancelQueries({ queryKey: ["job", jobId] });
       const prev = qc.getQueryData<any>(["job", jobId]);
@@ -185,7 +185,7 @@ function JobDetail() {
                   jobId={jobId}
                   pending={toggle.isPending && toggle.variables?.progressId === p.id}
                   disabled={!isActive || (toggle.isPending && toggle.variables?.progressId === p.id) || (p.input_type === "payment_trigger" && !priorAllDone(p.position))}
-                  onToggle={(completed) => toggle.mutate({ progressId: p.id, completed })}
+                  onToggle={(completed, note) => toggle.mutate({ progressId: p.id, completed, note })}
                 />
               ))}
             </ul>
@@ -226,15 +226,21 @@ function JobDetail() {
   );
 }
 
-function ChecklistRow({ item, jobId, disabled, pending, onToggle }: { item: any; jobId: string; disabled: boolean; pending?: boolean; onToggle: (c: boolean) => void }) {
+function ChecklistRow({ item, jobId, disabled, pending, onToggle }: { item: any; jobId: string; disabled: boolean; pending?: boolean; onToggle: (c: boolean, note?: string) => void }) {
   const [uploadOpen, setUploadOpen] = useState(false);
+  const [noteOpen, setNoteOpen] = useState(false);
   const isPhoto = item.input_type === "photo_before" || item.input_type === "photo_after";
   const isPayment = item.input_type === "payment_trigger";
+  const isNote = item.input_type === "note";
 
   const handleClick = () => {
     if (disabled || pending) return;
     if (isPhoto && !item.completed) {
       setUploadOpen(true);
+      return;
+    }
+    if (isNote) {
+      setNoteOpen(true);
       return;
     }
     onToggle(!item.completed);
@@ -268,7 +274,17 @@ function ChecklistRow({ item, jobId, disabled, pending, onToggle }: { item: any;
           <span className={cn("flex-1 text-sm font-medium transition-all duration-200", item.completed && "text-muted-foreground line-through")}>{item.title}</span>
           {isPhoto && <Camera className="h-4 w-4 text-brand-green" />}
           {isPayment && <DollarSign className="h-4 w-4 text-brand-yellow" />}
+          {isNote && <StickyNote className="h-4 w-4 text-brand-green" />}
         </button>
+        {isNote && item.completed && item.note && (
+          <button
+            onClick={() => !disabled && !pending && setNoteOpen(true)}
+            className="mt-1.5 flex w-full items-start gap-2 rounded-lg bg-secondary/60 px-3 py-2 text-left text-xs text-foreground/80 hover:bg-secondary"
+          >
+            <StickyNote className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand-green" />
+            <span className="whitespace-pre-wrap">{item.note}</span>
+          </button>
+        )}
         {isPayment && item.completed && (
           <div className="mt-1.5 flex items-center gap-1.5 rounded-lg bg-brand-green/10 px-2.5 py-1.5 text-xs font-medium text-brand-green">
             <CheckCircle2 className="h-3.5 w-3.5" /> Payment link sent to client
@@ -285,9 +301,75 @@ function ChecklistRow({ item, jobId, disabled, pending, onToggle }: { item: any;
           onClose={() => setUploadOpen(false)}
         />
       )}
+
+      {noteOpen && (
+        <NoteDialog
+          title={item.title}
+          initial={item.note ?? ""}
+          onClose={() => setNoteOpen(false)}
+          onSave={(note) => {
+            onToggle(true, note);
+            setNoteOpen(false);
+          }}
+        />
+      )}
     </>
   );
 }
+
+function NoteDialog({ title, initial, onClose, onSave }: { title: string; initial: string; onClose: () => void; onSave: (note: string) => void }) {
+  const [value, setValue] = useState(initial);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    textareaRef.current?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-4 sm:items-center animate-fade-in" onClick={onClose}>
+      <div
+        className="w-full max-w-md rounded-2xl border border-border bg-card p-5 shadow-xl animate-scale-in"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="mb-3 flex items-start justify-between gap-3">
+          <div>
+            <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Note</div>
+            <h3 className="font-display text-lg font-semibold">{title}</h3>
+          </div>
+          <button onClick={onClose} className="rounded-lg p-1 text-muted-foreground hover:bg-secondary hover:text-foreground">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+        <textarea
+          ref={textareaRef}
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          rows={5}
+          placeholder="Write a note…"
+          className="w-full resize-none rounded-xl border border-border bg-background p-3 text-sm outline-none focus:border-brand-green focus:ring-2 focus:ring-brand-green/20"
+        />
+        <div className="mt-3 flex justify-end gap-2">
+          <button onClick={onClose} className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-secondary">
+            Cancel
+          </button>
+          <button
+            onClick={() => onSave(value.trim())}
+            disabled={!value.trim()}
+            className="rounded-lg bg-brand-green px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md active:scale-[0.97] disabled:opacity-50 disabled:hover:translate-y-0"
+          >
+            Save note
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 
 function PhotoUploadDialog({ jobId, progressId, kind, title, onClose }: { jobId: string; progressId: string; kind: "before" | "after"; title: string; onClose: () => void }) {
   const qc = useQueryClient();
