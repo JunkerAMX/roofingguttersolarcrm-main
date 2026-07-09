@@ -8,7 +8,7 @@ import { MapPin, Wallet, CheckCircle2, Clock, Briefcase, DollarSign, Users } fro
 import { format } from "date-fns";
 import { useMemo } from "react";
 
-export const Route = createFileRoute("/_authenticated/my-jobs")({
+export const Route = createFileRoute("/_authenticated/stats")({
   component: MyJobsPage,
   errorComponent: ({ error }) => <div className="p-8 text-destructive">{error.message}</div>,
 });
