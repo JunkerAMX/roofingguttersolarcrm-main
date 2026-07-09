@@ -30,17 +30,17 @@ function StatsInner() {
     queryFn: () => fn({ data: { scope: "all" } }),
   });
 
-  const isAdmin = !!me?.isAdmin;
+  const isAdmin = true;
 
-  const { done, due, currency, totalEarned, totalPending, totalRevenueDone, totalRevenuePending } = useMemo(() => {
+  const { done, due, currency, totalRevenueDone, totalRevenuePending, totalPayDone, totalPayPending } = useMemo(() => {
     const done = jobs.filter((j: any) => j.status === "completed");
     const due = jobs.filter((j: any) => j.status !== "completed" && j.status !== "cancelled");
     const currency = jobs[0]?.currency ?? "";
-    const totalEarned = done.reduce((s, j) => s + calculateWorkerPayCents(j.price_cents), 0);
-    const totalPending = due.reduce((s, j) => s + calculateWorkerPayCents(j.price_cents), 0);
     const totalRevenueDone = done.reduce((s, j) => s + (j.price_cents ?? 0), 0);
     const totalRevenuePending = due.reduce((s, j) => s + (j.price_cents ?? 0), 0);
-    return { done, due, currency, totalEarned, totalPending, totalRevenueDone, totalRevenuePending };
+    const totalPayDone = done.reduce((s, j) => s + calculateWorkerPayCents(j.price_cents), 0);
+    const totalPayPending = due.reduce((s, j) => s + calculateWorkerPayCents(j.price_cents), 0);
+    return { done, due, currency, totalRevenueDone, totalRevenuePending, totalPayDone, totalPayPending };
   }, [jobs]);
 
   const perWorker = useMemo(() => {
