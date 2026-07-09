@@ -1,7 +1,7 @@
 import { Link, useRouter, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Home, Briefcase, Settings, LogOut, Menu, X, User } from "lucide-react";
+import { Home, BarChart3, Settings, LogOut, Menu, X, User } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { getMe } from "@/lib/jobs.functions";
 import { supabase } from "@/integrations/supabase/client";
