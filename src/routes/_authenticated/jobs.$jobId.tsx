@@ -48,6 +48,17 @@ function JobDetail() {
       if (ctx?.prev) qc.setQueryData(["job", jobId], ctx.prev);
       toast.error(e.message);
     },
+    onSuccess: (res, v) => {
+      if (v.completed && res.paymentTrigger) {
+        if (res.paymentSent) {
+          toast.success("Payment link sent to client");
+        } else if (!res.webhookConfigured) {
+          toast.warning("Payment link not sent — webhook not configured in Settings.");
+        } else {
+          toast.error("Payment link failed to send. Please check the HighLevel webhook URL.");
+        }
+      }
+    },
     onSettled: () => {
       qc.invalidateQueries({ queryKey: ["job", jobId] });
       qc.invalidateQueries({ queryKey: ["jobs"] });
