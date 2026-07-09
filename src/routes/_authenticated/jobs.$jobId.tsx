@@ -273,7 +273,7 @@ function ChecklistRow({ item, jobId, disabled, pending, onToggle }: { item: any;
             "flex w-full items-center gap-3 rounded-xl border p-3 text-left transition-all duration-200 ease-out active:scale-[0.99]",
             item.completed
               ? "border-brand-green/40 bg-brand-green/5"
-              : disabled || pending
+              : disabled
               ? "border-border bg-muted/30 opacity-60"
               : "border-border bg-background hover:border-brand-lime hover:bg-brand-lime/5",
             isPayment && !disabled && !item.completed && "border-brand-yellow bg-brand-yellow/10",
@@ -286,7 +286,7 @@ function ChecklistRow({ item, jobId, disabled, pending, onToggle }: { item: any;
             )}
           >
             {item.completed && <Check className="h-4 w-4 animate-scale-in" />}
-            {!item.completed && (disabled || pending) && <Lock className="h-3 w-3 text-muted-foreground" />}
+            {!item.completed && disabled && !pending && <Lock className="h-3 w-3 text-muted-foreground" />}
           </span>
           <span className={cn("flex-1 text-sm font-medium transition-all duration-200", item.completed && "text-muted-foreground line-through")}>{item.title}</span>
           {isPhoto && <Camera className="h-4 w-4 text-brand-green" />}
