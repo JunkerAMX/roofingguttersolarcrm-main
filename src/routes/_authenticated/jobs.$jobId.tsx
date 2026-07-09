@@ -20,8 +20,10 @@ function JobDetail() {
   const { jobId } = useParams({ from: "/_authenticated/jobs/$jobId" });
   const qc = useQueryClient();
   const fn = useServerFn(getJob);
+  const meFn = useServerFn(getMe);
   const toggleFn = useServerFn(toggleChecklistItem);
   const markDoneFn = useServerFn(markJobDone);
+  const { data: me } = useQuery({ queryKey: ["me"], queryFn: () => meFn() });
   const { data, isLoading } = useQuery({
     queryKey: ["job", jobId],
     queryFn: () => fn({ data: { jobId } }),
