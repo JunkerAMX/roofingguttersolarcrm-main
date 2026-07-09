@@ -127,7 +127,7 @@ export const bulkAddFromPoints = createServerFn({ method: "POST" })
   .inputValidator((d: { user_id: string; points: { lat: number; lng: number }[] }) =>
     z.object({
       user_id: z.string().uuid(),
-      points: z.array(z.object({ lat: z.number(), lng: z.number() })).min(1).max(60),
+      points: z.array(z.object({ lat: z.number(), lng: z.number() })).min(1).max(300),
     }).parse(d),
   )
   .handler(async ({ context, data }) => {
