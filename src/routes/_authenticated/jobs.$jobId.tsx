@@ -30,7 +30,7 @@ function JobDetail() {
   });
 
   const toggle = useMutation({
-    mutationFn: (v: { progressId: string; completed: boolean }) => toggleFn({ data: v }),
+    mutationFn: (v: { progressId: string; completed: boolean; note?: string }) => toggleFn({ data: v }),
     onMutate: async (v) => {
       await qc.cancelQueries({ queryKey: ["job", jobId] });
       const prev = qc.getQueryData<any>(["job", jobId]);
