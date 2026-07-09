@@ -194,6 +194,11 @@ function JobDetail() {
       {total > 0 && done === total && job.status !== "completed" && (
         <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 p-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] animate-fade-in">
           <div className="mx-auto max-w-md">
+            {isWorker && (
+              <div className="pointer-events-auto mb-2 text-center text-sm font-medium text-brand-green">
+                Complete this job to earn {formatWorkerPay(job.currency)}
+              </div>
+            )}
             <button
               onClick={() => markDone.mutate()}
               disabled={markDone.isPending}
