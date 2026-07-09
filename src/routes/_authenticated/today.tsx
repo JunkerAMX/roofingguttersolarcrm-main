@@ -2,8 +2,9 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { AppShell } from "@/components/app-shell";
-import { listMyJobs } from "@/lib/jobs.functions";
-import { MapPin, Clock, DollarSign, CheckCircle2, Lock } from "lucide-react";
+import { listMyJobs, getMe } from "@/lib/jobs.functions";
+import { WORKER_PAY_CENTS, formatCents, formatWorkerPay } from "@/lib/pay";
+import { MapPin, Clock, DollarSign, Wallet, CheckCircle2, Lock } from "lucide-react";
 import { format, formatDistanceToNow, isToday, isTomorrow, isYesterday, startOfDay } from "date-fns";
 import { useNow } from "@/hooks/use-now";
 
