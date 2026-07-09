@@ -365,12 +365,45 @@ function AreasPage() {
 
   const json = JSON.stringify(grouped, null, 2);
 
+  // Duplicate postcodes: same postcode assigned to more than one worker.
+  const duplicatePostcodes = useMemo(() => {
+    const map = new Map<string, Set<string>>();
+    for (const a of areas as any[]) {
+      if (!a.postcode) continue;
+      if (!map.has(a.postcode)) map.set(a.postcode, new Set());
+      map.get(a.postcode)!.add(a.user_id);
+    }
+    const dupes: { postcode: string; workers: string[] }[] = [];
+    map.forEach((users, pc) => {
+      if (users.size > 1) {
+        const names = [...users].map((uid) => {
+          const w: any = workers.find((x: any) => x.id === uid);
+          return w?.full_name || w?.email || "Unknown";
+        });
+        dupes.push({ postcode: pc, workers: names });
+      }
+    });
+    return dupes.sort((a, b) => a.postcode.localeCompare(b.postcode));
+  }, [areas, workers]);
+  const dupeSet = useMemo(() => new Set(duplicatePostcodes.map((d) => d.postcode)), [duplicatePostcodes]);
+
   return (
     <div className="space-y-6">
       <div>
         <h2 className="font-display text-2xl font-semibold">Service Areas</h2>
         <p className="text-sm text-muted-foreground">Pick a worker, then <b>click the map</b> to add points around their area. Drag any point to reshape (auto-saves). Hit <b>Finish → postcodes</b> to auto-add every postcode inside.</p>
       </div>
+
+      {duplicatePostcodes.length > 0 && (
+        <div className="rounded-2xl border border-amber-400/60 bg-amber-50 p-4 text-sm text-amber-900 dark:bg-amber-950/40 dark:text-amber-100">
+          <div className="font-semibold">⚠ Duplicate postcodes across workers ({duplicatePostcodes.length})</div>
+          <ul className="mt-1 space-y-0.5 text-xs">
+            {duplicatePostcodes.map((d) => (
+              <li key={d.postcode}><b>{d.postcode}</b> — {d.workers.join(", ")}</li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <div className="grid gap-4 lg:grid-cols-[280px_1fr]">
         <div className="space-y-3">
@@ -459,7 +492,7 @@ function AreasPage() {
             </thead>
             <tbody>
               {areas.map((a: any) => (
-                <tr key={a.id} className="border-t border-border">
+                <tr key={a.id} className={cn("border-t border-border", a.postcode && dupeSet.has(a.postcode) && "bg-amber-50 dark:bg-amber-950/30")}>
                   <td className="p-2">
                     <select
                       value={a.user_id}
