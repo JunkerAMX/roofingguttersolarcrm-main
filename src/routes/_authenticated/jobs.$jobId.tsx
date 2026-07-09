@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useState, useRef } from "react";
 import { AppShell } from "@/components/app-shell";
 import { getJob, getMe, toggleChecklistItem, uploadJobPhoto, getPhotoUrl, markJobDone } from "@/lib/jobs.functions";
-import { formatWorkerPay } from "@/lib/pay";
+import { calculateWorkerPayCents, formatWorkerPay } from "@/lib/pay";
 import { ArrowLeft, MapPin, Phone, Mail, DollarSign, Wallet, Camera, Check, Lock, ImageIcon, CheckCircle2, Clock } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
@@ -148,7 +148,7 @@ function JobDetail() {
             )}
           </div>
 
-          {isWorker && (
+          {isWorker && calculateWorkerPayCents(job.price_cents) > 0 && (
             <div className="rounded-2xl border border-brand-green/20 bg-brand-green/5 p-6">
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-green/15 text-brand-green">
