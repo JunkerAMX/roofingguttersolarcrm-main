@@ -108,8 +108,8 @@ function ItemEditor({ item, onCancel, onSave }: { item: any; onCancel: () => voi
         <input type="number" value={position} onChange={(e) => setPosition(Number(e.target.value))} className="rounded-lg border border-input bg-background px-3 py-2 text-sm" />
       </div>
       <div className="flex gap-2">
-        <button onClick={() => onSave({ title, input_type: inputType, position })} className="rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground">Save</button>
-        <button onClick={onCancel} className="rounded-lg px-3 py-1.5 text-sm hover:bg-secondary">Cancel</button>
+        <button onClick={() => onSave({ title, input_type: inputType, position })} className="rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground shadow-sm transition-all duration-200 ease-out hover:-translate-y-px hover:shadow-sm active:scale-[0.97]">Save</button>
+        <button onClick={onCancel} className="rounded-lg px-3 py-1.5 text-sm transition-all duration-200 ease-out hover:bg-secondary active:scale-[0.95]">Cancel</button>
       </div>
     </div>
   );
