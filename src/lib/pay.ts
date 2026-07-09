@@ -6,7 +6,7 @@ export function calculateWorkerPayCents(price_cents?: number | null): number {
 }
 
 export function formatCents(cents: number, currency = "") {
-  const amount = `$${(cents / 100).toFixed(2)}`;
+  const amount = `$${Math.round(cents / 100).toLocaleString()}`;
   return currency ? `${amount} ${currency}` : amount;
 }
 
