@@ -61,7 +61,7 @@ function TeamPage() {
                 <button
                   onClick={() => { if (confirm(`Revoke access for ${m.email}? This deletes their account.`)) remove.mutate(m.id); }}
                   disabled={remove.isPending}
-                  className="ml-2 rounded-lg p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive disabled:opacity-50"
+                  className="ml-2 rounded-lg p-2 text-muted-foreground transition-all duration-200 ease-out hover:bg-destructive/10 hover:text-destructive active:scale-[0.92] disabled:opacity-50"
                   aria-label="Revoke access"
                 >
                   <Trash2 className="h-4 w-4" />
