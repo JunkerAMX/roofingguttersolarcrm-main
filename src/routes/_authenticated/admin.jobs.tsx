@@ -67,6 +67,12 @@ function JobsPage() {
                 </select>
               </td>
               <td className="p-3 text-xs">{j.price_cents ? `$${(j.price_cents / 100).toFixed(2)} ${j.currency}` : "—"}</td>
+              <td className="p-3 text-xs">
+                <span className="inline-flex items-center gap-1 rounded-md bg-brand-green/10 px-2 py-1 font-semibold text-brand-green">
+                  <Wallet className="h-3 w-3" />
+                  {formatWorkerPay(j.currency)}
+                </span>
+              </td>
               <td className="p-3">
               <button
                 onClick={() => { if (confirm("Delete this job? This cannot be undone.")) del.mutate(j.id); }}
