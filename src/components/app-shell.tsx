@@ -20,7 +20,6 @@ export function AppShell({ children }: { children: ReactNode }) {
     { to: "/today", label: "Today", icon: Home },
     ...(me?.isAdmin ? [{ to: "/stats", label: "Stats", icon: BarChart3 }] : []),
     ...(me?.isAdmin ? [{ to: "/admin", label: "Admin", icon: Settings }] : []),
-    { to: "/settings", label: "Settings", icon: User },
   ];
 
   async function signOut() {
