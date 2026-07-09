@@ -107,7 +107,7 @@ export function JobMessages({ jobId, currentUserId }: { jobId: string; currentUs
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submit(e as any); }
           }}
-          placeholder="Type a message…"
+          placeholder="Message admin team…"
           rows={1}
           className="min-h-[2.5rem] flex-1 resize-none rounded-xl border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-green/40"
         />
