@@ -21,7 +21,7 @@ function UpcomingPage() {
     queryFn: () => fn({ data: { scope: "upcoming" } }),
   });
 
-  const isWorker = !me?.isAdmin;
+  const isWorker = !!me && !me.isAdmin;
   const byDate = jobs.reduce((acc: Record<string, any[]>, j: any) => {
     const d = j.due_date ?? "unscheduled";
     (acc[d] ??= []).push(j);

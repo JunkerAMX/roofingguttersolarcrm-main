@@ -43,7 +43,7 @@ function TodayPage() {
     queryFn: () => fn({ data: { scope: "today" } }),
   });
 
-  const isWorker = !me?.isAdmin;
+  const isWorker = !!me && !me.isAdmin;
   const sections = groupJobsByDay(jobs);
   const todayPayCents = isWorker ? jobs.length * WORKER_PAY_CENTS : 0;
   const payCurrency = jobs[0]?.currency ?? "";
