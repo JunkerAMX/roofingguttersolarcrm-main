@@ -326,14 +326,14 @@ function AreasPage() {
     const bounds = new g.maps.LatLngBounds();
     path.forEach((p: any) => bounds.extend(p));
     const ne = bounds.getNorthEast(), sw = bounds.getSouthWest();
-    // Sample on a ~600m grid so we don't miss small urban postcodes.
+    // Sample on a ~500m grid — dense enough for small urban postcodes without
+    // blowing up geocode counts. Chunks run in parallel on the server.
     const spherical = g.maps.geometry.spherical;
     const nw = new g.maps.LatLng(ne.lat(), sw.lng());
-    const se = new g.maps.LatLng(sw.lat(), ne.lng());
     const widthM = spherical.computeDistanceBetween(nw, ne);
     const heightM = spherical.computeDistanceBetween(nw, sw);
-    const SPACING = 300; // metres — dense enough to catch small urban postcodes
-    const MAX_STEPS = 120;
+    const SPACING = 500;
+    const MAX_STEPS = 80;
     const stepsX = Math.min(MAX_STEPS, Math.max(4, Math.ceil(widthM / SPACING)));
     const stepsY = Math.min(MAX_STEPS, Math.max(4, Math.ceil(heightM / SPACING)));
     const points: { lat: number; lng: number }[] = [];
@@ -348,24 +348,28 @@ function AreasPage() {
       }
     }
     if (!points.length) { toast.error("Area too small"); return; }
-    const CHUNK = 300;
+    const CHUNK = 200;
     const chunks: { lat: number; lng: number }[][] = [];
     for (let i = 0; i < points.length; i += CHUNK) chunks.push(points.slice(i, i + CHUNK));
-    toast.message(`Scanning ${points.length} points across ${chunks.length} batch${chunks.length === 1 ? "" : "es"}…`);
+    toast.message(`Scanning ${points.length} points…`);
     (async () => {
+      // Fire all chunks in parallel.
+      const results = await Promise.allSettled(
+        chunks.map((c) => bulkFn({ data: { user_id: uid, points: c } })),
+      );
       let added = 0;
       const allCodes: string[] = [];
-      for (const c of chunks) {
-        try {
-          const r: any = await bulkFn({ data: { user_id: uid, points: c } });
-          added += r?.added ?? 0;
-          if (r?.postcodes) allCodes.push(...r.postcodes);
-        } catch (e: any) {
-          toast.error(e.message);
+      for (const r of results) {
+        if (r.status === "fulfilled") {
+          const v: any = r.value;
+          added += v?.added ?? 0;
+          if (v?.postcodes) allCodes.push(...v.postcodes);
+        } else {
+          toast.error(r.reason?.message ?? "Batch failed");
         }
       }
       qc.invalidateQueries({ queryKey: ["areas", "list"] });
-      toast.success(added ? `Added ${added} postcode${added === 1 ? "" : "s"}: ${allCodes.join(", ")}` : "No new postcodes in that area");
+      toast.success(added ? `Added ${added} postcode${added === 1 ? "" : "s"}: ${[...new Set(allCodes)].join(", ")}` : "No new postcodes in that area");
     })();
   };
 
