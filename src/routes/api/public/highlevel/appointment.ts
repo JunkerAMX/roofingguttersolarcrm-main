@@ -88,22 +88,30 @@ export const Route = createFileRoute("/api/public/highlevel/appointment")({
           payload.contact_id, payload.contactId,
         );
 
-        // Upsert contact
+        // Upsert contact — pull latest fields from the booking payload,
+        // but only overwrite existing values when the payload actually
+        // provides a value (so booking-time edits don't wipe good data).
         let contact_id: string | null = null;
         if (highlevel_contact_id) {
+          const incoming: Record<string, any> = {
+            highlevel_contact_id: String(highlevel_contact_id),
+            first_name: pick(contactSrc.first_name, contactSrc.firstName, payload.first_name, payload.firstName),
+            last_name: pick(contactSrc.last_name, contactSrc.lastName, payload.last_name, payload.lastName),
+            email: pick(contactSrc.email, payload.email),
+            phone: pick(contactSrc.phone, payload.phone),
+            address: pick(contactSrc.address, contactSrc.address1, payload.address, payload.address1, payload.full_address, loc.address, loc.fullAddress),
+            city: pick(contactSrc.city, payload.city, loc.city),
+            state: pick(contactSrc.state, payload.state, loc.state),
+            postal_code: pick(contactSrc.postal_code, contactSrc.postalCode, contactSrc.zip, payload.postal_code, payload.postalCode, payload.zip, loc.postalCode, loc.postal_code),
+          };
+          // Strip nulls/undefined so upsert doesn't clobber existing columns
+          // with empty payload fields.
+          const contactRow = Object.fromEntries(
+            Object.entries(incoming).filter(([, v]) => v !== null && v !== undefined && v !== ""),
+          );
           const { data: c } = await supabaseAdmin
             .from("contacts")
-            .upsert({
-              highlevel_contact_id: String(highlevel_contact_id),
-              first_name: pick(contactSrc.first_name, contactSrc.firstName, payload.first_name, payload.firstName),
-              last_name: pick(contactSrc.last_name, contactSrc.lastName, payload.last_name, payload.lastName),
-              email: pick(contactSrc.email, payload.email),
-              phone: pick(contactSrc.phone, payload.phone),
-              address: pick(contactSrc.address, contactSrc.address1, payload.address, payload.address1, payload.full_address, loc.address, loc.fullAddress),
-              city: pick(contactSrc.city, payload.city, loc.city),
-              state: pick(contactSrc.state, payload.state, loc.state),
-              postal_code: pick(contactSrc.postal_code, contactSrc.postalCode, contactSrc.zip, payload.postal_code, payload.postalCode, payload.zip, loc.postalCode, loc.postal_code),
-            }, { onConflict: "highlevel_contact_id" })
+            .upsert(contactRow, { onConflict: "highlevel_contact_id" })
             .select("id")
             .maybeSingle();
           contact_id = c?.id ?? null;
