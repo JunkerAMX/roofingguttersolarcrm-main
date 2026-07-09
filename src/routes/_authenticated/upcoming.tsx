@@ -2,9 +2,10 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { AppShell } from "@/components/app-shell";
-import { listMyJobs } from "@/lib/jobs.functions";
+import { listMyJobs, getMe } from "@/lib/jobs.functions";
+import { formatWorkerPay } from "@/lib/pay";
 import { format, parseISO } from "date-fns";
-import { MapPin } from "lucide-react";
+import { MapPin, Wallet } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/upcoming")({
   component: UpcomingPage,
