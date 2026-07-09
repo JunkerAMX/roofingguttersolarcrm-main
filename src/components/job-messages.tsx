@@ -69,11 +69,7 @@ export function JobMessages({ jobId, currentUserId }: { jobId: string; currentUs
   }
 
   return (
-    <div className="rounded-2xl border border-border bg-card overflow-hidden">
-      <div className="flex items-center gap-2 border-b border-border bg-secondary/40 px-4 py-3">
-        <MessageSquare className="h-4 w-4 text-brand-green" />
-        <h3 className="font-display text-sm font-semibold">Messages</h3>
-      </div>
+    <div className="flex flex-col bg-card overflow-hidden">
       <div className="flex max-h-96 min-h-[12rem] flex-col gap-2 overflow-y-auto p-4">
         {msgs.length === 0 ? (
           <div className="my-auto text-center text-xs text-muted-foreground">No messages yet. Say hi 👋</div>
