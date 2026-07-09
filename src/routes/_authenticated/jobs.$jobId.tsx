@@ -154,20 +154,8 @@ function JobDetail() {
             )}
           </div>
 
-          {calculateWorkerPayCents(job.price_cents) > 0 && (
-            <div className="rounded-2xl border border-brand-green/20 bg-brand-green/5 p-6">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-green/15 text-brand-green">
-                  <Wallet className="h-5 w-5" />
-                </div>
-                <div>
-                  <div className="text-xs font-semibold uppercase tracking-wide text-brand-green/80">{isWorker ? "Your pay" : "Worker pay"}</div>
-                  <div className="font-display text-2xl font-bold text-brand-green">{formatWorkerPay(job.price_cents, job.currency)}</div>
-                </div>
-              </div>
-              <p className="mt-2 text-sm text-brand-green/80">{isWorker ? "You'll receive this amount once the job is completed." : "The assigned worker earns this once the job is completed."}</p>
-            </div>
-          )}
+
+
 
           <div className="rounded-2xl border border-border bg-card p-6">
             <div className="mb-4 flex items-center justify-between">
