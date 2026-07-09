@@ -108,7 +108,7 @@ function JobDetail() {
               </div>
               {job.price_cents && (
                 <div className="text-right">
-                  <div className="flex items-center justify-end gap-3">
+                  <div className="flex flex-col items-end gap-2 sm:flex-row sm:items-center sm:justify-end sm:gap-3">
                     <div className="font-display text-2xl font-bold text-brand-green">
                       ${Math.round(job.price_cents / 100).toLocaleString()}
                     </div>
