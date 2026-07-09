@@ -78,6 +78,7 @@ function JobDetail() {
   });
 
   const now = useNow(15000);
+  const [msgOpen, setMsgOpen] = useState(false);
 
   if (isLoading || !data) return <AppShell><div className="animate-pulse space-y-4"><div className="h-8 w-40 rounded bg-secondary" /><div className="h-64 rounded-2xl bg-secondary" /></div></AppShell>;
 
@@ -200,35 +201,49 @@ function JobDetail() {
         </div>
       </div>
 
-      {total > 0 && job.status !== "completed" && (() => {
-        const allDone = done === total;
+      {(() => {
+        const allDone = total > 0 && done === total;
         const remaining = total - done;
+        const showDone = total > 0 && job.status !== "completed";
         return (
           <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 p-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] animate-fade-in">
             <div className="mx-auto max-w-md">
-              {allDone && isWorker && calculateWorkerPayCents(job.price_cents) > 0 && (
+              {showDone && allDone && isWorker && calculateWorkerPayCents(job.price_cents) > 0 && (
                 <div className="pointer-events-auto mb-2 text-center text-sm font-medium text-brand-green">
                   Complete this job to earn {formatWorkerPay(job.price_cents)}
                 </div>
               )}
-              <button
-                onClick={() => allDone && markDone.mutate()}
-                disabled={!allDone || markDone.isPending}
-                aria-disabled={!allDone}
-                className={cn(
-                  "pointer-events-auto flex w-full items-center justify-center gap-2 rounded-2xl py-4 text-base font-semibold shadow-2xl transition-all duration-200 ease-out disabled:cursor-not-allowed",
-                  allDone
-                    ? "bg-brand-green text-white shadow-brand-green/40 hover:-translate-y-0.5 hover:shadow-[0_8px_30px_-6px_rgba(74,163,74,0.45)] active:scale-[0.97] disabled:opacity-70"
-                    : "bg-muted text-muted-foreground shadow-black/10",
+              <div className="pointer-events-auto flex items-stretch gap-2">
+                <button
+                  onClick={() => setMsgOpen(true)}
+                  className="flex h-auto shrink-0 items-center justify-center gap-2 rounded-2xl bg-card border border-border px-4 text-sm font-semibold shadow-xl transition-all hover:-translate-y-0.5 active:scale-95"
+                  aria-label="Messages"
+                >
+                  <MessageSquare className="h-5 w-5 text-brand-green" />
+                </button>
+                {showDone && (
+                  <button
+                    onClick={() => allDone && markDone.mutate()}
+                    disabled={!allDone || markDone.isPending}
+                    aria-disabled={!allDone}
+                    className={cn(
+                      "flex flex-1 items-center justify-center gap-2 rounded-2xl py-4 text-base font-semibold shadow-2xl transition-all duration-200 ease-out disabled:cursor-not-allowed",
+                      allDone
+                        ? "bg-brand-green text-white shadow-brand-green/40 hover:-translate-y-0.5 hover:shadow-[0_8px_30px_-6px_rgba(74,163,74,0.45)] active:scale-[0.97] disabled:opacity-70"
+                        : "bg-muted text-muted-foreground shadow-black/10",
+                    )}
+                  >
+                    {allDone ? <CheckCircle2 className="h-5 w-5" /> : <Lock className="h-5 w-5" />}
+                    <span className="truncate">
+                      {markDone.isPending
+                        ? "Saving…"
+                        : allDone
+                        ? "Mark job as done"
+                        : `${remaining} more ${remaining === 1 ? "task" : "tasks"}`}
+                    </span>
+                  </button>
                 )}
-              >
-                {allDone ? <CheckCircle2 className="h-5 w-5" /> : <Lock className="h-5 w-5" />}
-                {markDone.isPending
-                  ? "Saving…"
-                  : allDone
-                  ? "Mark job as done"
-                  : `Complete ${remaining} more ${remaining === 1 ? "task" : "tasks"} to finish`}
-              </button>
+              </div>
             </div>
           </div>
         );
@@ -241,7 +256,8 @@ function JobDetail() {
         </div>
       )}
 
-      <MessageButtonAndDialog jobId={job.id} currentUserId={me?.userId} />
+      {msgOpen && <MessagesDialog jobId={job.id} currentUserId={me?.userId} onClose={() => setMsgOpen(false)} />}
+
 
     </AppShell>
   );
@@ -504,41 +520,28 @@ function PhotoGallery({ jobId, photos }: { jobId: string; photos: any[] }) {
   );
 }
 
-function MessageButtonAndDialog({ jobId, currentUserId }: { jobId: string; currentUserId?: string }) {
-  const [open, setOpen] = useState(false);
+function MessagesDialog({ jobId, currentUserId, onClose }: { jobId: string; currentUserId?: string; onClose: () => void }) {
   useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [open]);
+  }, [onClose]);
   return (
-    <>
-      <button
-        onClick={() => setOpen(true)}
-        className="fixed bottom-24 right-4 z-30 flex h-14 w-14 items-center justify-center rounded-full bg-brand-green text-white shadow-xl transition-all hover:-translate-y-0.5 hover:shadow-2xl active:scale-95 lg:bottom-6"
-        aria-label="Messages"
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-0 sm:items-center sm:p-4 animate-fade-in" onClick={onClose}>
+      <div
+        className="flex w-full max-w-lg flex-col overflow-hidden rounded-t-2xl border border-border bg-card shadow-xl animate-scale-in sm:rounded-2xl"
+        onClick={(e) => e.stopPropagation()}
       >
-        <MessageSquare className="h-6 w-6" />
-      </button>
-      {open && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-0 sm:items-center sm:p-4 animate-fade-in" onClick={() => setOpen(false)}>
-          <div
-            className="flex w-full max-w-lg flex-col overflow-hidden rounded-t-2xl border border-border bg-card shadow-xl animate-scale-in sm:rounded-2xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between border-b border-border px-4 py-3">
-              <h3 className="font-display text-base font-semibold">Messages</h3>
-              <button onClick={() => setOpen(false)} className="rounded-lg p-1 text-muted-foreground hover:bg-secondary hover:text-foreground" aria-label="Close">
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-            <div className="max-h-[80vh] overflow-hidden">
-              <JobMessages jobId={jobId} currentUserId={currentUserId} />
-            </div>
-          </div>
+        <div className="flex items-center justify-between border-b border-border px-4 py-3">
+          <h3 className="font-display text-base font-semibold">Messages</h3>
+          <button onClick={onClose} className="rounded-lg p-1 text-muted-foreground hover:bg-secondary hover:text-foreground" aria-label="Close">
+            <X className="h-4 w-4" />
+          </button>
         </div>
-      )}
-    </>
+        <div className="max-h-[80vh] overflow-hidden">
+          <JobMessages jobId={jobId} currentUserId={currentUserId} />
+        </div>
+      </div>
+    </div>
   );
 }
