@@ -88,32 +88,50 @@ export const Route = createFileRoute("/api/public/highlevel/appointment")({
           payload.contact_id, payload.contactId,
         );
 
-        // Upsert contact — pull latest fields from the booking payload,
-        // but only overwrite existing values when the payload actually
-        // provides a value (so booking-time edits don't wipe good data).
+        // Build contact row from payload. Create the contact if we've never
+        // seen it; match by highlevel_contact_id → email → phone so a booking
+        // without an HL id still lands as a real contact row.
+        const incoming: Record<string, any> = {
+          first_name: pick(contactSrc.first_name, contactSrc.firstName, payload.first_name, payload.firstName),
+          last_name: pick(contactSrc.last_name, contactSrc.lastName, payload.last_name, payload.lastName),
+          email: pick(contactSrc.email, payload.email),
+          phone: pick(contactSrc.phone, payload.phone),
+          address: pick(contactSrc.address, contactSrc.address1, payload.address, payload.address1, payload.full_address, loc.address, loc.fullAddress),
+          city: pick(contactSrc.city, payload.city, loc.city),
+          state: pick(contactSrc.state, payload.state, loc.state),
+          postal_code: pick(contactSrc.postal_code, contactSrc.postalCode, contactSrc.zip, payload.postal_code, payload.postalCode, payload.zip, loc.postalCode, loc.postal_code),
+        };
+        if (highlevel_contact_id) incoming.highlevel_contact_id = String(highlevel_contact_id);
+        const contactRow = Object.fromEntries(
+          Object.entries(incoming).filter(([, v]) => v !== null && v !== undefined && v !== ""),
+        );
+
         let contact_id: string | null = null;
+        // Try to find an existing contact
+        let existingId: string | null = null;
         if (highlevel_contact_id) {
-          const incoming: Record<string, any> = {
-            highlevel_contact_id: String(highlevel_contact_id),
-            first_name: pick(contactSrc.first_name, contactSrc.firstName, payload.first_name, payload.firstName),
-            last_name: pick(contactSrc.last_name, contactSrc.lastName, payload.last_name, payload.lastName),
-            email: pick(contactSrc.email, payload.email),
-            phone: pick(contactSrc.phone, payload.phone),
-            address: pick(contactSrc.address, contactSrc.address1, payload.address, payload.address1, payload.full_address, loc.address, loc.fullAddress),
-            city: pick(contactSrc.city, payload.city, loc.city),
-            state: pick(contactSrc.state, payload.state, loc.state),
-            postal_code: pick(contactSrc.postal_code, contactSrc.postalCode, contactSrc.zip, payload.postal_code, payload.postalCode, payload.zip, loc.postalCode, loc.postal_code),
-          };
-          // Strip nulls/undefined so upsert doesn't clobber existing columns
-          // with empty payload fields.
-          const contactRow = Object.fromEntries(
-            Object.entries(incoming).filter(([, v]) => v !== null && v !== undefined && v !== ""),
-          );
-          const { data: c } = await supabaseAdmin
-            .from("contacts")
-            .upsert(contactRow, { onConflict: "highlevel_contact_id" })
-            .select("id")
-            .maybeSingle();
+          const { data } = await supabaseAdmin.from("contacts").select("id")
+            .eq("highlevel_contact_id", String(highlevel_contact_id)).maybeSingle();
+          existingId = data?.id ?? null;
+        }
+        if (!existingId && contactRow.email) {
+          const { data } = await supabaseAdmin.from("contacts").select("id")
+            .eq("email", contactRow.email).maybeSingle();
+          existingId = data?.id ?? null;
+        }
+        if (!existingId && contactRow.phone) {
+          const { data } = await supabaseAdmin.from("contacts").select("id")
+            .eq("phone", contactRow.phone).maybeSingle();
+          existingId = data?.id ?? null;
+        }
+
+        if (existingId) {
+          const { data: c } = await supabaseAdmin.from("contacts")
+            .update(contactRow).eq("id", existingId).select("id").maybeSingle();
+          contact_id = c?.id ?? existingId;
+        } else if (Object.keys(contactRow).length > 0) {
+          const { data: c } = await supabaseAdmin.from("contacts")
+            .insert(contactRow).select("id").maybeSingle();
           contact_id = c?.id ?? null;
         }
 
