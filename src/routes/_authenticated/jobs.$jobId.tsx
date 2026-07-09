@@ -190,7 +190,7 @@ function JobDetail() {
                   item={p}
                   jobId={jobId}
                   pending={toggle.isPending && toggle.variables?.progressId === p.id}
-                  disabled={!isActive || toggle.isPending && toggle.variables?.progressId === p.id || (p.input_type === "payment_trigger" && !priorAllDone(p.position))}
+                  disabled={!isActive || (toggle.isPending && toggle.variables?.progressId === p.id) || (p.input_type === "payment_trigger" && !priorAllDone(p.position))}
                   onToggle={(completed) => toggle.mutate({ progressId: p.id, completed })}
                 />
               ))}
