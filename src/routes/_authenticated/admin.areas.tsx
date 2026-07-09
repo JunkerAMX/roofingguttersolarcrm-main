@@ -552,7 +552,7 @@ function AreasPage() {
                   <td className="p-2 text-muted-foreground">{a.suburb ?? "—"}</td>
                   <td className="p-2 text-muted-foreground truncate max-w-[240px]">{a.label ?? "—"}</td>
                   <td className="p-2 text-right">
-                    <button onClick={() => del.mutate(a.id)} className="rounded p-1 text-destructive hover:bg-destructive/10">
+                    <button onClick={() => del.mutate(a.id)} className="rounded p-1 text-destructive transition-all duration-200 ease-out hover:bg-destructive/10 active:scale-[0.92]">
                       <Trash2 className="h-4 w-4" />
                     </button>
                   </td>
