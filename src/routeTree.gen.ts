@@ -14,6 +14,7 @@ import { Route as AcceptInviteRouteImport } from './routes/accept-invite'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedTodayRouteImport } from './routes/_authenticated/today'
+import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedMyJobsRouteImport } from './routes/_authenticated/my-jobs'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
@@ -49,6 +50,11 @@ const IndexRoute = IndexRouteImport.update({
 const AuthenticatedTodayRoute = AuthenticatedTodayRouteImport.update({
   id: '/today',
   path: '/today',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedMyJobsRoute = AuthenticatedMyJobsRouteImport.update({
@@ -123,6 +129,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/my-jobs': typeof AuthenticatedMyJobsRoute
+  '/settings': typeof AuthenticatedSettingsRoute
   '/today': typeof AuthenticatedTodayRoute
   '/admin/areas': typeof AuthenticatedAdminAreasRoute
   '/admin/checklists': typeof AuthenticatedAdminChecklistsRoute
@@ -140,6 +147,7 @@ export interface FileRoutesByTo {
   '/accept-invite': typeof AcceptInviteRoute
   '/auth': typeof AuthRoute
   '/my-jobs': typeof AuthenticatedMyJobsRoute
+  '/settings': typeof AuthenticatedSettingsRoute
   '/today': typeof AuthenticatedTodayRoute
   '/admin/areas': typeof AuthenticatedAdminAreasRoute
   '/admin/checklists': typeof AuthenticatedAdminChecklistsRoute
@@ -160,6 +168,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/my-jobs': typeof AuthenticatedMyJobsRoute
+  '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/today': typeof AuthenticatedTodayRoute
   '/_authenticated/admin/areas': typeof AuthenticatedAdminAreasRoute
   '/_authenticated/admin/checklists': typeof AuthenticatedAdminChecklistsRoute
@@ -180,6 +189,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/admin'
     | '/my-jobs'
+    | '/settings'
     | '/today'
     | '/admin/areas'
     | '/admin/checklists'
@@ -197,6 +207,7 @@ export interface FileRouteTypes {
     | '/accept-invite'
     | '/auth'
     | '/my-jobs'
+    | '/settings'
     | '/today'
     | '/admin/areas'
     | '/admin/checklists'
@@ -216,6 +227,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/_authenticated/admin'
     | '/_authenticated/my-jobs'
+    | '/_authenticated/settings'
     | '/_authenticated/today'
     | '/_authenticated/admin/areas'
     | '/_authenticated/admin/checklists'
@@ -273,6 +285,13 @@ declare module '@tanstack/react-router' {
       path: '/today'
       fullPath: '/today'
       preLoaderRoute: typeof AuthenticatedTodayRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/settings': {
+      id: '/_authenticated/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AuthenticatedSettingsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/my-jobs': {
@@ -388,6 +407,7 @@ const AuthenticatedAdminRouteWithChildren =
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedMyJobsRoute: typeof AuthenticatedMyJobsRoute
+  AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedTodayRoute: typeof AuthenticatedTodayRoute
   AuthenticatedJobsJobIdRoute: typeof AuthenticatedJobsJobIdRoute
 }
@@ -395,6 +415,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedMyJobsRoute: AuthenticatedMyJobsRoute,
+  AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedTodayRoute: AuthenticatedTodayRoute,
   AuthenticatedJobsJobIdRoute: AuthenticatedJobsJobIdRoute,
 }
