@@ -365,6 +365,28 @@ function AreasPage() {
 
   const json = JSON.stringify(grouped, null, 2);
 
+  // Duplicate postcodes: same postcode assigned to more than one worker.
+  const duplicatePostcodes = useMemo(() => {
+    const map = new Map<string, Set<string>>();
+    for (const a of areas as any[]) {
+      if (!a.postcode) continue;
+      if (!map.has(a.postcode)) map.set(a.postcode, new Set());
+      map.get(a.postcode)!.add(a.user_id);
+    }
+    const dupes: { postcode: string; workers: string[] }[] = [];
+    map.forEach((users, pc) => {
+      if (users.size > 1) {
+        const names = [...users].map((uid) => {
+          const w: any = workers.find((x: any) => x.id === uid);
+          return w?.full_name || w?.email || "Unknown";
+        });
+        dupes.push({ postcode: pc, workers: names });
+      }
+    });
+    return dupes.sort((a, b) => a.postcode.localeCompare(b.postcode));
+  }, [areas, workers]);
+  const dupeSet = useMemo(() => new Set(duplicatePostcodes.map((d) => d.postcode)), [duplicatePostcodes]);
+
   return (
     <div className="space-y-6">
       <div>
