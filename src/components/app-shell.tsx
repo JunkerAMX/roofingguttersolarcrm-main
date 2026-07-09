@@ -41,14 +41,14 @@ export function AppShell({ children }: { children: ReactNode }) {
             {nav.map((n) => {
               const active = pathname === n.to || (n.to !== "/today" && pathname.startsWith(n.to));
               return (
-                <Link
-                  key={n.to}
-                  to={n.to}
-                  className={cn(
-                    "flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                    active ? "bg-primary text-primary-foreground" : "text-foreground/70 hover:bg-secondary hover:text-foreground",
-                  )}
-                >
+              <Link
+                key={n.to}
+                to={n.to}
+                className={cn(
+                  "flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 ease-out active:scale-[0.98]",
+                  active ? "bg-primary text-primary-foreground" : "text-foreground/70 hover:bg-secondary hover:text-foreground",
+                )}
+              >
                   <n.icon className="h-4 w-4" />
                   {n.label}
                 </Link>
