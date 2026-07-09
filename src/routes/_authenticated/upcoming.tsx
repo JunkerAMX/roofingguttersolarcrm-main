@@ -48,11 +48,11 @@ function UpcomingPage() {
               </h2>
               <div className="grid gap-2">
                 {list.map((j: any) => (
-                  <Link
+                <Link
                     key={j.id}
                     to="/jobs/$jobId"
                     params={{ jobId: j.id }}
-                    className="flex items-center justify-between gap-3 rounded-xl border border-border bg-card px-4 py-3 hover:border-brand-lime"
+                    className="flex items-center justify-between gap-3 rounded-xl border border-border bg-card px-4 py-3 transition-all hover:-translate-y-px hover:border-brand-lime hover:shadow-sm"
                   >
                     <div className="min-w-0">
                       <div className="truncate font-medium">
@@ -64,7 +64,15 @@ function UpcomingPage() {
                         </div>
                       )}
                     </div>
-                    <span className="shrink-0 text-xs text-muted-foreground">{j.job_type?.name}</span>
+                    <div className="flex shrink-0 items-center gap-2">
+                      {isWorker && (
+                        <span className="inline-flex items-center gap-1 rounded-lg bg-brand-green/10 px-2 py-1 text-xs font-semibold text-brand-green">
+                          <Wallet className="h-3 w-3" />
+                          {formatWorkerPay(j.currency)}
+                        </span>
+                      )}
+                      <span className="text-xs text-muted-foreground">{j.job_type?.name}</span>
+                    </div>
                   </Link>
                 ))}
               </div>
