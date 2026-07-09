@@ -109,9 +109,15 @@ function JobDetail() {
               {job.price_cents && (
                 <div className="text-right">
                   <div className="font-display text-2xl font-bold text-brand-green">
-                    ${(job.price_cents / 100).toFixed(2)}
+                    ${Math.round(job.price_cents / 100).toLocaleString()}
                   </div>
                   <div className="text-xs text-muted-foreground">{job.currency}</div>
+                  {calculateWorkerPayCents(job.price_cents) > 0 && (
+                    <div className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-brand-green/10 px-2 py-1 text-xs font-semibold text-brand-green">
+                      <Wallet className="h-3.5 w-3.5" />
+                      Your pay {formatWorkerPay(job.price_cents)}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
