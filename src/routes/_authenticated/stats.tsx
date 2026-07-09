@@ -117,10 +117,11 @@ function StatsInner() {
         </div>
       ) : (
         <div className="space-y-8">
-          <JobGroup title="Due" items={due} emptyLabel="Nothing outstanding." isAdmin={isAdmin} />
-          <JobGroup title="Done" items={done} emptyLabel="No completed jobs yet." isAdmin={isAdmin} />
+          <JobGroup title="Due" items={due} emptyLabel="Nothing outstanding." isAdmin={isAdmin} currentUserId={me?.userId} onOpenMessages={setMsgJobId} />
+          <JobGroup title="Done" items={done} emptyLabel="No completed jobs yet." isAdmin={isAdmin} currentUserId={me?.userId} onOpenMessages={setMsgJobId} />
         </div>
       )}
+      {msgJobId && <MessagesDialog jobId={msgJobId} currentUserId={me?.userId} onClose={() => setMsgJobId(null)} />}
     </AppShell>
   );
 }
