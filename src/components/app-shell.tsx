@@ -7,6 +7,7 @@ import { getMe } from "@/lib/jobs.functions";
 import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/logo.png";
 import { cn } from "@/lib/utils";
+import { NotificationBell } from "@/components/notification-bell";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const router = useRouter();
@@ -55,6 +56,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </nav>
 
           <div className="flex items-center gap-2">
+            <NotificationBell userId={me?.userId} />
             <div className="hidden text-right text-xs sm:block">
               <div className="font-medium text-foreground">{me?.profile?.full_name ?? me?.profile?.email ?? ""}</div>
               <div className="text-muted-foreground">{me?.isAdmin ? "Admin" : "Worker"}</div>
