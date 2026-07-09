@@ -14,6 +14,7 @@ import { Route as AcceptInviteRouteImport } from './routes/accept-invite'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedTodayRouteImport } from './routes/_authenticated/today'
+import { Route as AuthenticatedMyJobsRouteImport } from './routes/_authenticated/my-jobs'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as AuthenticatedJobsJobIdRouteImport } from './routes/_authenticated/jobs.$jobId'
@@ -48,6 +49,11 @@ const IndexRoute = IndexRouteImport.update({
 const AuthenticatedTodayRoute = AuthenticatedTodayRouteImport.update({
   id: '/today',
   path: '/today',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedMyJobsRoute = AuthenticatedMyJobsRouteImport.update({
+  id: '/my-jobs',
+  path: '/my-jobs',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
@@ -116,6 +122,7 @@ export interface FileRoutesByFullPath {
   '/accept-invite': typeof AcceptInviteRoute
   '/auth': typeof AuthRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
+  '/my-jobs': typeof AuthenticatedMyJobsRoute
   '/today': typeof AuthenticatedTodayRoute
   '/admin/areas': typeof AuthenticatedAdminAreasRoute
   '/admin/checklists': typeof AuthenticatedAdminChecklistsRoute
@@ -132,6 +139,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/accept-invite': typeof AcceptInviteRoute
   '/auth': typeof AuthRoute
+  '/my-jobs': typeof AuthenticatedMyJobsRoute
   '/today': typeof AuthenticatedTodayRoute
   '/admin/areas': typeof AuthenticatedAdminAreasRoute
   '/admin/checklists': typeof AuthenticatedAdminChecklistsRoute
@@ -151,6 +159,7 @@ export interface FileRoutesById {
   '/accept-invite': typeof AcceptInviteRoute
   '/auth': typeof AuthRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
+  '/_authenticated/my-jobs': typeof AuthenticatedMyJobsRoute
   '/_authenticated/today': typeof AuthenticatedTodayRoute
   '/_authenticated/admin/areas': typeof AuthenticatedAdminAreasRoute
   '/_authenticated/admin/checklists': typeof AuthenticatedAdminChecklistsRoute
@@ -170,6 +179,7 @@ export interface FileRouteTypes {
     | '/accept-invite'
     | '/auth'
     | '/admin'
+    | '/my-jobs'
     | '/today'
     | '/admin/areas'
     | '/admin/checklists'
@@ -186,6 +196,7 @@ export interface FileRouteTypes {
     | '/'
     | '/accept-invite'
     | '/auth'
+    | '/my-jobs'
     | '/today'
     | '/admin/areas'
     | '/admin/checklists'
@@ -204,6 +215,7 @@ export interface FileRouteTypes {
     | '/accept-invite'
     | '/auth'
     | '/_authenticated/admin'
+    | '/_authenticated/my-jobs'
     | '/_authenticated/today'
     | '/_authenticated/admin/areas'
     | '/_authenticated/admin/checklists'
@@ -261,6 +273,13 @@ declare module '@tanstack/react-router' {
       path: '/today'
       fullPath: '/today'
       preLoaderRoute: typeof AuthenticatedTodayRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/my-jobs': {
+      id: '/_authenticated/my-jobs'
+      path: '/my-jobs'
+      fullPath: '/my-jobs'
+      preLoaderRoute: typeof AuthenticatedMyJobsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/admin': {
@@ -368,12 +387,14 @@ const AuthenticatedAdminRouteWithChildren =
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
+  AuthenticatedMyJobsRoute: typeof AuthenticatedMyJobsRoute
   AuthenticatedTodayRoute: typeof AuthenticatedTodayRoute
   AuthenticatedJobsJobIdRoute: typeof AuthenticatedJobsJobIdRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
+  AuthenticatedMyJobsRoute: AuthenticatedMyJobsRoute,
   AuthenticatedTodayRoute: AuthenticatedTodayRoute,
   AuthenticatedJobsJobIdRoute: AuthenticatedJobsJobIdRoute,
 }
