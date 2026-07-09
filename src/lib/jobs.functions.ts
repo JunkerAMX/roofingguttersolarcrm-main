@@ -27,7 +27,7 @@ export const listMyJobs = createServerFn({ method: "GET" })
 
     let q = supabase
       .from("jobs")
-      .select("*, contact:contacts(*), job_type:job_types(*), assignee:profiles!jobs_assigned_to_fkey(id, full_name, email)")
+      .select("*, contact:contacts(*), job_type:job_types(*), assignee:profiles!jobs_assigned_to_fkey(id, full_name, email), progress:job_checklist_progress(completed)")
       .order("scheduled_for", { ascending: true });
 
     if (!isAdmin) q = q.eq("assigned_to", userId);

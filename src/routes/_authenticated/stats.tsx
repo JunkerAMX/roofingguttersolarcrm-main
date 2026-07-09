@@ -145,36 +145,69 @@ function JobGroup({ title, items, emptyLabel, isAdmin }: { title: string; items:
         <div className="rounded-xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">{emptyLabel}</div>
       ) : (
         <div className="grid gap-2">
-          {items.map((j: any) => (
-            <Link
-              key={j.id}
-              to="/jobs/$jobId"
-              params={{ jobId: j.id }}
-              className="flex items-center justify-between gap-3 rounded-xl border border-border bg-card px-4 py-3 transition-all hover:-translate-y-px hover:border-brand-lime hover:shadow-sm"
-            >
-              <div className="min-w-0">
-                <div className="truncate font-medium">
-                  {j.contact ? `${j.contact.first_name ?? ""} ${j.contact.last_name ?? ""}`.trim() : "Client"}
+          {items.map((j: any) => {
+            const progress = Array.isArray(j.progress) ? j.progress : [];
+            const total = progress.length;
+            const doneCount = progress.filter((p: any) => p.completed).length;
+            const pct = total > 0 ? Math.round((doneCount / total) * 100) : 0;
+            const price = j.price_cents ? `$${(j.price_cents / 100).toFixed(0)}` : null;
+            return (
+              <Link
+                key={j.id}
+                to="/jobs/$jobId"
+                params={{ jobId: j.id }}
+                className="block rounded-xl border border-border bg-card px-4 py-3 transition-all hover:-translate-y-px hover:border-brand-lime hover:shadow-sm"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="truncate font-medium">
+                        {j.contact ? `${j.contact.first_name ?? ""} ${j.contact.last_name ?? ""}`.trim() : "Client"}
+                      </span>
+                      <span className="shrink-0 rounded-full bg-secondary px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                        {(j.status as string).replace("_", " ")}
+                      </span>
+                    </div>
+                    <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
+                      {j.job_type?.name && <span>{j.job_type.name}</span>}
+                      {j.contact?.address && (
+                        <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" />{j.contact.address}</span>
+                      )}
+                      {j.scheduled_for && <span>{format(new Date(j.scheduled_for), "d MMM, h:mm a")}</span>}
+                      {j.assignee ? (
+                        <span className="text-foreground/80">· {j.assignee.full_name || j.assignee.email}</span>
+                      ) : (
+                        <span className="text-yellow-700">· Unassigned</span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex shrink-0 flex-col items-end gap-1">
+                    {price && <span className="text-sm font-semibold">{price}</span>}
+                    {calculateWorkerPayCents(j.price_cents) > 0 && (
+                      <span className="inline-flex items-center gap-1 rounded-lg bg-brand-green/10 px-2 py-0.5 text-[11px] font-semibold text-brand-green">
+                        <Wallet className="h-3 w-3" />
+                        {formatWorkerPay(j.price_cents, j.currency)}
+                      </span>
+                    )}
+                  </div>
                 </div>
-                <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
-                  {j.contact?.address && (
-                    <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" />{j.contact.address}</span>
-                  )}
-                  {j.scheduled_for && <span>{format(new Date(j.scheduled_for), "d MMM, h:mm a")}</span>}
-                  {isAdmin && j.assignee && <span>· {j.assignee.full_name || j.assignee.email}</span>}
-                </div>
-              </div>
-              <div className="flex shrink-0 items-center gap-2">
-                {calculateWorkerPayCents(j.price_cents) > 0 && (
-                  <span className="inline-flex items-center gap-1 rounded-lg bg-brand-green/10 px-2 py-1 text-xs font-semibold text-brand-green">
-                    <Wallet className="h-3 w-3" />
-                    {formatWorkerPay(j.price_cents, j.currency)}
-                  </span>
+                {total > 0 && (
+                  <div className="mt-2">
+                    <div className="mb-1 flex items-center justify-between text-[11px] text-muted-foreground">
+                      <span>{doneCount} of {total} tasks</span>
+                      <span className="font-semibold">{pct}%</span>
+                    </div>
+                    <div className="h-1.5 w-full overflow-hidden rounded-full bg-secondary">
+                      <div
+                        className={`h-full rounded-full transition-all ${pct === 100 ? "bg-brand-green" : "bg-brand-lime"}`}
+                        style={{ width: `${pct}%` }}
+                      />
+                    </div>
+                  </div>
                 )}
-                <span className="text-xs text-muted-foreground">{j.job_type?.name}</span>
-              </div>
-            </Link>
-          ))}
+              </Link>
+            );
+          })}
         </div>
       )}
     </section>
