@@ -58,7 +58,7 @@ function AdminHome() {
             <p className="text-xs text-muted-foreground">Creates or updates a job from one appointment.</p>
             <div className="mt-2 flex items-center gap-2 rounded-lg border border-border px-3 py-2">
               <code className="min-w-0 flex-1 truncate text-xs">{appointmentUrl}</code>
-              <button onClick={() => copy(appointmentUrl)} className="rounded-lg p-2 hover:bg-secondary" aria-label="Copy appointment webhook URL">
+              <button onClick={() => copy(appointmentUrl)} className="rounded-lg p-2 text-muted-foreground transition-all duration-200 ease-out hover:bg-secondary hover:text-foreground active:scale-[0.92]" aria-label="Copy appointment webhook URL">
                 <Copy className="h-4 w-4" />
               </button>
             </div>
