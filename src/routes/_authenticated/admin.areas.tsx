@@ -394,6 +394,17 @@ function AreasPage() {
         <p className="text-sm text-muted-foreground">Pick a worker, then <b>click the map</b> to add points around their area. Drag any point to reshape (auto-saves). Hit <b>Finish → postcodes</b> to auto-add every postcode inside.</p>
       </div>
 
+      {duplicatePostcodes.length > 0 && (
+        <div className="rounded-2xl border border-amber-400/60 bg-amber-50 p-4 text-sm text-amber-900 dark:bg-amber-950/40 dark:text-amber-100">
+          <div className="font-semibold">⚠ Duplicate postcodes across workers ({duplicatePostcodes.length})</div>
+          <ul className="mt-1 space-y-0.5 text-xs">
+            {duplicatePostcodes.map((d) => (
+              <li key={d.postcode}><b>{d.postcode}</b> — {d.workers.join(", ")}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       <div className="grid gap-4 lg:grid-cols-[280px_1fr]">
         <div className="space-y-3">
           <div>
