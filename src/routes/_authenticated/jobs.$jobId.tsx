@@ -73,6 +73,30 @@ function JobDetail() {
       toast.success("Job marked as done 🎉");
       qc.invalidateQueries({ queryKey: ["job", jobId] });
       qc.invalidateQueries({ queryKey: ["jobs"] });
+      import("canvas-confetti").then(({ default: confetti }) => {
+        const colors = ["#2E8B57", "#9ACD32", "#F0E68C", "#228B22", "#ADFF2F"];
+        const end = Date.now() + 1500;
+        const frame = () => {
+          confetti({
+            particleCount: 5,
+            angle: 60,
+            spread: 55,
+            origin: { x: 0 },
+            colors,
+            disableForReducedMotion: true,
+          });
+          confetti({
+            particleCount: 5,
+            angle: 120,
+            spread: 55,
+            origin: { x: 1 },
+            colors,
+            disableForReducedMotion: true,
+          });
+          if (Date.now() < end) requestAnimationFrame(frame);
+        };
+        frame();
+      });
     },
     onError: (e: any) => toast.error(e.message),
   });
@@ -192,7 +216,7 @@ function JobDetail() {
                   item={p}
                   jobId={jobId}
                   pending={toggle.isPending && toggle.variables?.progressId === p.id}
-                  disabled={!isActive || (toggle.isPending && toggle.variables?.progressId === p.id) || (p.input_type === "payment_trigger" && !priorAllDone(p.position))}
+                  disabled={job.status === "completed" || !isActive || (toggle.isPending && toggle.variables?.progressId === p.id) || (p.input_type === "payment_trigger" && !priorAllDone(p.position))}
                   onToggle={(completed, note) => toggle.mutate({ progressId: p.id, completed, note })}
                 />
               ))}
