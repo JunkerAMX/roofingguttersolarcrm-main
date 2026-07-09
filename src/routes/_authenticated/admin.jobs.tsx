@@ -41,11 +41,12 @@ function JobsPage() {
             <th className="p-3">Status</th>
             <th className="p-3">Assigned</th>
             <th className="p-3">Price</th>
+            <th className="p-3">Worker pay</th>
             <th className="p-3 w-10"></th>
           </tr>
         </thead>
         <tbody className="divide-y divide-border">
-          {jobs.length === 0 && <tr><td colSpan={6} className="p-8 text-center text-muted-foreground">No jobs yet.</td></tr>}
+          {jobs.length === 0 && <tr><td colSpan={7} className="p-8 text-center text-muted-foreground">No jobs yet.</td></tr>}
           {jobs.map((j: any) => (
             <tr key={j.id} className="hover:bg-secondary/30">
               <td className="p-3">
