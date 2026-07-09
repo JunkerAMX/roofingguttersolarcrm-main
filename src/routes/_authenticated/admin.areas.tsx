@@ -492,7 +492,7 @@ function AreasPage() {
             </thead>
             <tbody>
               {areas.map((a: any) => (
-                <tr key={a.id} className="border-t border-border">
+                <tr key={a.id} className={cn("border-t border-border", a.postcode && dupeSet.has(a.postcode) && "bg-amber-50 dark:bg-amber-950/30")}>
                   <td className="p-2">
                     <select
                       value={a.user_id}
