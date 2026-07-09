@@ -68,10 +68,14 @@ function JobsPage() {
               </td>
               <td className="p-3 text-xs">{j.price_cents ? `$${(j.price_cents / 100).toFixed(2)} ${j.currency}` : "—"}</td>
               <td className="p-3 text-xs">
-                <span className="inline-flex items-center gap-1 rounded-md bg-brand-green/10 px-2 py-1 font-semibold text-brand-green">
-                  <Wallet className="h-3 w-3" />
-                  {formatWorkerPay(j.currency)}
-                </span>
+                {j.price_cents ? (
+                  <span className="inline-flex items-center gap-1 rounded-md bg-brand-green/10 px-2 py-1 font-semibold text-brand-green">
+                    <Wallet className="h-3 w-3" />
+                    {formatWorkerPay(j.price_cents, j.currency)}
+                  </span>
+                ) : (
+                  <span className="text-muted-foreground">—</span>
+                )}
               </td>
               <td className="p-3">
               <button

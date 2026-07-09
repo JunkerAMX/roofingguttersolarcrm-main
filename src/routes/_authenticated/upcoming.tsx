@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { AppShell } from "@/components/app-shell";
 import { listMyJobs, getMe } from "@/lib/jobs.functions";
-import { formatWorkerPay } from "@/lib/pay";
+import { calculateWorkerPayCents, formatWorkerPay } from "@/lib/pay";
 import { format, parseISO } from "date-fns";
 import { MapPin, Wallet } from "lucide-react";
 
@@ -65,10 +65,10 @@ function UpcomingPage() {
                       )}
                     </div>
                     <div className="flex shrink-0 items-center gap-2">
-                      {isWorker && (
+                      {isWorker && calculateWorkerPayCents(j.price_cents) > 0 && (
                         <span className="inline-flex items-center gap-1 rounded-lg bg-brand-green/10 px-2 py-1 text-xs font-semibold text-brand-green">
                           <Wallet className="h-3 w-3" />
-                          {formatWorkerPay(j.currency)}
+                          {formatWorkerPay(j.price_cents, j.currency)}
                         </span>
                       )}
                       <span className="text-xs text-muted-foreground">{j.job_type?.name}</span>

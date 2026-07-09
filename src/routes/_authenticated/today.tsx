@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { AppShell } from "@/components/app-shell";
 import { listMyJobs, getMe } from "@/lib/jobs.functions";
-import { WORKER_PAY_CENTS, formatCents, formatWorkerPay } from "@/lib/pay";
+import { calculateWorkerPayCents, formatCents, formatWorkerPay } from "@/lib/pay";
 import { MapPin, Clock, DollarSign, Wallet, CheckCircle2, Lock } from "lucide-react";
 import { format, formatDistanceToNow, isToday, isTomorrow, isYesterday, startOfDay } from "date-fns";
 import { useNow } from "@/hooks/use-now";
@@ -45,7 +45,9 @@ function TodayPage() {
 
   const isWorker = !!me && !me.isAdmin;
   const sections = groupJobsByDay(jobs);
-  const todayPayCents = isWorker ? jobs.length * WORKER_PAY_CENTS : 0;
+  const todayPayCents = isWorker
+    ? jobs.reduce((sum, j) => sum + calculateWorkerPayCents(j.price_cents), 0)
+    : 0;
   const payCurrency = jobs[0]?.currency ?? "";
 
   return (
@@ -152,10 +154,10 @@ function JobCard({ job, showPay }: { job: any; showPay?: boolean }) {
           <span>{price} {job.currency}</span>
         </div>
       )}
-      {showPay && (
+      {showPay && calculateWorkerPayCents(job.price_cents) > 0 && (
         <div className="mt-2 inline-flex items-center gap-2 rounded-lg bg-brand-green/10 px-2.5 py-1 text-sm font-semibold text-brand-green">
           <Wallet className="h-4 w-4" />
-          <span>You earn {formatWorkerPay(job.currency)}</span>
+          <span>You earn {formatWorkerPay(job.price_cents, job.currency)}</span>
         </div>
       )}
     </Link>
