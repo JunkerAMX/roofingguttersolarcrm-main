@@ -65,7 +65,7 @@ function SettingsPage() {
         </div>
       </div>
 
-      <button onClick={() => save.mutate()} disabled={save.isPending} className="rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-60">
+      <button onClick={() => save.mutate()} disabled={save.isPending} className="rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground shadow-sm transition-all duration-200 ease-out hover:-translate-y-px hover:shadow-md active:scale-[0.97] disabled:opacity-60">
         {save.isPending ? "Saving…" : "Save changes"}
       </button>
     </div>
