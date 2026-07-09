@@ -99,7 +99,7 @@ function JobDetail() {
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-4">
           <div className="rounded-2xl border border-border bg-card p-6">
-            <div className="flex items-start justify-between gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:flex sm:items-start sm:justify-between">
               <div>
                 <h1 className="font-display text-2xl font-bold">
                   {contact ? `${contact.first_name ?? ""} ${contact.last_name ?? ""}`.trim() : "Client"}
