@@ -483,13 +483,13 @@ function AreasPage() {
             <div className="absolute left-3 top-3 flex flex-wrap gap-2">
               <button
                 onClick={finishPolygon}
-                className="rounded-full bg-brand-green px-3 py-1.5 text-xs font-semibold text-white shadow hover:brightness-110"
+                className="rounded-full bg-brand-green px-3 py-1.5 text-xs font-semibold text-white shadow transition-all duration-200 ease-out hover:-translate-y-px hover:shadow-md hover:brightness-110 active:scale-[0.95]"
               >
                 Finish → postcodes
               </button>
               <button
                 onClick={clearPolygon}
-                className="rounded-full bg-background/90 px-3 py-1.5 text-xs font-semibold text-destructive shadow hover:bg-background"
+                className="rounded-full bg-background/90 px-3 py-1.5 text-xs font-semibold text-destructive shadow transition-all duration-200 ease-out hover:-translate-y-px hover:bg-background active:scale-[0.95]"
               >
                 Clear this worker
               </button>
@@ -499,7 +499,7 @@ function AreasPage() {
                     clearAllM.mutate();
                   }
                 }}
-                className="rounded-full bg-destructive px-3 py-1.5 text-xs font-semibold text-white shadow hover:brightness-110"
+                className="rounded-full bg-destructive px-3 py-1.5 text-xs font-semibold text-white shadow transition-all duration-200 ease-out hover:-translate-y-px hover:shadow-md hover:brightness-110 active:scale-[0.95]"
               >
                 Clear all
               </button>
