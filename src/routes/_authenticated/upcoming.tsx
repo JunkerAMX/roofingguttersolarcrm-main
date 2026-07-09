@@ -2,9 +2,10 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { AppShell } from "@/components/app-shell";
-import { listMyJobs } from "@/lib/jobs.functions";
+import { listMyJobs, getMe } from "@/lib/jobs.functions";
+import { formatWorkerPay } from "@/lib/pay";
 import { format, parseISO } from "date-fns";
-import { MapPin } from "lucide-react";
+import { MapPin, Wallet } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/upcoming")({
   component: UpcomingPage,
@@ -13,11 +14,14 @@ export const Route = createFileRoute("/_authenticated/upcoming")({
 
 function UpcomingPage() {
   const fn = useServerFn(listMyJobs);
+  const meFn = useServerFn(getMe);
+  const { data: me } = useQuery({ queryKey: ["me"], queryFn: () => meFn() });
   const { data: jobs = [] } = useQuery({
     queryKey: ["jobs", "upcoming"],
     queryFn: () => fn({ data: { scope: "upcoming" } }),
   });
 
+  const isWorker = !!me && !me.isAdmin;
   const byDate = jobs.reduce((acc: Record<string, any[]>, j: any) => {
     const d = j.due_date ?? "unscheduled";
     (acc[d] ??= []).push(j);
@@ -44,11 +48,11 @@ function UpcomingPage() {
               </h2>
               <div className="grid gap-2">
                 {list.map((j: any) => (
-                  <Link
+                <Link
                     key={j.id}
                     to="/jobs/$jobId"
                     params={{ jobId: j.id }}
-                    className="flex items-center justify-between gap-3 rounded-xl border border-border bg-card px-4 py-3 hover:border-brand-lime"
+                    className="flex items-center justify-between gap-3 rounded-xl border border-border bg-card px-4 py-3 transition-all hover:-translate-y-px hover:border-brand-lime hover:shadow-sm"
                   >
                     <div className="min-w-0">
                       <div className="truncate font-medium">
@@ -60,7 +64,15 @@ function UpcomingPage() {
                         </div>
                       )}
                     </div>
-                    <span className="shrink-0 text-xs text-muted-foreground">{j.job_type?.name}</span>
+                    <div className="flex shrink-0 items-center gap-2">
+                      {isWorker && (
+                        <span className="inline-flex items-center gap-1 rounded-lg bg-brand-green/10 px-2 py-1 text-xs font-semibold text-brand-green">
+                          <Wallet className="h-3 w-3" />
+                          {formatWorkerPay(j.currency)}
+                        </span>
+                      )}
+                      <span className="text-xs text-muted-foreground">{j.job_type?.name}</span>
+                    </div>
                   </Link>
                 ))}
               </div>

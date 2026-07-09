@@ -2,7 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { listAllJobs, listTeam, assignJob, deleteJob } from "@/lib/admin.functions";
-import { Trash2 } from "lucide-react";
+import { formatWorkerPay } from "@/lib/pay";
+import { Trash2, Wallet } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 
@@ -40,11 +41,12 @@ function JobsPage() {
             <th className="p-3">Status</th>
             <th className="p-3">Assigned</th>
             <th className="p-3">Price</th>
+            <th className="p-3">Worker pay</th>
             <th className="p-3 w-10"></th>
           </tr>
         </thead>
         <tbody className="divide-y divide-border">
-          {jobs.length === 0 && <tr><td colSpan={6} className="p-8 text-center text-muted-foreground">No jobs yet.</td></tr>}
+          {jobs.length === 0 && <tr><td colSpan={7} className="p-8 text-center text-muted-foreground">No jobs yet.</td></tr>}
           {jobs.map((j: any) => (
             <tr key={j.id} className="hover:bg-secondary/30">
               <td className="p-3">
@@ -65,6 +67,12 @@ function JobsPage() {
                 </select>
               </td>
               <td className="p-3 text-xs">{j.price_cents ? `$${(j.price_cents / 100).toFixed(2)} ${j.currency}` : "—"}</td>
+              <td className="p-3 text-xs">
+                <span className="inline-flex items-center gap-1 rounded-md bg-brand-green/10 px-2 py-1 font-semibold text-brand-green">
+                  <Wallet className="h-3 w-3" />
+                  {formatWorkerPay(j.currency)}
+                </span>
+              </td>
               <td className="p-3">
               <button
                 onClick={() => { if (confirm("Delete this job? This cannot be undone.")) del.mutate(j.id); }}

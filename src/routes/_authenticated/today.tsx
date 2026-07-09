@@ -2,8 +2,9 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { AppShell } from "@/components/app-shell";
-import { listMyJobs } from "@/lib/jobs.functions";
-import { MapPin, Clock, DollarSign, CheckCircle2, Lock } from "lucide-react";
+import { listMyJobs, getMe } from "@/lib/jobs.functions";
+import { WORKER_PAY_CENTS, formatCents, formatWorkerPay } from "@/lib/pay";
+import { MapPin, Clock, DollarSign, Wallet, CheckCircle2, Lock } from "lucide-react";
 import { format, formatDistanceToNow, isToday, isTomorrow, isYesterday, startOfDay } from "date-fns";
 import { useNow } from "@/hooks/use-now";
 
@@ -35,12 +36,17 @@ function groupJobsByDay(jobs: any[]) {
 
 function TodayPage() {
   const fn = useServerFn(listMyJobs);
+  const meFn = useServerFn(getMe);
+  const { data: me } = useQuery({ queryKey: ["me"], queryFn: () => meFn() });
   const { data: jobs = [], isLoading } = useQuery({
     queryKey: ["jobs", "today"],
     queryFn: () => fn({ data: { scope: "today" } }),
   });
 
+  const isWorker = !!me && !me.isAdmin;
   const sections = groupJobsByDay(jobs);
+  const todayPayCents = isWorker ? jobs.length * WORKER_PAY_CENTS : 0;
+  const payCurrency = jobs[0]?.currency ?? "";
 
   return (
     <AppShell>
@@ -49,9 +55,17 @@ function TodayPage() {
           <h1 className="font-display text-3xl font-bold">Today</h1>
           <p className="text-sm text-muted-foreground">{format(new Date(), "EEEE, d MMMM yyyy")}</p>
         </div>
-        <div className="text-right">
-          <div className="font-display text-2xl font-semibold text-brand-green">{jobs.length}</div>
-          <div className="text-xs uppercase tracking-wide text-muted-foreground">jobs</div>
+        <div className="flex items-center gap-4">
+          {isWorker && (
+            <div className="text-right">
+              <div className="font-display text-2xl font-semibold text-brand-green">{formatCents(todayPayCents, payCurrency)}</div>
+              <div className="text-xs uppercase tracking-wide text-muted-foreground">today's pay</div>
+            </div>
+          )}
+          <div className="text-right">
+            <div className="font-display text-2xl font-semibold text-brand-green">{jobs.length}</div>
+            <div className="text-xs uppercase tracking-wide text-muted-foreground">jobs</div>
+          </div>
         </div>
       </div>
 
@@ -75,7 +89,7 @@ function TodayPage() {
                 {section.label}
               </h2>
               <div className="grid gap-3 sm:grid-cols-2">
-                {section.jobs.map((j: any) => <JobCard key={j.id} job={j} />)}
+                {section.jobs.map((j: any) => <JobCard key={j.id} job={j} showPay={isWorker} />)}
               </div>
             </section>
           ))}
@@ -85,7 +99,7 @@ function TodayPage() {
   );
 }
 
-function JobCard({ job }: { job: any }) {
+function JobCard({ job, showPay }: { job: any; showPay?: boolean }) {
   const now = useNow(15000);
   const price = job.price_cents ? `$${(job.price_cents / 100).toFixed(2)}` : null;
   const startMs = job.scheduled_for ? new Date(job.scheduled_for).getTime() : null;
@@ -136,6 +150,12 @@ function JobCard({ job }: { job: any }) {
         <div className="flex items-center gap-2 text-sm font-medium text-foreground">
           <DollarSign className="h-4 w-4 text-brand-green" />
           <span>{price} {job.currency}</span>
+        </div>
+      )}
+      {showPay && (
+        <div className="mt-2 inline-flex items-center gap-2 rounded-lg bg-brand-green/10 px-2.5 py-1 text-sm font-semibold text-brand-green">
+          <Wallet className="h-4 w-4" />
+          <span>You earn {formatWorkerPay(job.currency)}</span>
         </div>
       )}
     </Link>

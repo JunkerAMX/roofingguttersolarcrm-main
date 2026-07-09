@@ -3,8 +3,9 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState, useRef } from "react";
 import { AppShell } from "@/components/app-shell";
-import { getJob, toggleChecklistItem, uploadJobPhoto, getPhotoUrl, markJobDone } from "@/lib/jobs.functions";
-import { ArrowLeft, MapPin, Phone, Mail, DollarSign, Camera, Check, Lock, ImageIcon, CheckCircle2, Clock } from "lucide-react";
+import { getJob, getMe, toggleChecklistItem, uploadJobPhoto, getPhotoUrl, markJobDone } from "@/lib/jobs.functions";
+import { formatWorkerPay } from "@/lib/pay";
+import { ArrowLeft, MapPin, Phone, Mail, DollarSign, Wallet, Camera, Check, Lock, ImageIcon, CheckCircle2, Clock } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -19,8 +20,10 @@ function JobDetail() {
   const { jobId } = useParams({ from: "/_authenticated/jobs/$jobId" });
   const qc = useQueryClient();
   const fn = useServerFn(getJob);
+  const meFn = useServerFn(getMe);
   const toggleFn = useServerFn(toggleChecklistItem);
   const markDoneFn = useServerFn(markJobDone);
+  const { data: me } = useQuery({ queryKey: ["me"], queryFn: () => meFn() });
   const { data, isLoading } = useQuery({
     queryKey: ["job", jobId],
     queryFn: () => fn({ data: { jobId } }),
@@ -74,6 +77,7 @@ function JobDetail() {
   const jobStartMs = job.scheduled_for ? new Date(job.scheduled_for).getTime() : null;
   const isActive = jobStartMs ? jobStartMs <= now : true;
   const priorAllDone = (pos: number) => progress.filter((p: any) => p.position < pos).every((p: any) => p.completed);
+  const isWorker = !!me && !me.isAdmin;
 
   return (
     <AppShell>
@@ -133,6 +137,21 @@ function JobDetail() {
             )}
           </div>
 
+          {isWorker && (
+            <div className="rounded-2xl border border-brand-green/20 bg-brand-green/5 p-6">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-green/15 text-brand-green">
+                  <Wallet className="h-5 w-5" />
+                </div>
+                <div>
+                  <div className="text-xs font-semibold uppercase tracking-wide text-brand-green/80">Your pay</div>
+                  <div className="font-display text-2xl font-bold text-brand-green">{formatWorkerPay(job.currency)}</div>
+                </div>
+              </div>
+              <p className="mt-2 text-sm text-brand-green/80">You'll receive this amount once the job is completed.</p>
+            </div>
+          )}
+
           <div className="rounded-2xl border border-border bg-card p-6">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="font-display text-lg font-semibold">Checklist</h2>
@@ -175,6 +194,11 @@ function JobDetail() {
       {total > 0 && done === total && job.status !== "completed" && (
         <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 p-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] animate-fade-in">
           <div className="mx-auto max-w-md">
+            {isWorker && (
+              <div className="pointer-events-auto mb-2 text-center text-sm font-medium text-brand-green">
+                Complete this job to earn {formatWorkerPay(job.currency)}
+              </div>
+            )}
             <button
               onClick={() => markDone.mutate()}
               disabled={markDone.isPending}
