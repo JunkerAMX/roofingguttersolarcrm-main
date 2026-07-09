@@ -85,13 +85,13 @@ export function AppShell({ children }: { children: ReactNode }) {
                   key={n.to}
                   to={n.to}
                   onClick={() => setMenuOpen(false)}
-                  className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-foreground/80 hover:bg-secondary"
+                  className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-foreground/80 transition-all duration-200 ease-out hover:bg-secondary active:scale-[0.98]"
                 >
                   <n.icon className="h-4 w-4" />
                   {n.label}
                 </Link>
               ))}
-              <button onClick={signOut} className="mt-1 flex items-center gap-3 rounded-lg px-3 py-3 text-left text-sm font-medium text-destructive hover:bg-destructive/10">
+              <button onClick={signOut} className="mt-1 flex items-center gap-3 rounded-lg px-3 py-3 text-left text-sm font-medium text-destructive transition-all duration-200 ease-out hover:bg-destructive/10 active:scale-[0.98]">
                 <LogOut className="h-4 w-4" /> Sign out
               </button>
             </nav>
