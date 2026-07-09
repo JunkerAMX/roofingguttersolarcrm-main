@@ -70,9 +70,14 @@ export function JobMessages({ jobId, currentUserId }: { jobId: string; currentUs
 
   return (
     <div className="flex flex-col bg-card overflow-hidden">
+      <div className="border-b border-border bg-secondary/40 px-3 py-2 text-center text-xs text-muted-foreground">
+        This chat is with your admin team, not the client.
+      </div>
       <div className="flex max-h-96 min-h-[12rem] flex-col gap-2 overflow-y-auto p-4">
         {msgs.length === 0 ? (
-          <div className="my-auto text-center text-xs text-muted-foreground">No messages yet. Say hi 👋</div>
+          <div className="my-auto text-center text-xs text-muted-foreground">
+            No admin messages yet. Reach out for help here 👋
+          </div>
         ) : (
           msgs.map((m: any) => {
             const mine = m.sender_id === currentUserId;
@@ -102,7 +107,7 @@ export function JobMessages({ jobId, currentUserId }: { jobId: string; currentUs
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submit(e as any); }
           }}
-          placeholder="Type a message…"
+          placeholder="Message admin team…"
           rows={1}
           className="min-h-[2.5rem] flex-1 resize-none rounded-xl border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-green/40"
         />
