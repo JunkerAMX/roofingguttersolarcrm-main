@@ -56,7 +56,7 @@ function ChecklistsPage() {
                 input_type: "checkbox",
                 position: (t.items[t.items.length - 1]?.position ?? 0) + 1,
               })}
-              className="flex items-center gap-1 rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground"
+              className="flex items-center gap-1 rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground shadow-sm transition-all duration-200 ease-out hover:-translate-y-px hover:shadow-md active:scale-[0.97]"
             >
               <Plus className="h-4 w-4" /> Add item
             </button>
