@@ -77,7 +77,7 @@ function JobDetail() {
   const jobStartMs = job.scheduled_for ? new Date(job.scheduled_for).getTime() : null;
   const isActive = jobStartMs ? jobStartMs <= now : true;
   const priorAllDone = (pos: number) => progress.filter((p: any) => p.position < pos).every((p: any) => p.completed);
-  const isWorker = !!me && !me.isAdmin;
+  const isWorker = true;
 
   return (
     <AppShell>
