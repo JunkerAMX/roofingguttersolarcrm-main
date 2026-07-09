@@ -78,6 +78,7 @@ function JobDetail() {
   });
 
   const now = useNow(15000);
+  const [msgOpen, setMsgOpen] = useState(false);
 
   if (isLoading || !data) return <AppShell><div className="animate-pulse space-y-4"><div className="h-8 w-40 rounded bg-secondary" /><div className="h-64 rounded-2xl bg-secondary" /></div></AppShell>;
 
