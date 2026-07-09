@@ -13,7 +13,6 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AcceptInviteRouteImport } from './routes/accept-invite'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AuthenticatedUpcomingRouteImport } from './routes/_authenticated/upcoming'
 import { Route as AuthenticatedTodayRouteImport } from './routes/_authenticated/today'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
@@ -45,11 +44,6 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
-} as any)
-const AuthenticatedUpcomingRoute = AuthenticatedUpcomingRouteImport.update({
-  id: '/upcoming',
-  path: '/upcoming',
-  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedTodayRoute = AuthenticatedTodayRouteImport.update({
   id: '/today',
@@ -123,7 +117,6 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/today': typeof AuthenticatedTodayRoute
-  '/upcoming': typeof AuthenticatedUpcomingRoute
   '/admin/areas': typeof AuthenticatedAdminAreasRoute
   '/admin/checklists': typeof AuthenticatedAdminChecklistsRoute
   '/admin/contacts': typeof AuthenticatedAdminContactsRoute
@@ -140,7 +133,6 @@ export interface FileRoutesByTo {
   '/accept-invite': typeof AcceptInviteRoute
   '/auth': typeof AuthRoute
   '/today': typeof AuthenticatedTodayRoute
-  '/upcoming': typeof AuthenticatedUpcomingRoute
   '/admin/areas': typeof AuthenticatedAdminAreasRoute
   '/admin/checklists': typeof AuthenticatedAdminChecklistsRoute
   '/admin/contacts': typeof AuthenticatedAdminContactsRoute
@@ -160,7 +152,6 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/today': typeof AuthenticatedTodayRoute
-  '/_authenticated/upcoming': typeof AuthenticatedUpcomingRoute
   '/_authenticated/admin/areas': typeof AuthenticatedAdminAreasRoute
   '/_authenticated/admin/checklists': typeof AuthenticatedAdminChecklistsRoute
   '/_authenticated/admin/contacts': typeof AuthenticatedAdminContactsRoute
@@ -180,7 +171,6 @@ export interface FileRouteTypes {
     | '/auth'
     | '/admin'
     | '/today'
-    | '/upcoming'
     | '/admin/areas'
     | '/admin/checklists'
     | '/admin/contacts'
@@ -197,7 +187,6 @@ export interface FileRouteTypes {
     | '/accept-invite'
     | '/auth'
     | '/today'
-    | '/upcoming'
     | '/admin/areas'
     | '/admin/checklists'
     | '/admin/contacts'
@@ -216,7 +205,6 @@ export interface FileRouteTypes {
     | '/auth'
     | '/_authenticated/admin'
     | '/_authenticated/today'
-    | '/_authenticated/upcoming'
     | '/_authenticated/admin/areas'
     | '/_authenticated/admin/checklists'
     | '/_authenticated/admin/contacts'
@@ -267,13 +255,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
-    }
-    '/_authenticated/upcoming': {
-      id: '/_authenticated/upcoming'
-      path: '/upcoming'
-      fullPath: '/upcoming'
-      preLoaderRoute: typeof AuthenticatedUpcomingRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/today': {
       id: '/_authenticated/today'
@@ -388,14 +369,12 @@ const AuthenticatedAdminRouteWithChildren =
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedTodayRoute: typeof AuthenticatedTodayRoute
-  AuthenticatedUpcomingRoute: typeof AuthenticatedUpcomingRoute
   AuthenticatedJobsJobIdRoute: typeof AuthenticatedJobsJobIdRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedTodayRoute: AuthenticatedTodayRoute,
-  AuthenticatedUpcomingRoute: AuthenticatedUpcomingRoute,
   AuthenticatedJobsJobIdRoute: AuthenticatedJobsJobIdRoute,
 }
 
