@@ -93,29 +93,25 @@ export const listTeam = createServerFn({ method: "GET" })
 
 export const inviteWorker = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { email: string; full_name: string; password: string; role: "admin" | "worker" }) =>
+  .inputValidator((d: { email: string; role: "admin" | "worker"; redirectTo: string }) =>
     z.object({
       email: z.string().email(),
-      full_name: z.string().min(1).max(120),
-      password: z.string().min(8).max(128),
       role: z.enum(["admin", "worker"]),
+      redirectTo: z.string().url(),
     }).parse(d),
   )
   .handler(async ({ context, data }) => {
     await requireAdmin(context.supabase, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: created, error } = await supabaseAdmin.auth.admin.createUser({
-      email: data.email,
-      password: data.password,
-      email_confirm: true,
-      user_metadata: { full_name: data.full_name },
+    const { data: invited, error } = await supabaseAdmin.auth.admin.inviteUserByEmail(data.email, {
+      redirectTo: data.redirectTo,
+      data: { invited_role: data.role },
     });
     if (error) throw new Error(error.message);
-    // Trigger sets worker role by default. Adjust if admin requested.
-    if (data.role === "admin" && created.user) {
-      await supabaseAdmin.from("user_roles").insert({ user_id: created.user.id, role: "admin" });
+    if (data.role === "admin" && invited.user) {
+      await supabaseAdmin.from("user_roles").insert({ user_id: invited.user.id, role: "admin" });
     }
-    return { ok: true, userId: created.user?.id };
+    return { ok: true, userId: invited.user?.id };
   });
 
 export const listContacts = createServerFn({ method: "GET" })
