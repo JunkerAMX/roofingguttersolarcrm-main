@@ -62,6 +62,8 @@ function JobDetail() {
     onError: (e: any) => toast.error(e.message),
   });
 
+  const now = useNow(15000);
+
   if (isLoading || !data) return <AppShell><div className="animate-pulse space-y-4"><div className="h-8 w-40 rounded bg-secondary" /><div className="h-64 rounded-2xl bg-secondary" /></div></AppShell>;
 
   const { job, progress } = data;
@@ -69,7 +71,6 @@ function JobDetail() {
   const total = progress.length;
   const pct = total ? Math.round((done / total) * 100) : 0;
   const contact = job.contact;
-  const now = useNow(15000);
   const jobStartMs = job.scheduled_for ? new Date(job.scheduled_for).getTime() : null;
   const isActive = jobStartMs ? jobStartMs <= now : true;
   const priorAllDone = (pos: number) => progress.filter((p: any) => p.position < pos).every((p: any) => p.completed);
