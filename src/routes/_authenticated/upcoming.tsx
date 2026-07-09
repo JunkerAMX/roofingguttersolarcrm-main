@@ -65,7 +65,7 @@ function UpcomingPage() {
                       )}
                     </div>
                     <div className="flex shrink-0 items-center gap-2">
-                      {isWorker && calculateWorkerPayCents(j.price_cents) > 0 && (
+                      {calculateWorkerPayCents(j.price_cents) > 0 && (
                         <span className="inline-flex items-center gap-1 rounded-lg bg-brand-green/10 px-2 py-1 text-xs font-semibold text-brand-green">
                           <Wallet className="h-3 w-3" />
                           {formatWorkerPay(j.price_cents, j.currency)}

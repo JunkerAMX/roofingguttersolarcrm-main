@@ -45,9 +45,7 @@ function TodayPage() {
 
   const isWorker = !!me && !me.isAdmin;
   const sections = groupJobsByDay(jobs);
-  const todayPayCents = isWorker
-    ? jobs.reduce((sum, j) => sum + calculateWorkerPayCents(j.price_cents), 0)
-    : 0;
+  const todayPayCents = jobs.reduce((sum, j) => sum + calculateWorkerPayCents(j.price_cents), 0);
   const payCurrency = jobs[0]?.currency ?? "";
 
   return (
@@ -58,10 +56,10 @@ function TodayPage() {
           <p className="text-sm text-muted-foreground">{format(new Date(), "EEEE, d MMMM yyyy")}</p>
         </div>
         <div className="flex items-center gap-4">
-          {isWorker && (
+          {todayPayCents > 0 && (
             <div className="text-right">
               <div className="font-display text-2xl font-semibold text-brand-green">{formatCents(todayPayCents, payCurrency)}</div>
-              <div className="text-xs uppercase tracking-wide text-muted-foreground">today's pay</div>
+              <div className="text-xs uppercase tracking-wide text-muted-foreground">{isWorker ? "today's pay" : "worker pay today"}</div>
             </div>
           )}
           <div className="text-right">
@@ -91,7 +89,7 @@ function TodayPage() {
                 {section.label}
               </h2>
               <div className="grid gap-3 sm:grid-cols-2">
-                {section.jobs.map((j: any) => <JobCard key={j.id} job={j} showPay={isWorker} />)}
+                {section.jobs.map((j: any) => <JobCard key={j.id} job={j} showPay isWorker={isWorker} />)}
               </div>
             </section>
           ))}
@@ -101,7 +99,7 @@ function TodayPage() {
   );
 }
 
-function JobCard({ job, showPay }: { job: any; showPay?: boolean }) {
+function JobCard({ job, showPay, isWorker }: { job: any; showPay?: boolean; isWorker?: boolean }) {
   const now = useNow(15000);
   const price = job.price_cents ? `$${(job.price_cents / 100).toFixed(2)}` : null;
   const startMs = job.scheduled_for ? new Date(job.scheduled_for).getTime() : null;
@@ -157,7 +155,7 @@ function JobCard({ job, showPay }: { job: any; showPay?: boolean }) {
       {showPay && calculateWorkerPayCents(job.price_cents) > 0 && (
         <div className="mt-2 inline-flex items-center gap-2 rounded-lg bg-brand-green/10 px-2.5 py-1 text-sm font-semibold text-brand-green">
           <Wallet className="h-4 w-4" />
-          <span>You earn {formatWorkerPay(job.price_cents, job.currency)}</span>
+          <span>{isWorker ? "You earn" : "Worker pay"} {formatWorkerPay(job.price_cents, job.currency)}</span>
         </div>
       )}
     </Link>
