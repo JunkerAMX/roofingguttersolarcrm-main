@@ -13,6 +13,7 @@ export const Route = createFileRoute("/_authenticated/admin/team")({
 function TeamPage() {
   const listFn = useServerFn(listTeam);
   const inviteFn = useServerFn(inviteWorker);
+  const deleteFn = useServerFn(deleteTeamMember);
   const qc = useQueryClient();
   const { data: team = [] } = useQuery({ queryKey: ["team"], queryFn: () => listFn() });
   const [open, setOpen] = useState(false);
@@ -26,6 +27,12 @@ function TeamPage() {
       toast.success("Invite email sent");
       setOpen(false); setEmail("");
     },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const remove = useMutation({
+    mutationFn: (userId: string) => deleteFn({ data: { userId } }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["team"] }); toast.success("Access revoked"); },
     onError: (e: any) => toast.error(e.message),
   });
 
