@@ -31,9 +31,18 @@ export function AppShell({ children }: { children: ReactNode }) {
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-40 border-b border-border/60 bg-background/95 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
-          <Link to="/today" className="flex items-center gap-2">
-            <img src={logo} alt="Roofing.Gutter.Solar" className="h-9 w-auto" />
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              to="/settings"
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-secondary text-foreground transition-all duration-200 ease-out hover:bg-secondary/80 active:scale-[0.92]"
+              aria-label="Settings"
+            >
+              <User className="h-5 w-5" />
+            </Link>
+            <Link to="/today" className="flex items-center gap-2">
+              <img src={logo} alt="Roofing.Gutter.Solar" className="h-9 w-auto" />
+            </Link>
+          </div>
 
           <nav className="hidden items-center gap-1 md:flex">
             {nav.map((n) => {
@@ -56,9 +65,8 @@ export function AppShell({ children }: { children: ReactNode }) {
 
           <div className="flex items-center gap-2">
             <NotificationBell userId={me?.userId} />
-            <div className="hidden text-right text-xs sm:block">
-              <div className="font-medium text-foreground">{me?.profile?.full_name ?? me?.profile?.email ?? ""}</div>
-              <div className="text-muted-foreground">{me?.isAdmin ? "Admin" : "Worker"}</div>
+            <div className="hidden h-8 w-8 items-center justify-center rounded-full bg-secondary sm:flex">
+              <User className="h-4 w-4 text-muted-foreground" />
             </div>
             <button
               onClick={() => setMenuOpen((v) => !v)}
