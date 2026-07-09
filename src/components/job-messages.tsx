@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useRef, useState } from "react";
-import { Send, MessageSquare } from "lucide-react";
+import { Send } from "lucide-react";
 import { format } from "date-fns";
 import { listJobMessages, sendJobMessage } from "@/lib/messaging.functions";
 import { supabase } from "@/integrations/supabase/client";
