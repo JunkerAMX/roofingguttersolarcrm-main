@@ -83,7 +83,7 @@ function TeamPage() {
                 <option value="worker">Worker</option>
                 <option value="admin">Admin</option>
               </select>
-              <button onClick={() => invite.mutate()} disabled={invite.isPending || !email} className="w-full rounded-lg bg-primary py-2 font-medium text-primary-foreground disabled:opacity-60">
+              <button onClick={() => invite.mutate()} disabled={invite.isPending || !email} className="w-full rounded-lg bg-primary py-2 font-medium text-primary-foreground shadow-sm transition-all duration-200 ease-out hover:-translate-y-px hover:shadow-md active:scale-[0.97] disabled:opacity-60">
                 {invite.isPending ? "Sending…" : "Send invite"}
               </button>
             </div>
