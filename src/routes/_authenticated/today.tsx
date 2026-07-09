@@ -56,10 +56,10 @@ function TodayPage() {
           <p className="text-sm text-muted-foreground">{format(new Date(), "EEEE, d MMMM yyyy")}</p>
         </div>
         <div className="flex items-center gap-4">
-          {isWorker && (
+          {todayPayCents > 0 && (
             <div className="text-right">
               <div className="font-display text-2xl font-semibold text-brand-green">{formatCents(todayPayCents, payCurrency)}</div>
-              <div className="text-xs uppercase tracking-wide text-muted-foreground">today's pay</div>
+              <div className="text-xs uppercase tracking-wide text-muted-foreground">{isWorker ? "today's pay" : "worker pay today"}</div>
             </div>
           )}
           <div className="text-right">
