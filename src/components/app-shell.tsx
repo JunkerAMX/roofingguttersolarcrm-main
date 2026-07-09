@@ -1,7 +1,7 @@
 import { Link, useRouter, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Home, Calendar, Settings, LogOut, Menu, X } from "lucide-react";
+import { Home, Briefcase, Settings, LogOut, Menu, X, User } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { getMe } from "@/lib/jobs.functions";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,8 +17,9 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   const nav = [
     { to: "/today", label: "Today", icon: Home },
-    { to: "/upcoming", label: "Upcoming", icon: Calendar },
+    { to: "/my-jobs", label: "My Jobs", icon: Briefcase },
     ...(me?.isAdmin ? [{ to: "/admin", label: "Admin", icon: Settings }] : []),
+    { to: "/settings", label: "Settings", icon: User },
   ];
 
   async function signOut() {
