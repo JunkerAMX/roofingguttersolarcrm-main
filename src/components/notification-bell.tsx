@@ -58,57 +58,91 @@ export function NotificationBell({ userId }: { userId?: string }) {
       >
         <Bell className="h-4 w-4" />
         {unread.length > 0 && (
-          <span className="absolute right-1 top-1 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
+          <span className="absolute right-0.5 top-0.5 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground ring-2 ring-background">
             {unread.length > 9 ? "9+" : unread.length}
           </span>
         )}
       </button>
       {open && (
-        <div className="absolute right-0 z-50 mt-2 w-80 overflow-hidden rounded-xl border border-border bg-card shadow-lg">
-          <div className="flex items-center justify-between border-b border-border px-3 py-2">
-            <div className="text-sm font-semibold">Notifications</div>
-            {unread.length > 0 && (
-              <button
-                onClick={() => mark.mutate({ all: true })}
-                className="text-xs text-brand-green hover:underline"
-              >
-                Mark all read
-              </button>
+        <>
+          {/* Mobile backdrop */}
+          <div
+            className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm sm:hidden"
+            onClick={() => setOpen(false)}
+          />
+          <div
+            className={cn(
+              "z-50 overflow-hidden border border-border bg-card shadow-2xl",
+              // Mobile: full-width sheet from top
+              "fixed inset-x-2 top-16 rounded-2xl",
+              // Desktop: dropdown anchored to bell
+              "sm:absolute sm:inset-x-auto sm:right-0 sm:top-auto sm:mt-2 sm:w-96 sm:rounded-xl",
             )}
-          </div>
-          <div className="max-h-96 overflow-y-auto">
-            {items.length === 0 ? (
-              <div className="px-3 py-8 text-center text-sm text-muted-foreground">No notifications yet.</div>
-            ) : (
-              items.map((n: any) => (
-                <Link
-                  key={n.id}
-                  to={n.link ?? "/today"}
-                  onClick={() => {
-                    if (!n.read_at) mark.mutate({ ids: [n.id] });
-                    setOpen(false);
-                  }}
-                  className={cn(
-                    "block border-b border-border px-3 py-2.5 text-sm transition-colors hover:bg-secondary/50",
-                    !n.read_at && "bg-brand-lime/10",
-                  )}
+          >
+            <div className="flex items-center justify-between border-b border-border bg-card/95 px-4 py-3 backdrop-blur">
+              <div className="flex items-center gap-2">
+                <Bell className="h-4 w-4 text-brand-green" />
+                <div className="text-sm font-semibold">Notifications</div>
+                {unread.length > 0 && (
+                  <span className="rounded-full bg-brand-green/15 px-2 py-0.5 text-[10px] font-bold text-brand-green">
+                    {unread.length} new
+                  </span>
+                )}
+              </div>
+              {unread.length > 0 && (
+                <button
+                  onClick={() => mark.mutate({ all: true })}
+                  className="text-xs font-medium text-brand-green hover:underline"
                 >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0 flex-1">
-                      <div className="truncate font-medium">{n.title}</div>
-                      {n.body && <div className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">{n.body}</div>}
+                  Mark all read
+                </button>
+              )}
+            </div>
+            <div className="max-h-[70vh] overflow-y-auto sm:max-h-96">
+              {items.length === 0 ? (
+                <div className="flex flex-col items-center justify-center gap-2 px-4 py-12 text-center">
+                  <div className="grid h-12 w-12 place-items-center rounded-full bg-secondary">
+                    <Bell className="h-5 w-5 text-muted-foreground" />
+                  </div>
+                  <div className="text-sm font-medium">You're all caught up</div>
+                  <div className="text-xs text-muted-foreground">New notifications will appear here.</div>
+                </div>
+              ) : (
+                items.map((n: any) => (
+                  <Link
+                    key={n.id}
+                    to={n.link ?? "/today"}
+                    onClick={() => {
+                      if (!n.read_at) mark.mutate({ ids: [n.id] });
+                      setOpen(false);
+                    }}
+                    className={cn(
+                      "block border-b border-border px-4 py-3 text-sm transition-colors last:border-b-0 hover:bg-secondary/50 active:bg-secondary",
+                      !n.read_at && "bg-brand-lime/10",
+                    )}
+                  >
+                    <div className="flex items-start gap-3">
+                      {!n.read_at ? (
+                        <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-brand-green" />
+                      ) : (
+                        <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-transparent" />
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate font-medium">{n.title}</div>
+                        {n.body && <div className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">{n.body}</div>}
+                        <div className="mt-1 text-[10px] uppercase tracking-wide text-muted-foreground">
+                          {formatDistanceToNow(new Date(n.created_at), { addSuffix: true })}
+                        </div>
+                      </div>
                     </div>
-                    {!n.read_at && <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-brand-green" />}
-                  </div>
-                  <div className="mt-1 text-[10px] uppercase tracking-wide text-muted-foreground">
-                    {formatDistanceToNow(new Date(n.created_at), { addSuffix: true })}
-                  </div>
-                </Link>
-              ))
-            )}
+                  </Link>
+                ))
+              )}
+            </div>
           </div>
-        </div>
+        </>
       )}
     </div>
   );
 }
+
