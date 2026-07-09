@@ -45,9 +45,7 @@ function TodayPage() {
 
   const isWorker = !!me && !me.isAdmin;
   const sections = groupJobsByDay(jobs);
-  const todayPayCents = isWorker
-    ? jobs.reduce((sum, j) => sum + calculateWorkerPayCents(j.price_cents), 0)
-    : 0;
+  const todayPayCents = jobs.reduce((sum, j) => sum + calculateWorkerPayCents(j.price_cents), 0);
   const payCurrency = jobs[0]?.currency ?? "";
 
   return (
