@@ -2,11 +2,12 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { AppShell } from "@/components/app-shell";
+import { MessagesDialog } from "@/components/messages-dialog";
 import { listMyJobs, getMe } from "@/lib/jobs.functions";
 import { calculateWorkerPayCents, formatCents, formatWorkerPay } from "@/lib/pay";
-import { MapPin, Wallet, CheckCircle2, Clock, Briefcase, DollarSign, Users } from "lucide-react";
+import { MapPin, Wallet, CheckCircle2, Clock, Briefcase, DollarSign, Users, MessageSquare } from "lucide-react";
 import { format } from "date-fns";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 export const Route = createFileRoute("/_authenticated/stats")({
   component: StatsPage,
@@ -29,6 +30,7 @@ function StatsInner() {
     queryKey: ["jobs", "all"],
     queryFn: () => fn({ data: { scope: "all" } }),
   });
+  const [msgJobId, setMsgJobId] = useState<string | null>(null);
 
   const isAdmin = true;
 
@@ -115,10 +117,11 @@ function StatsInner() {
         </div>
       ) : (
         <div className="space-y-8">
-          <JobGroup title="Due" items={due} emptyLabel="Nothing outstanding." isAdmin={isAdmin} />
-          <JobGroup title="Done" items={done} emptyLabel="No completed jobs yet." isAdmin={isAdmin} />
+          <JobGroup title="Due" items={due} emptyLabel="Nothing outstanding." isAdmin={isAdmin} currentUserId={me?.userId} onOpenMessages={setMsgJobId} />
+          <JobGroup title="Done" items={done} emptyLabel="No completed jobs yet." isAdmin={isAdmin} currentUserId={me?.userId} onOpenMessages={setMsgJobId} />
         </div>
       )}
+      {msgJobId && <MessagesDialog jobId={msgJobId} currentUserId={me?.userId} onClose={() => setMsgJobId(null)} />}
     </AppShell>
   );
 }
@@ -135,7 +138,7 @@ function StatCard({ icon: Icon, label, value, tone }: { icon: any; label: string
   );
 }
 
-function JobGroup({ title, items, emptyLabel, isAdmin }: { title: string; items: any[]; emptyLabel: string; isAdmin: boolean }) {
+function JobGroup({ title, items, emptyLabel, isAdmin, currentUserId, onOpenMessages }: { title: string; items: any[]; emptyLabel: string; isAdmin: boolean; currentUserId?: string; onOpenMessages?: (jobId: string) => void }) {
   return (
     <section>
       <h2 className="mb-3 font-display text-sm font-semibold uppercase tracking-wide text-brand-green">
@@ -152,14 +155,16 @@ function JobGroup({ title, items, emptyLabel, isAdmin }: { title: string; items:
             const pct = total > 0 ? Math.round((doneCount / total) * 100) : 0;
             const price = j.price_cents ? `$${(j.price_cents / 100).toFixed(0)}` : null;
             return (
-              <Link
+              <div
                 key={j.id}
-                to="/jobs/$jobId"
-                params={{ jobId: j.id }}
-                className="block rounded-xl border border-border bg-card px-4 py-3 transition-all hover:-translate-y-px hover:border-brand-lime hover:shadow-sm"
+                className="rounded-xl border border-border bg-card px-4 py-3 transition-all hover:-translate-y-px hover:border-brand-lime hover:shadow-sm"
               >
                 <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0 flex-1">
+                  <Link
+                    to="/jobs/$jobId"
+                    params={{ jobId: j.id }}
+                    className="min-w-0 flex-1"
+                  >
                     <div className="flex items-center gap-2">
                       <span className="truncate font-medium">
                         {j.contact ? `${j.contact.first_name ?? ""} ${j.contact.last_name ?? ""}`.trim() : "Client"}
@@ -180,7 +185,7 @@ function JobGroup({ title, items, emptyLabel, isAdmin }: { title: string; items:
                         <span className="text-yellow-700">· Unassigned</span>
                       )}
                     </div>
-                  </div>
+                  </Link>
                   <div className="flex shrink-0 flex-col items-end gap-1">
                     {price && <span className="text-sm font-semibold">{price}</span>}
                     {calculateWorkerPayCents(j.price_cents) > 0 && (
@@ -188,6 +193,15 @@ function JobGroup({ title, items, emptyLabel, isAdmin }: { title: string; items:
                         <Wallet className="h-3 w-3" />
                         {formatWorkerPay(j.price_cents, j.currency)}
                       </span>
+                    )}
+                    {isAdmin && onOpenMessages && (
+                      <button
+                        onClick={() => onOpenMessages(j.id)}
+                        className="mt-1 inline-flex items-center gap-1 rounded-lg bg-secondary px-2 py-1 text-[11px] font-medium text-foreground hover:bg-brand-green/10 hover:text-brand-green"
+                        aria-label="Open messages"
+                      >
+                        <MessageSquare className="h-3 w-3" /> Message
+                      </button>
                     )}
                   </div>
                 </div>
@@ -205,7 +219,7 @@ function JobGroup({ title, items, emptyLabel, isAdmin }: { title: string; items:
                     </div>
                   </div>
                 )}
-              </Link>
+              </div>
             );
           })}
         </div>
