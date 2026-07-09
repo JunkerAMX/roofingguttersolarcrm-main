@@ -99,22 +99,22 @@ function JobDetail() {
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-4">
           <div className="rounded-2xl border border-border bg-card p-6">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <h1 className="font-display text-2xl font-bold">
+            <div className="grid grid-cols-1 gap-4 sm:flex sm:items-start sm:justify-between">
+              <div className="min-w-0">
+                <h1 className="truncate font-display text-2xl font-bold">
                   {contact ? `${contact.first_name ?? ""} ${contact.last_name ?? ""}`.trim() : "Client"}
                 </h1>
                 <p className="text-sm text-muted-foreground">{job.job_type?.name}</p>
               </div>
               {job.price_cents && (
-                <div className="text-right">
-                  <div className="flex flex-col items-end gap-2 sm:flex-row sm:items-center sm:justify-end sm:gap-3">
+                <div className="text-left sm:text-right">
+                  <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-end sm:gap-3">
                     <div className="font-display text-2xl font-bold text-brand-green">
                       ${Math.round(job.price_cents / 100).toLocaleString()}
                     </div>
                     {calculateWorkerPayCents(job.price_cents) > 0 && (
-                      <div className="inline-flex items-center gap-1.5 rounded-lg bg-brand-green/10 px-2 py-1 text-xs font-semibold text-brand-green">
-                        <Wallet className="h-3.5 w-3.5" />
+                      <div className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-brand-green/10 px-2 py-1 text-xs font-semibold text-brand-green">
+                        <Wallet className="h-3.5 w-3.5 shrink-0" />
                         Your pay {formatWorkerPay(job.price_cents)}
                       </div>
                     )}
