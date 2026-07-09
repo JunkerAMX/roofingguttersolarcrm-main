@@ -89,7 +89,7 @@ function TodayPage() {
                 {section.label}
               </h2>
               <div className="grid gap-3 sm:grid-cols-2">
-                {section.jobs.map((j: any) => <JobCard key={j.id} job={j} />)}
+                {section.jobs.map((j: any) => <JobCard key={j.id} job={j} showPay={isWorker} />)}
               </div>
             </section>
           ))}
