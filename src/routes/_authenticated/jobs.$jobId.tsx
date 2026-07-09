@@ -156,7 +156,7 @@ function JobDetail() {
                 </div>
                 <div>
                   <div className="text-xs font-semibold uppercase tracking-wide text-brand-green/80">Your pay</div>
-                  <div className="font-display text-2xl font-bold text-brand-green">{formatWorkerPay(job.currency)}</div>
+                  <div className="font-display text-2xl font-bold text-brand-green">{formatWorkerPay(job.price_cents, job.currency)}</div>
                 </div>
               </div>
               <p className="mt-2 text-sm text-brand-green/80">You'll receive this amount once the job is completed.</p>
@@ -208,7 +208,7 @@ function JobDetail() {
           <div className="mx-auto max-w-md">
             {isWorker && (
               <div className="pointer-events-auto mb-2 text-center text-sm font-medium text-brand-green">
-                Complete this job to earn {formatWorkerPay(job.currency)}
+                Complete this job to earn {formatWorkerPay(job.price_cents, job.currency)}
               </div>
             )}
             <button
