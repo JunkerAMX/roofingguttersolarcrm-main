@@ -118,10 +118,10 @@ function JobCard({ job, showPay, isWorker }: { job: any; showPay?: boolean; isWo
   const startMs = job.scheduled_for ? new Date(job.scheduled_for).getTime() : null;
   const isActive = startMs ? startMs <= now : true;
   const statusColor = !isActive
-    ? "bg-warning/15 text-warning border border-warning/40"
+    ? "bg-warning text-warning-foreground"
     : ({
-        scheduled: "bg-success/15 text-success border border-success/40",
-        in_progress: "bg-success/15 text-success border border-success/40",
+        scheduled: "bg-success text-success-foreground",
+        in_progress: "bg-success text-success-foreground",
         completed: "bg-brand-green text-white",
         cancelled: "bg-muted text-muted-foreground",
       }[job.status as string] ?? "bg-muted");
