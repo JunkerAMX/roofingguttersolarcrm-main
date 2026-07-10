@@ -13,6 +13,8 @@ import { cn } from "@/lib/utils";
 import { useNow } from "@/hooks/use-now";
 import { useRealtimeInvalidate } from "@/hooks/use-realtime-invalidate";
 import { useScramble } from "@/hooks/use-scramble";
+import { formatJobDateTime } from "@/lib/time";
+
 
 
 export const Route = createFileRoute("/_authenticated/jobs/$jobId")({

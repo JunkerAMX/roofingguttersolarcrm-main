@@ -10,6 +10,8 @@ import { format, isThisMonth, isThisWeek } from "date-fns";
 import { useMemo, useState } from "react";
 import { useRealtimeInvalidate } from "@/hooks/use-realtime-invalidate";
 import { useScramble } from "@/hooks/use-scramble";
+import { formatJobDayMonth } from "@/lib/time";
+
 
 
 export const Route = createFileRoute("/_authenticated/stats")({
