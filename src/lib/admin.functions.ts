@@ -233,7 +233,7 @@ export const updateJob = createServerFn({ method: "POST" })
       if (v === undefined) continue;
       clean[k] = typeof v === "string" && v.trim() === "" ? null : v;
     }
-    const { error } = await context.supabase.from("jobs").update(clean).eq("id", id);
+    const { error } = await context.supabase.from("jobs").update(clean as any).eq("id", id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
