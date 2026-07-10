@@ -19,7 +19,18 @@ function toCents(v: any): number | null {
 
 function toDateOnly(v: any, tz?: string | null): string | null {
   if (!v) return null;
-  const d = new Date(v);
+  const s = String(v).trim();
+  const iso = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (iso) return `${iso[1]}-${iso[2]}-${iso[3]}`;
+  const dmy = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
+  if (dmy) {
+    let year = +dmy[3];
+    if (year < 100) year += 2000;
+    return `${year}-${String(+dmy[2]).padStart(2, "0")}-${String(+dmy[1]).padStart(2, "0")}`;
+  }
+  const wall = parseWallClockString(s);
+  if (wall) return `${wall.year}-${String(wall.month).padStart(2, "0")}-${String(wall.day).padStart(2, "0")}`;
+  const d = new Date(s);
   if (Number.isNaN(d.getTime())) return String(v).slice(0, 10);
   const zone = tz || "Australia/Sydney";
   const dtf = new Intl.DateTimeFormat("en-CA", { timeZone: zone, year: "numeric", month: "2-digit", day: "2-digit" });
