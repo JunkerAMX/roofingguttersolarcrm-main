@@ -118,10 +118,10 @@ function JobCard({ job, showPay, isWorker }: { job: any; showPay?: boolean; isWo
   const startMs = job.scheduled_for ? new Date(job.scheduled_for).getTime() : null;
   const isActive = startMs ? startMs <= now : true;
   const statusColor = !isActive
-    ? "bg-brand-yellow/30 text-yellow-900"
+    ? "bg-warning text-warning-foreground"
     : ({
-        scheduled: "bg-brand-lime/30 text-green-900",
-        in_progress: "bg-brand-lime/30 text-green-900",
+        scheduled: "bg-success text-success-foreground",
+        in_progress: "bg-success text-success-foreground",
         completed: "bg-brand-green text-white",
         cancelled: "bg-muted text-muted-foreground",
       }[job.status as string] ?? "bg-muted");
@@ -153,7 +153,7 @@ function JobCard({ job, showPay, isWorker }: { job: any; showPay?: boolean; isWo
 
       {job.scheduled_for && (
         <div className="mb-1 flex items-center gap-2 text-sm text-foreground/80">
-          {isActive ? <Clock className="h-4 w-4 text-brand-green" /> : <Lock className="h-4 w-4 text-yellow-700" />}
+          {isActive ? <Clock className="h-4 w-4 text-brand-green" /> : <Lock className="h-4 w-4 text-warning" />}
           <span>
             {formatJobDateTime(job.scheduled_for, getJobTimeZone(job))}
             {!isActive && startMs && <span className="ml-2 text-xs text-muted-foreground">· starts in {formatDistanceToNow(new Date(startMs))}</span>}

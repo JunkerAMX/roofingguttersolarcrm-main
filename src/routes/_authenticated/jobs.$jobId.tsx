@@ -220,11 +220,11 @@ function JobDetail() {
             </div>
 
             {!isActive && jobStartMs && (
-              <div className="mb-4 flex items-start gap-3 rounded-xl border border-brand-yellow/50 bg-brand-yellow/10 p-3 text-sm">
-                <Clock className="mt-0.5 h-5 w-5 shrink-0 text-yellow-800" />
+              <div className="mb-4 flex items-start gap-3 rounded-xl border border-warning/40 bg-warning/10 p-3 text-sm">
+                <Clock className="mt-0.5 h-5 w-5 shrink-0 text-warning" />
                 <div>
-                  <div className="font-semibold text-yellow-900">Job not active yet</div>
-                  <div className="text-yellow-900/80">
+                  <div className="font-semibold text-warning">Job not active yet</div>
+                  <div className="text-warning/80">
                     Starts {formatJobDateTime(new Date(jobStartMs), jobTz)} · in {formatDistanceToNow(new Date(jobStartMs))}. You can review the details now — tasks unlock at the appointment time.
                   </div>
                 </div>
@@ -559,7 +559,7 @@ function PhotoGallery({ jobId, photos }: { jobId: string; photos: any[] }) {
               )}
               <span className={cn(
                 "absolute left-1 top-1 rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase",
-                p.kind === "before" ? "bg-brand-yellow text-yellow-900" : "bg-brand-green text-white",
+                p.kind === "before" ? "bg-brand-yellow text-warning" : "bg-brand-green text-white",
               )}>{p.kind}</span>
             </div>
           );
