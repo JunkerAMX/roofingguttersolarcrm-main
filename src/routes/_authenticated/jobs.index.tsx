@@ -114,34 +114,38 @@ function JobsPage() {
       </div>
 
       {isLoading ? (
-        <div className="grid gap-3">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="h-32 animate-pulse rounded-2xl bg-secondary/60" />
+        <div className="grid gap-3 sm:grid-cols-2">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="skeleton-shimmer h-32 rounded-2xl" />
           ))}
         </div>
       ) : jobs.length === 0 ? (
-        <div className="rounded-2xl border-2 border-dashed border-border py-16 text-center">
+        <div className="animate-pop rounded-2xl border-2 border-dashed border-border py-16 text-center">
           <CheckCircle2 className="mx-auto h-12 w-12 text-brand-lime" />
           <h3 className="mt-4 font-display text-lg font-semibold">All clear</h3>
-          <p className="mt-1 text-sm text-muted-foreground">No jobs scheduled for today.</p>
+          <p className="mt-1 text-sm text-muted-foreground">No jobs scheduled for today. Enjoy the break.</p>
         </div>
       ) : (
         <div className="space-y-8">
           {sections.map((section) => (
             <section key={section.key}>
-              <h2 className="sticky top-0 z-10 mb-3 bg-background/95 py-2 font-display text-lg font-semibold text-foreground">
+              <h2 className="sticky top-16 z-10 mb-3 bg-background/95 py-2 font-display text-lg font-semibold text-foreground backdrop-blur">
                 {section.label}
               </h2>
               {viewMode === "grid" ? (
                 <div className="grid gap-3 sm:grid-cols-2">
-                  {section.jobs.map((j: any) => (
-                    <JobCard key={j.id} job={j} showPay isWorker={isWorker} />
+                  {section.jobs.map((j: any, idx: number) => (
+                    <div key={j.id} className="stagger-item" style={{ animationDelay: `${Math.min(idx, 8) * 40}ms` }}>
+                      <JobCard job={j} showPay isWorker={isWorker} />
+                    </div>
                   ))}
                 </div>
               ) : (
                 <div className="space-y-2">
-                  {section.jobs.map((j: any) => (
-                    <JobListItem key={j.id} job={j} showPay isWorker={isWorker} />
+                  {section.jobs.map((j: any, idx: number) => (
+                    <div key={j.id} className="stagger-item" style={{ animationDelay: `${Math.min(idx, 8) * 40}ms` }}>
+                      <JobListItem job={j} showPay isWorker={isWorker} />
+                    </div>
                   ))}
                 </div>
               )}
@@ -149,6 +153,7 @@ function JobsPage() {
           ))}
         </div>
       )}
+
     </AppShell>
   );
 }
