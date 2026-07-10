@@ -5,7 +5,10 @@ import { AppShell } from "@/components/app-shell";
 import { getMe } from "@/lib/jobs.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { useRouter } from "@tanstack/react-router";
-import { LogOut, User, Shield, Mail } from "lucide-react";
+import { LogOut, User, Shield, Mail, Sun, Moon, Monitor } from "lucide-react";
+import { useTheme, type Theme } from "@/hooks/use-theme";
+import { cn } from "@/lib/utils";
+
 
 export const Route = createFileRoute("/_authenticated/settings")({
   component: SettingsPage,
