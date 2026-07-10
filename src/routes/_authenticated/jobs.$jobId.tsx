@@ -181,16 +181,22 @@ function JobDetail() {
 
                 </a>
               )}
-              {contact?.phone && (
-                <a href={`tel:${contact.phone}`} className="flex items-center gap-2 text-foreground hover:text-brand-green">
-                  <Phone className="h-4 w-4" /> {contact.phone}
-                </a>
-              )}
-              {contact?.email && (
-                <a href={`mailto:${contact.email}`} className="flex items-center gap-2 text-foreground hover:text-brand-green">
-                  <Mail className="h-4 w-4" /> {contact.email}
-                </a>
-              )}
+              {contact?.phone && (() => {
+                const p = scramblePhone(contact.phone);
+                return (
+                  <a href={`tel:${p}`} className="flex items-center gap-2 text-foreground hover:text-brand-green">
+                    <Phone className="h-4 w-4" /> {p}
+                  </a>
+                );
+              })()}
+              {contact?.email && (() => {
+                const e = scrambleEmail(contact.email);
+                return (
+                  <a href={`mailto:${e}`} className="flex items-center gap-2 text-foreground hover:text-brand-green">
+                    <Mail className="h-4 w-4" /> {e}
+                  </a>
+                );
+              })()}
             </div>
 
             {job.notes && (
