@@ -7,7 +7,7 @@ import { MessagesDialog } from "@/components/messages-dialog";
 import { getJob, getMe, toggleChecklistItem, uploadJobPhoto, getPhotoUrl, markJobDone } from "@/lib/jobs.functions";
 import { calculateWorkerPayCents, formatWorkerPay } from "@/lib/pay";
 import { ArrowLeft, MapPin, Phone, Mail, DollarSign, Wallet, Camera, Check, Lock, ImageIcon, CheckCircle2, Clock, StickyNote, X, MessageSquare } from "lucide-react";
-import { format, formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useNow } from "@/hooks/use-now";
