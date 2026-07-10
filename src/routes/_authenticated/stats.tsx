@@ -241,7 +241,7 @@ function JobColumn({ tone, title, items, emptyLabel, currency, currentUserId: _u
                     <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
                       {j.job_type?.name && <span>{j.job_type.name}</span>}
                       {j.contact?.address && <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" />{scrambleAddress(j.contact.address)}</span>}
-                      {j.scheduled_for && <span>· {format(new Date(j.scheduled_for), "d MMM")}</span>}
+                      {j.scheduled_for && <span>· {formatJobDayMonth(j.scheduled_for)}</span>}
                     </div>
                     <div className="mt-1 flex items-center gap-1.5 text-[11px]">
                       <CircleDot className="h-3 w-3 text-muted-foreground" />

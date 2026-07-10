@@ -216,7 +216,7 @@ function JobDetail() {
                 <div>
                   <div className="font-semibold text-yellow-900">Job not active yet</div>
                   <div className="text-yellow-900/80">
-                    Starts {format(new Date(jobStartMs), "EEE d MMM 'at' h:mm a")} · in {formatDistanceToNow(new Date(jobStartMs))}. You can review the details now — tasks unlock at the appointment time.
+                    Starts {formatJobDateTime(jobStartMs)} · in {formatDistanceToNow(new Date(jobStartMs))}. You can review the details now — tasks unlock at the appointment time.
                   </div>
                 </div>
               </div>
