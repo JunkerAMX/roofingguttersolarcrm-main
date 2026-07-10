@@ -17,7 +17,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const nav = [
-    { to: "/today", label: "Today", icon: Home },
+    { to: "/jobs", label: "Jobs", icon: Home },
     ...(me?.isAdmin ? [{ to: "/stats", label: "Stats", icon: BarChart3 }] : []),
     ...(me?.isAdmin ? [{ to: "/admin", label: "Admin", icon: Settings }] : []),
   ];
@@ -31,13 +31,13 @@ export function AppShell({ children }: { children: ReactNode }) {
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-40 border-b border-border/60 bg-background/95 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
-          <Link to="/today" className="flex items-center gap-2">
+          <Link to="/jobs" className="flex items-center gap-2">
             <img src={logo} alt="Roofing.Gutter.Solar" className="h-9 w-auto" />
           </Link>
 
           <nav className="hidden items-center gap-1 md:flex">
             {nav.map((n) => {
-              const active = pathname === n.to || (n.to !== "/today" && pathname.startsWith(n.to));
+              const active = pathname === n.to || (n.to !== "/jobs" && pathname.startsWith(n.to));
               return (
               <Link
                 key={n.to}

@@ -8,8 +8,8 @@ import { MapPin, Clock, DollarSign, Wallet, CheckCircle2, Lock } from "lucide-re
 import { format, formatDistanceToNow, isToday, isTomorrow, isYesterday, startOfDay } from "date-fns";
 import { useNow } from "@/hooks/use-now";
 
-export const Route = createFileRoute("/_authenticated/today")({
-  component: TodayPage,
+export const Route = createFileRoute("/_authenticated/jobs")({
+  component: JobsPage,
   errorComponent: ({ error }) => <div className="p-8 text-destructive">{error.message}</div>,
 });
 
@@ -34,7 +34,7 @@ function groupJobsByDay(jobs: any[]) {
   return Array.from(groups.values()).sort((a, b) => a.date.getTime() - b.date.getTime());
 }
 
-function TodayPage() {
+function JobsPage() {
   const fn = useServerFn(listMyJobs);
   const meFn = useServerFn(getMe);
   const { data: me } = useQuery({ queryKey: ["me"], queryFn: () => meFn() });
@@ -52,7 +52,7 @@ function TodayPage() {
     <AppShell>
       <div className="mb-6 flex items-baseline justify-between">
         <div>
-          <h1 className="font-display text-3xl font-bold">Today</h1>
+          <h1 className="font-display text-3xl font-bold">Jobs</h1>
           <p className="text-sm text-muted-foreground">{format(new Date(), "EEEE, d MMMM yyyy")}</p>
         </div>
         <div className="flex items-center gap-4">

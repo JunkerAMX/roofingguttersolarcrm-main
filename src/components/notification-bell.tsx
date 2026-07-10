@@ -111,7 +111,7 @@ export function NotificationBell({ userId }: { userId?: string }) {
                 items.map((n: any) => (
                   <Link
                     key={n.id}
-                    to={n.link ?? "/today"}
+                    to={n.link ?? "/jobs"}
                     onClick={() => {
                       if (!n.read_at) mark.mutate({ ids: [n.id] });
                       setOpen(false);
