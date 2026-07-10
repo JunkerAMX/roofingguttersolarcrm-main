@@ -4,8 +4,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { listAllJobs, listTeam, assignJob, deleteJob } from "@/lib/admin.functions";
 import { formatWorkerPay } from "@/lib/pay";
 import { Trash2, Wallet } from "lucide-react";
-import { format } from "date-fns";
 import { toast } from "sonner";
+import { formatDateOnly, formatJobDateTime, getJobTimeZone } from "@/lib/time";
 
 export const Route = createFileRoute("/_authenticated/admin/jobs")({
   component: JobsPage,
@@ -37,6 +37,7 @@ function JobsPage() {
         <thead className="bg-secondary/60 text-left text-xs uppercase text-muted-foreground">
           <tr>
             <th className="p-3">Client</th>
+            <th className="p-3">Time</th>
             <th className="p-3">Due</th>
             <th className="p-3">Status</th>
             <th className="p-3">Assigned</th>
@@ -46,7 +47,7 @@ function JobsPage() {
           </tr>
         </thead>
         <tbody className="divide-y divide-border">
-          {jobs.length === 0 && <tr><td colSpan={7} className="p-8 text-center text-muted-foreground">No jobs yet.</td></tr>}
+          {jobs.length === 0 && <tr><td colSpan={8} className="p-8 text-center text-muted-foreground">No jobs yet.</td></tr>}
           {jobs.map((j: any) => (
             <tr key={j.id} className="hover:bg-secondary/30">
               <td className="p-3">
@@ -54,7 +55,8 @@ function JobsPage() {
                   {j.contact ? `${j.contact.first_name ?? ""} ${j.contact.last_name ?? ""}`.trim() : "—"}
                 </Link>
               </td>
-              <td className="p-3 text-xs">{j.due_date ? format(new Date(j.due_date), "d MMM yyyy") : "—"}</td>
+              <td className="p-3 text-xs">{j.scheduled_for ? formatJobDateTime(j.scheduled_for, getJobTimeZone(j)) : "—"}</td>
+              <td className="p-3 text-xs">{formatDateOnly(j.due_date)}</td>
               <td className="p-3"><span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-semibold uppercase">{j.status}</span></td>
               <td className="p-3">
                 <select

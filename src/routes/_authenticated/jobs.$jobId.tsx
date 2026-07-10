@@ -7,13 +7,13 @@ import { MessagesDialog } from "@/components/messages-dialog";
 import { getJob, getMe, toggleChecklistItem, uploadJobPhoto, getPhotoUrl, markJobDone } from "@/lib/jobs.functions";
 import { calculateWorkerPayCents, formatWorkerPay } from "@/lib/pay";
 import { ArrowLeft, MapPin, Phone, Mail, DollarSign, Wallet, Camera, Check, Lock, ImageIcon, CheckCircle2, Clock, StickyNote, X, MessageSquare } from "lucide-react";
-import { format, formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useNow } from "@/hooks/use-now";
 import { useRealtimeInvalidate } from "@/hooks/use-realtime-invalidate";
 import { useScramble } from "@/hooks/use-scramble";
-import { formatJobDateTime } from "@/lib/time";
+import { formatJobDateTime, getJobTimeZone } from "@/lib/time";
 
 
 
@@ -125,6 +125,7 @@ function JobDetail() {
 
 
   const jobStartMs = job.scheduled_for ? new Date(job.scheduled_for).getTime() : null;
+  const jobTz = getJobTimeZone(job);
   const isActive = jobStartMs ? jobStartMs <= now : true;
   const priorAllDone = (pos: number) => progress.filter((p: any) => p.position < pos).every((p: any) => p.completed);
   const isWorker = !!me && !me.isAdmin;
@@ -218,7 +219,7 @@ function JobDetail() {
                 <div>
                   <div className="font-semibold text-yellow-900">Job not active yet</div>
                   <div className="text-yellow-900/80">
-                    Starts {formatJobDateTime(new Date(jobStartMs))} · in {formatDistanceToNow(new Date(jobStartMs))}. You can review the details now — tasks unlock at the appointment time.
+                    Starts {formatJobDateTime(new Date(jobStartMs), jobTz)} · in {formatDistanceToNow(new Date(jobStartMs))}. You can review the details now — tasks unlock at the appointment time.
                   </div>
                 </div>
               </div>

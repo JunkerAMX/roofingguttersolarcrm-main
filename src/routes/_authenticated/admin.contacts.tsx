@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useState } from "react";
-import { listContacts, deleteContact } from "@/lib/admin.functions";
-import { Search, Trash2 } from "lucide-react";
+import { useState, type ChangeEvent, type ComponentProps } from "react";
+import { listContacts, deleteContact, saveContact } from "@/lib/admin.functions";
+import { Edit3, Search, Trash2 } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,6 +15,17 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/admin/contacts")({
@@ -61,29 +72,108 @@ function ContactsPage() {
                   {c.address && <div>{[c.address, c.city].filter(Boolean).join(", ")}</div>}
                 </div>
               </div>
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <button className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-all duration-200 ease-out hover:bg-destructive/10 hover:text-destructive active:scale-[0.92]" aria-label="Delete contact">
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Delete this contact?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      This permanently removes the contact. Any linked jobs will lose their contact reference.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={() => handleDelete(c.id)}>Delete</AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+              <div className="flex shrink-0 items-center gap-1">
+                <EditContactDialog contact={c} />
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <button className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-all duration-200 ease-out hover:bg-destructive/10 hover:text-destructive active:scale-[0.92]" aria-label="Delete contact">
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Delete this contact?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This permanently removes the contact. Any linked jobs will lose their contact reference.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={() => handleDelete(c.id)}>Delete</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
             </li>
           ))}
         </ul>
       </div>
     </div>
+  );
+}
+
+function EditContactDialog({ contact }: { contact: any }) {
+  const save = useServerFn(saveContact);
+  const qc = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const [form, setForm] = useState({
+    first_name: contact.first_name ?? "",
+    last_name: contact.last_name ?? "",
+    email: contact.email ?? "",
+    phone: contact.phone ?? "",
+    address: contact.address ?? "",
+    city: contact.city ?? "",
+    state: contact.state ?? "",
+    postal_code: contact.postal_code ?? "",
+    notes: contact.notes ?? "",
+  });
+  const mutation = useMutation({
+    mutationFn: () => save({ data: { id: contact.id, ...form } }),
+    onSuccess: () => {
+      toast.success("Contact updated");
+      qc.invalidateQueries({ queryKey: ["contacts"] });
+      qc.invalidateQueries({ queryKey: ["jobs"] });
+      qc.invalidateQueries({ queryKey: ["allJobs"] });
+      setOpen(false);
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Failed to update contact"),
+  });
+
+  const set = (key: keyof typeof form) => (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setForm((prev) => ({ ...prev, [key]: e.target.value }));
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <button className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-all duration-200 ease-out hover:bg-secondary hover:text-foreground active:scale-[0.92]" aria-label="Edit contact">
+          <Edit3 className="h-4 w-4" />
+        </button>
+      </DialogTrigger>
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Edit contact</DialogTitle>
+        </DialogHeader>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Field label="First name" value={form.first_name} onChange={set("first_name")} />
+          <Field label="Last name" value={form.last_name} onChange={set("last_name")} />
+          <Field label="Email" type="email" value={form.email} onChange={set("email")} />
+          <Field label="Phone" value={form.phone} onChange={set("phone")} />
+          <Field label="Address" value={form.address} onChange={set("address")} className="sm:col-span-2" />
+          <Field label="City" value={form.city} onChange={set("city")} />
+          <Field label="State" value={form.state} onChange={set("state")} />
+          <Field label="Postcode" value={form.postal_code} onChange={set("postal_code")} />
+          <label className="grid gap-1 text-sm sm:col-span-2">
+            <span className="font-medium">Notes</span>
+            <Textarea value={form.notes} onChange={set("notes")} rows={4} />
+          </label>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setOpen(false)} type="button">Cancel</Button>
+          <Button onClick={() => mutation.mutate()} disabled={mutation.isPending} type="button">
+            {mutation.isPending ? "Saving…" : "Save changes"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function Field({ label, className, ...props }: ComponentProps<typeof Input> & { label: string }) {
+  return (
+    <label className={`grid gap-1 text-sm ${className ?? ""}`}>
+      <span className="font-medium">{label}</span>
+      <Input {...props} />
+    </label>
   );
 }

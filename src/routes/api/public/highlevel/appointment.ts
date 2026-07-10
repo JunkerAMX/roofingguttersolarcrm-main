@@ -19,11 +19,50 @@ function toCents(v: any): number | null {
 
 function toDateOnly(v: any, tz?: string | null): string | null {
   if (!v) return null;
-  const d = new Date(v);
+  const s = String(v).trim();
+  const iso = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (iso) return `${iso[1]}-${iso[2]}-${iso[3]}`;
+  const dmy = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
+  if (dmy) {
+    let year = +dmy[3];
+    if (year < 100) year += 2000;
+    return `${year}-${String(+dmy[2]).padStart(2, "0")}-${String(+dmy[1]).padStart(2, "0")}`;
+  }
+  const wall = parseWallClockString(s);
+  if (wall) return `${wall.year}-${String(wall.month).padStart(2, "0")}-${String(wall.day).padStart(2, "0")}`;
+  const d = new Date(s);
   if (Number.isNaN(d.getTime())) return String(v).slice(0, 10);
   const zone = tz || "Australia/Sydney";
   const dtf = new Intl.DateTimeFormat("en-CA", { timeZone: zone, year: "numeric", month: "2-digit", day: "2-digit" });
   return dtf.format(d); // YYYY-MM-DD in tz
+}
+
+function parseWallClockString(s: string): { year: number; month: number; day: number; hour: number; minute: number; second: number } | null {
+  const iso = s.match(/^(\d{4})-(\d{2})-(\d{2})[T\s](\d{1,2}):(\d{2})(?::(\d{2}))?$/);
+  if (iso) {
+    return { year: +iso[1], month: +iso[2], day: +iso[3], hour: +iso[4], minute: +iso[5], second: +(iso[6] ?? 0) };
+  }
+  const long = s.match(/^(?:[A-Za-z]+,\s*)?([A-Za-z]+)\s+(\d{1,2}),\s*(\d{4})\s+(\d{1,2}):(\d{2})\s*([AP]M)$/i);
+  if (long) {
+    const month = new Date(`${long[1]} 1, 2000`).getMonth() + 1;
+    if (!month) return null;
+    let hour = +long[4];
+    const ampm = long[6].toUpperCase();
+    if (ampm === "PM" && hour !== 12) hour += 12;
+    if (ampm === "AM" && hour === 12) hour = 0;
+    return { year: +long[3], month, day: +long[2], hour, minute: +long[5], second: 0 };
+  }
+  const dmy = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})(?:\s+(\d{1,2}):(\d{2})\s*([AP]M)?)?$/i);
+  if (dmy) {
+    let year = +dmy[3];
+    if (year < 100) year += 2000;
+    let hour = +(dmy[4] ?? 0);
+    const ampm = dmy[6]?.toUpperCase();
+    if (ampm === "PM" && hour !== 12) hour += 12;
+    if (ampm === "AM" && hour === 12) hour = 0;
+    return { year, month: +dmy[2], day: +dmy[1], hour, minute: +(dmy[5] ?? 0), second: 0 };
+  }
+  return null;
 }
 
 
@@ -46,6 +85,13 @@ function normalizeScheduledFor(v: any, tz: string | null): string | null {
   const s = String(v).trim();
   if (!s) return null;
   const hasTz = /Z$|[+\-]\d{2}:?\d{2}$/.test(s);
+  const zone = tz || null;
+  const wall = zone && !hasTz ? parseWallClockString(s) : null;
+  if (wall && zone) {
+    const guess = Date.UTC(wall.year, wall.month - 1, wall.day, wall.hour, wall.minute, wall.second);
+    const offset = tzOffsetMinutes(zone, new Date(guess));
+    return new Date(guess - offset * 60000).toISOString();
+  }
   const d = new Date(s);
   if (Number.isNaN(d.getTime())) return null;
   if (hasTz || !tz) return d.toISOString();
@@ -69,6 +115,7 @@ export const Route = createFileRoute("/api/public/highlevel/appointment")({
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
         const appt = payload.appointment ?? {};
+        const calendar = payload.calendar ?? {};
         const contactSrc = payload.contact ?? {};
         const custom = payload.customData ?? payload.custom_data ?? {};
         const loc = payload.location ?? contactSrc.location ?? {};
@@ -76,6 +123,7 @@ export const Route = createFileRoute("/api/public/highlevel/appointment")({
         const highlevel_appointment_id = pick(
           custom.highlevel_appointment_id,
           payload.highlevel_appointment_id,
+          calendar.appointmentId, calendar.appointment_id,
           appt.id, appt.appointment_id, appt.appointmentId,
           payload.appointment_id, payload.appointmentId,
         ) ?? `hl-${payload.contact_id ?? payload.id ?? Date.now()}`;
@@ -140,6 +188,7 @@ export const Route = createFileRoute("/api/public/highlevel/appointment")({
           custom.job_type_slug, custom.jobType,
           payload.job_type_slug, payload.jobType,
           appt.job_type, appt.calendar_name, appt.calendarName,
+          calendar.calendarName, calendar.calendar_name,
           Array.isArray(payload.Service) ? payload.Service[0] : payload.Service,
         );
         let job_type_id: string | null = null;
@@ -179,11 +228,12 @@ export const Route = createFileRoute("/api/public/highlevel/appointment")({
 
         const rawScheduled = pick(
           custom.scheduled_for,
+          calendar.startTime, calendar.start_time,
           appt.start_time, appt.startTime, appt.scheduled_for,
           payload.start_time, payload.startTime, payload.scheduled_for,
           payload.appointment_start_time, payload.appointmentStartTime,
         );
-        const tz = pick(custom.timezone, payload.timezone, appt.selectedTimezone, appt.timezone);
+        const tz = pick(custom.timezone, payload.timezone, appt.selectedTimezone, appt.timezone, calendar.selectedTimezone, calendar.timezone);
         const scheduled_for = normalizeScheduledFor(rawScheduled, tz);
         const due_date = toDateOnly(pick(custom.due_date, appt.due_date, payload.due_date), tz) ?? toDateOnly(scheduled_for, tz);
         // Price sent in whole dollars (e.g. 249) → converted to cents for storage.

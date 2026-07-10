@@ -5,11 +5,11 @@ import { AppShell } from "@/components/app-shell";
 import { listMyJobs, getMe } from "@/lib/jobs.functions";
 import { calculateWorkerPayCents, formatCents, formatWorkerPay } from "@/lib/pay";
 import { MapPin, Clock, DollarSign, Wallet, CheckCircle2, Lock } from "lucide-react";
-import { format, formatDistanceToNow, isToday, isTomorrow, isYesterday, startOfDay } from "date-fns";
+import { format, formatDistanceToNow } from "date-fns";
 import { useNow } from "@/hooks/use-now";
 import { useRealtimeInvalidate } from "@/hooks/use-realtime-invalidate";
 import { useScramble } from "@/hooks/use-scramble";
-import { formatJobDateTime } from "@/lib/time";
+import { formatJobDateTime, formatJobFullDate, getJobTimeZone, startOfDayInAppTz } from "@/lib/time";
 
 
 
@@ -18,25 +18,29 @@ export const Route = createFileRoute("/_authenticated/jobs/")({
   errorComponent: ({ error }) => <div className="p-8 text-destructive">{error.message}</div>,
 });
 
-function sectionLabel(date: Date) {
-  if (isToday(date)) return "Today";
-  if (isTomorrow(date)) return "Tomorrow";
-  if (isYesterday(date)) return "Yesterday";
-  return format(date, "EEEE, d MMMM yyyy");
+function sectionLabel(job: any) {
+  const tz = getJobTimeZone(job);
+  const key = startOfDayInAppTz(job.scheduled_for, tz);
+  const today = startOfDayInAppTz(new Date(), tz);
+  const tomorrow = startOfDayInAppTz(new Date(Date.now() + 86400000), tz);
+  const yesterday = startOfDayInAppTz(new Date(Date.now() - 86400000), tz);
+  if (key === today) return "Today";
+  if (key === tomorrow) return "Tomorrow";
+  if (key === yesterday) return "Yesterday";
+  return formatJobFullDate(job.scheduled_for, tz);
 }
 
 function groupJobsByDay(jobs: any[]) {
-  const groups = new Map<string, { label: string; date: Date; jobs: any[] }>();
+  const groups = new Map<string, { label: string; key: string; jobs: any[] }>();
   for (const job of jobs) {
     if (!job.scheduled_for) continue;
-    const date = startOfDay(new Date(job.scheduled_for));
-    const key = date.toISOString();
+    const key = startOfDayInAppTz(job.scheduled_for, getJobTimeZone(job));
     if (!groups.has(key)) {
-      groups.set(key, { label: sectionLabel(date), date, jobs: [] });
+      groups.set(key, { label: sectionLabel(job), key, jobs: [] });
     }
     groups.get(key)!.jobs.push(job);
   }
-  return Array.from(groups.values()).sort((a, b) => a.date.getTime() - b.date.getTime());
+  return Array.from(groups.values()).sort((a, b) => a.key.localeCompare(b.key));
 }
 
 function JobsPage() {
@@ -91,7 +95,7 @@ function JobsPage() {
       ) : (
         <div className="space-y-8">
           {sections.map((section) => (
-            <section key={section.date.toISOString()}>
+            <section key={section.key}>
               <h2 className="sticky top-0 z-10 mb-3 bg-background/95 py-2 font-display text-lg font-semibold text-foreground">
                 {section.label}
               </h2>
@@ -151,7 +155,7 @@ function JobCard({ job, showPay, isWorker }: { job: any; showPay?: boolean; isWo
         <div className="mb-1 flex items-center gap-2 text-sm text-foreground/80">
           {isActive ? <Clock className="h-4 w-4 text-brand-green" /> : <Lock className="h-4 w-4 text-yellow-700" />}
           <span>
-            {formatJobDateTime(job.scheduled_for)}
+            {formatJobDateTime(job.scheduled_for, getJobTimeZone(job))}
             {!isActive && startMs && <span className="ml-2 text-xs text-muted-foreground">· starts in {formatDistanceToNow(new Date(startMs))}</span>}
           </span>
         </div>

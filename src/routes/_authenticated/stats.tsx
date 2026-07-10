@@ -10,7 +10,7 @@ import { format, isThisMonth, isThisWeek } from "date-fns";
 import { useMemo, useState } from "react";
 import { useRealtimeInvalidate } from "@/hooks/use-realtime-invalidate";
 import { useScramble } from "@/hooks/use-scramble";
-import { formatJobDayMonth } from "@/lib/time";
+import { formatJobDayMonth, getJobTimeZone } from "@/lib/time";
 
 
 
@@ -243,7 +243,7 @@ function JobColumn({ tone, title, items, emptyLabel, currency, currentUserId: _u
                     <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
                       {j.job_type?.name && <span>{j.job_type.name}</span>}
                       {j.contact?.address && <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" />{scrambleAddress(j.contact.address)}</span>}
-                      {j.scheduled_for && <span>· {formatJobDayMonth(j.scheduled_for)}</span>}
+                      {j.scheduled_for && <span>· {formatJobDayMonth(j.scheduled_for, getJobTimeZone(j))}</span>}
                     </div>
                     <div className="mt-1 flex items-center gap-1.5 text-[11px]">
                       <CircleDot className="h-3 w-3 text-muted-foreground" />
