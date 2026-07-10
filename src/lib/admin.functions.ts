@@ -138,6 +138,33 @@ export const listContacts = createServerFn({ method: "GET" })
     return data ?? [];
   });
 
+const contactSchema = z.object({
+  id: z.string().uuid(),
+  first_name: z.string().trim().max(80).nullable().optional(),
+  last_name: z.string().trim().max(80).nullable().optional(),
+  email: z.string().trim().email().max(255).nullable().or(z.literal("")).optional(),
+  phone: z.string().trim().max(40).nullable().optional(),
+  address: z.string().trim().max(255).nullable().optional(),
+  city: z.string().trim().max(120).nullable().optional(),
+  state: z.string().trim().max(80).nullable().optional(),
+  postal_code: z.string().trim().max(30).nullable().optional(),
+  notes: z.string().trim().max(1000).nullable().optional(),
+});
+
+export const saveContact = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: z.input<typeof contactSchema>) => contactSchema.parse(d))
+  .handler(async ({ context, data }) => {
+    await requireAdmin(context.supabase, context.userId);
+    const { id, ...fields } = data;
+    const clean = Object.fromEntries(
+      Object.entries(fields).map(([key, value]) => [key, typeof value === "string" && value.trim() === "" ? null : value]),
+    );
+    const { error } = await context.supabase.from("contacts").update(clean).eq("id", id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
 export const deleteContact = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
