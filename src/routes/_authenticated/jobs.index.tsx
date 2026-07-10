@@ -8,8 +8,10 @@ import { MapPin, Clock, DollarSign, Wallet, CheckCircle2, Lock } from "lucide-re
 import { format, formatDistanceToNow, isToday, isTomorrow, isYesterday, startOfDay } from "date-fns";
 import { useNow } from "@/hooks/use-now";
 import { useRealtimeInvalidate } from "@/hooks/use-realtime-invalidate";
+import { useScramble } from "@/hooks/use-scramble";
 
-export const Route = createFileRoute("/_authenticated/jobs")({
+
+export const Route = createFileRoute("/_authenticated/jobs/")({
   component: JobsPage,
   errorComponent: ({ error }) => <div className="p-8 text-destructive">{error.message}</div>,
 });
@@ -104,7 +106,9 @@ function JobsPage() {
 
 function JobCard({ job, showPay, isWorker }: { job: any; showPay?: boolean; isWorker?: boolean }) {
   const now = useNow(15000);
+  const { scrambleFirst, scrambleLast, scrambleAddress, scrambleCity } = useScramble();
   const price = job.price_cents ? `$${(job.price_cents / 100).toFixed(2)}` : null;
+
   const startMs = job.scheduled_for ? new Date(job.scheduled_for).getTime() : null;
   const isActive = startMs ? startMs <= now : true;
   const statusColor = !isActive
@@ -126,7 +130,7 @@ function JobCard({ job, showPay, isWorker }: { job: any; showPay?: boolean; isWo
       <div className="mb-2 flex items-start justify-between gap-2">
         <div>
           <h3 className="font-display text-lg font-semibold leading-tight">
-            {job.contact ? `${job.contact.first_name ?? ""} ${job.contact.last_name ?? ""}`.trim() || "Client" : "Unassigned contact"}
+            {job.contact ? `${scrambleFirst(job.contact.first_name) ?? ""} ${scrambleLast(job.contact.last_name) ?? ""}`.trim() || "Client" : "Unassigned contact"}
           </h3>
           <p className="text-xs text-muted-foreground">{job.job_type?.name ?? "Job"}</p>
         </div>
@@ -137,9 +141,10 @@ function JobCard({ job, showPay, isWorker }: { job: any; showPay?: boolean; isWo
       {job.contact?.address && (
         <div className="mb-1 flex items-start gap-2 text-sm text-foreground/80">
           <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-brand-green" />
-          <span>{job.contact.address}{job.contact.city ? `, ${job.contact.city}` : ""}</span>
+          <span>{scrambleAddress(job.contact.address)}{job.contact.city ? `, ${scrambleCity(job.contact.city)}` : ""}</span>
         </div>
       )}
+
       {job.scheduled_for && (
         <div className="mb-1 flex items-center gap-2 text-sm text-foreground/80">
           {isActive ? <Clock className="h-4 w-4 text-brand-green" /> : <Lock className="h-4 w-4 text-yellow-700" />}
