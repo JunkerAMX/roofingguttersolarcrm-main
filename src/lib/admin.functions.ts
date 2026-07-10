@@ -160,7 +160,7 @@ export const saveContact = createServerFn({ method: "POST" })
     const clean = Object.fromEntries(
       Object.entries(fields).map(([key, value]) => [key, typeof value === "string" && value.trim() === "" ? null : value]),
     );
-    const { error } = await context.supabase.from("contacts").update(clean).eq("id", id);
+    const { error } = await context.supabase.from("contacts").update(clean as any).eq("id", id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
