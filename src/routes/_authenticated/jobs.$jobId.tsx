@@ -359,7 +359,7 @@ function ChecklistRow({ item, jobId, disabled, pending, onToggle }: { item: any;
           </span>
           <span className={cn("flex-1 text-sm font-medium transition-all duration-200", item.completed && "text-muted-foreground line-through")}>{item.title}</span>
           {isPhoto && <Camera className="h-4 w-4 text-brand-green" />}
-          {isPayment && <DollarSign className="h-4 w-4 text-brand-yellow" />}
+          {isPayment && <DollarSign className="h-4 w-4 text-brand-green" />}
           {isNote && <StickyNote className="h-4 w-4 text-brand-green" />}
         </button>
         {isNote && item.completed && item.note && (
