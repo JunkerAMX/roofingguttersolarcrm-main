@@ -134,18 +134,14 @@ function JobsPage() {
               </h2>
               {viewMode === "grid" ? (
                 <div className="grid gap-3 sm:grid-cols-2">
-                  {section.jobs.map((j: any, idx: number) => (
-                    <div key={j.id} className="stagger-item" style={{ animationDelay: `${Math.min(idx, 8) * 40}ms` }}>
-                      <JobCard job={j} showPay isWorker={isWorker} />
-                    </div>
+                  {section.jobs.map((j: any) => (
+                    <JobCard key={j.id} job={j} showPay isWorker={isWorker} />
                   ))}
                 </div>
               ) : (
                 <div className="space-y-2">
-                  {section.jobs.map((j: any, idx: number) => (
-                    <div key={j.id} className="stagger-item" style={{ animationDelay: `${Math.min(idx, 8) * 40}ms` }}>
-                      <JobListItem job={j} showPay isWorker={isWorker} />
-                    </div>
+                  {section.jobs.map((j: any) => (
+                    <JobListItem key={j.id} job={j} showPay isWorker={isWorker} />
                   ))}
                 </div>
               )}
@@ -153,6 +149,7 @@ function JobsPage() {
           ))}
         </div>
       )}
+
 
     </AppShell>
   );
