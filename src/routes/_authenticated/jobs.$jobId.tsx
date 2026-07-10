@@ -115,6 +115,12 @@ function JobDetail() {
   const total = progress.length;
   const pct = total ? Math.round((done / total) * 100) : 0;
   const contact = job.contact;
+  const { scrambleFirst, scrambleLast, scrambleAddress, scrambleCity } = useScramble();
+  const displayName = contact ? `${scrambleFirst(contact.first_name) ?? ""} ${scrambleLast(contact.last_name) ?? ""}`.trim() : "";
+  const displayAddress = contact?.address ? scrambleAddress(contact.address) : "";
+  const displayCity = contact?.city ? scrambleCity(contact.city) : "";
+  const fullDisplayAddress = [displayAddress, displayCity, contact?.state, contact?.postal_code].filter(Boolean).join(", ");
+
   const jobStartMs = job.scheduled_for ? new Date(job.scheduled_for).getTime() : null;
   const isActive = jobStartMs ? jobStartMs <= now : true;
   const priorAllDone = (pos: number) => progress.filter((p: any) => p.position < pos).every((p: any) => p.completed);
@@ -132,7 +138,7 @@ function JobDetail() {
             <div className="grid grid-cols-1 gap-4 sm:flex sm:items-start sm:justify-between">
               <div className="min-w-0">
                 <h1 className="truncate font-display text-2xl font-bold">
-                  {contact ? `${contact.first_name ?? ""} ${contact.last_name ?? ""}`.trim() : "Client"}
+                  {displayName || "Client"}
                 </h1>
                 <p className="text-sm text-muted-foreground">{job.job_type?.name}</p>
               </div>
@@ -161,13 +167,14 @@ function JobDetail() {
             <div className="mt-4 grid gap-2 text-sm">
               {contact?.address && (
                 <a
-                  href={`https://maps.google.com/?q=${encodeURIComponent([contact.address, contact.city, contact.state, contact.postal_code].filter(Boolean).join(", "))}`}
+                  href={`https://maps.google.com/?q=${encodeURIComponent(fullDisplayAddress)}`}
                   target="_blank"
                   rel="noreferrer"
                   className="flex items-start gap-2 text-foreground hover:text-brand-green"
                 >
                   <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
-                  <span>{[contact.address, contact.city, contact.state, contact.postal_code].filter(Boolean).join(", ")}</span>
+                  <span>{fullDisplayAddress}</span>
+
                 </a>
               )}
               {contact?.phone && (
