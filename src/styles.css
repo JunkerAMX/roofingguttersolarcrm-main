@@ -92,9 +92,9 @@
   --sidebar-border: oklch(0.9 0.01 140);
   --sidebar-ring: oklch(0.55 0.13 145);
 
-  --warning: oklch(0.82 0.16 60);
-  --warning-foreground: oklch(0.32 0.12 55);
-  --warning-muted: oklch(0.95 0.08 65);
+  --warning: oklch(0.94 0.08 95);
+  --warning-foreground: oklch(0.41 0.11 70);
+  --warning-muted: oklch(0.96 0.07 90);
   --success: oklch(0.9 0.14 140);
   --success-foreground: oklch(0.28 0.1 150);
   --success-muted: oklch(0.95 0.07 140);
