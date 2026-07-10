@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useState } from "react";
+import { useState, type ChangeEvent, type ComponentProps } from "react";
 import { listContacts, deleteContact, saveContact } from "@/lib/admin.functions";
 import { Edit3, Search, Trash2 } from "lucide-react";
 import {
@@ -129,7 +129,7 @@ function EditContactDialog({ contact }: { contact: any }) {
     onError: (e: any) => toast.error(e?.message ?? "Failed to update contact"),
   });
 
-  const set = (key: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const set = (key: keyof typeof form) => (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm((prev) => ({ ...prev, [key]: e.target.value }));
   };
 
@@ -169,7 +169,7 @@ function EditContactDialog({ contact }: { contact: any }) {
   );
 }
 
-function Field({ label, className, ...props }: React.ComponentProps<typeof Input> & { label: string }) {
+function Field({ label, className, ...props }: ComponentProps<typeof Input> & { label: string }) {
   return (
     <label className={`grid gap-1 text-sm ${className ?? ""}`}>
       <span className="font-medium">{label}</span>
