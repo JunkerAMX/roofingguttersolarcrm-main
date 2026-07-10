@@ -153,7 +153,7 @@ function StatsInner() {
                       <div className="truncate font-medium">{w.name}</div>
                       <div className="mt-0.5 flex gap-3 text-xs text-muted-foreground">
                         <span><span className="font-semibold text-brand-green">{w.done}</span> done</span>
-                        <span><span className="font-semibold text-yellow-700">{w.due}</span> due</span>
+                        <span><span className="font-semibold text-warning">{w.due}</span> due</span>
                       </div>
                     </div>
                     <div className="text-right">
@@ -197,7 +197,7 @@ function HeroStat({ label, value }: { label: string; value: string }) {
 }
 
 function PipelineCard({ label, value, accent }: { label: string; value: string | number; accent: "green" | "amber" | "muted" }) {
-  const dot = accent === "green" ? "bg-brand-green" : accent === "amber" ? "bg-yellow-500" : "bg-muted-foreground/40";
+  const dot = accent === "green" ? "bg-brand-green" : accent === "amber" ? "bg-warning" : "bg-muted-foreground/40";
   return (
     <div className="rounded-2xl border border-border bg-card p-4">
       <div className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
@@ -212,7 +212,7 @@ function PipelineCard({ label, value, accent }: { label: string; value: string |
 function JobColumn({ tone, title, items, emptyLabel, currency, currentUserId: _u, onOpenMessages }: { tone: "amber" | "green"; title: string; items: any[]; emptyLabel: string; currency: string; currentUserId?: string; onOpenMessages?: (jobId: string) => void }) {
   const { scrambleFirst, scrambleLast, scrambleAddress } = useScramble();
 
-  const chipCls = tone === "green" ? "bg-brand-green/10 text-brand-green" : "bg-yellow-500/10 text-yellow-700";
+  const chipCls = tone === "green" ? "bg-brand-green/10 text-brand-green" : "bg-warning/10 text-warning";
   return (
     <section>
       <div className="mb-3 flex items-center gap-2">
