@@ -4,9 +4,9 @@ import { useServerFn } from "@tanstack/react-start";
 import { AppShell } from "@/components/app-shell";
 import { MessagesDialog } from "@/components/messages-dialog";
 import { listMyJobs, getMe } from "@/lib/jobs.functions";
-import { calculateWorkerPayCents, formatCents, formatWorkerPay } from "@/lib/pay";
-import { MapPin, Wallet, CheckCircle2, Clock, Briefcase, DollarSign, Users, MessageSquare } from "lucide-react";
-import { format } from "date-fns";
+import { calculateWorkerPayCents, formatCents } from "@/lib/pay";
+import { MapPin, Wallet, TrendingUp, Users, MessageSquare, ArrowRight, CircleDot } from "lucide-react";
+import { format, isThisMonth, isThisWeek } from "date-fns";
 import { useMemo, useState } from "react";
 
 export const Route = createFileRoute("/_authenticated/stats")({
@@ -22,31 +22,42 @@ function StatsPage() {
   return <StatsInner />;
 }
 
+type Range = "week" | "month" | "all";
+
 function StatsInner() {
   const fn = useServerFn(listMyJobs);
   const meFn = useServerFn(getMe);
   const { data: me } = useQuery({ queryKey: ["me"], queryFn: () => meFn() });
-  const { data: jobs = [], isLoading } = useQuery({
+  const { data: allJobs = [], isLoading } = useQuery({
     queryKey: ["jobs", "all"],
     queryFn: () => fn({ data: { scope: "all" } }),
   });
   const [msgJobId, setMsgJobId] = useState<string | null>(null);
+  const [range, setRange] = useState<Range>("all");
 
-  const isAdmin = true;
+  const jobs = useMemo(() => {
+    if (range === "all") return allJobs;
+    return allJobs.filter((j: any) => {
+      const d = j.completed_at || j.scheduled_for || j.created_at;
+      if (!d) return false;
+      const dt = new Date(d);
+      return range === "week" ? isThisWeek(dt, { weekStartsOn: 1 }) : isThisMonth(dt);
+    });
+  }, [allJobs, range]);
 
-  const { done, due, currency, totalRevenueDone, totalRevenuePending, totalPayDone, totalPayPending } = useMemo(() => {
+  const s = useMemo(() => {
     const done = jobs.filter((j: any) => j.status === "completed");
     const due = jobs.filter((j: any) => j.status !== "completed" && j.status !== "cancelled");
     const currency = jobs[0]?.currency ?? "";
-    const totalRevenueDone = done.reduce((s, j) => s + (j.price_cents ?? 0), 0);
-    const totalRevenuePending = due.reduce((s, j) => s + (j.price_cents ?? 0), 0);
-    const totalPayDone = done.reduce((s, j) => s + calculateWorkerPayCents(j.price_cents), 0);
-    const totalPayPending = due.reduce((s, j) => s + calculateWorkerPayCents(j.price_cents), 0);
-    return { done, due, currency, totalRevenueDone, totalRevenuePending, totalPayDone, totalPayPending };
+    const revenueDone = done.reduce((n, j) => n + (j.price_cents ?? 0), 0);
+    const revenuePending = due.reduce((n, j) => n + (j.price_cents ?? 0), 0);
+    const payDone = done.reduce((n, j) => n + calculateWorkerPayCents(j.price_cents), 0);
+    const payPending = due.reduce((n, j) => n + calculateWorkerPayCents(j.price_cents), 0);
+    const profitDone = revenueDone - payDone;
+    return { done, due, currency, revenueDone, revenuePending, payDone, payPending, profitDone };
   }, [jobs]);
 
   const perWorker = useMemo(() => {
-    if (!isAdmin) return [];
     const map = new Map<string, { name: string; done: number; due: number; revenue: number; pay: number }>();
     for (const j of jobs) {
       const key = j.assigned_to ?? "unassigned";
@@ -57,68 +68,112 @@ function StatsInner() {
       map.set(key, cur);
     }
     return Array.from(map.values()).sort((a, b) => b.revenue - a.revenue);
-  }, [isAdmin, jobs]);
+  }, [jobs]);
+
+  const maxWorkerRevenue = Math.max(1, ...perWorker.map((w) => w.revenue));
+
+  if (isLoading) {
+    return (
+      <AppShell>
+        <div className="space-y-4">
+          <div className="h-40 animate-pulse rounded-3xl bg-secondary/60" />
+          <div className="grid grid-cols-3 gap-3"><div className="h-24 animate-pulse rounded-2xl bg-secondary/60" /><div className="h-24 animate-pulse rounded-2xl bg-secondary/60" /><div className="h-24 animate-pulse rounded-2xl bg-secondary/60" /></div>
+        </div>
+      </AppShell>
+    );
+  }
 
   return (
     <AppShell>
-      <div className="mb-6">
-        <h1 className="font-display text-3xl font-bold">Stats</h1>
-        <p className="text-sm text-muted-foreground">Business overview & team performance</p>
+      {/* Header + range */}
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="font-display text-3xl font-bold tracking-tight">Stats</h1>
+          <p className="text-sm text-muted-foreground">Business overview & team performance</p>
+        </div>
+        <div className="inline-flex rounded-full border border-border bg-card p-1 text-xs font-medium">
+          {(["week", "month", "all"] as Range[]).map((r) => (
+            <button
+              key={r}
+              onClick={() => setRange(r)}
+              className={`rounded-full px-3 py-1.5 capitalize transition ${range === r ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
+            >
+              {r === "all" ? "All time" : `This ${r}`}
+            </button>
+          ))}
+        </div>
       </div>
 
+      {/* Hero revenue card */}
+      <div className="mb-4 overflow-hidden rounded-3xl border border-border bg-gradient-to-br from-primary to-brand-green p-6 text-primary-foreground shadow-lg sm:p-8">
+        <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-primary-foreground/70">
+          <TrendingUp className="h-3.5 w-3.5" /> Revenue earned
+        </div>
+        <div className="mt-2 font-display text-5xl font-bold sm:text-6xl">{formatCents(s.revenueDone, s.currency)}</div>
+        <div className="mt-1 text-sm text-primary-foreground/80">
+          from {s.done.length} completed job{s.done.length === 1 ? "" : "s"}
+        </div>
+        <div className="mt-6 grid grid-cols-3 gap-4 border-t border-primary-foreground/15 pt-5 text-sm">
+          <HeroStat label="Profit" value={formatCents(s.profitDone, s.currency)} />
+          <HeroStat label="Worker pay" value={formatCents(s.payDone, s.currency)} />
+          <HeroStat label="Pending revenue" value={formatCents(s.revenuePending, s.currency)} />
+        </div>
+      </div>
+
+      {/* Pipeline row */}
       <div className="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <StatCard icon={CheckCircle2} label="Completed" value={String(done.length)} tone="green" />
-        <StatCard icon={Clock} label="Outstanding" value={String(due.length)} tone="yellow" />
-        <StatCard icon={DollarSign} label="Revenue earned" value={formatCents(totalRevenueDone, currency)} tone="green" />
-        <StatCard icon={Briefcase} label="Revenue pending" value={formatCents(totalRevenuePending, currency)} tone="muted" />
-        <StatCard icon={Wallet} label="Worker pay owed" value={formatCents(totalPayDone, currency)} tone="green" />
-        <StatCard icon={Wallet} label="Worker pay pending" value={formatCents(totalPayPending, currency)} tone="muted" />
+        <PipelineCard label="Completed" value={s.done.length} accent="green" />
+        <PipelineCard label="Outstanding" value={s.due.length} accent="amber" />
+        <PipelineCard label="Pending pay" value={formatCents(s.payPending, s.currency)} accent="muted" />
+        <PipelineCard label="Avg job value" value={formatCents(s.done.length ? Math.round(s.revenueDone / s.done.length) : 0, s.currency)} accent="muted" />
       </div>
 
-      {isAdmin && perWorker.length > 0 && (
+      {/* By worker */}
+      {perWorker.length > 0 && (
         <section className="mb-8">
-          <h2 className="mb-3 flex items-center gap-2 font-display text-lg font-semibold">
-            <Users className="h-4 w-4 text-brand-green" /> By worker
-          </h2>
-          <div className="overflow-hidden rounded-2xl border border-border bg-card">
-            <table className="w-full text-sm">
-              <thead className="bg-secondary/60 text-left text-xs uppercase text-muted-foreground">
-                <tr>
-                  <th className="p-3">Worker</th>
-                  <th className="p-3 text-right">Done</th>
-                  <th className="p-3 text-right">Due</th>
-                  <th className="p-3 text-right">Revenue</th>
-                  <th className="p-3 text-right">Worker pay</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {perWorker.map((w) => (
-                  <tr key={w.name} className="hover:bg-secondary/30">
-                    <td className="p-3 font-medium">{w.name}</td>
-                    <td className="p-3 text-right">{w.done}</td>
-                    <td className="p-3 text-right">{w.due}</td>
-                    <td className="p-3 text-right">{formatCents(w.revenue, currency)}</td>
-                    <td className="p-3 text-right text-brand-green">{formatCents(w.pay, currency)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="flex items-center gap-2 font-display text-lg font-semibold">
+              <Users className="h-4 w-4 text-brand-green" /> By worker
+            </h2>
+            <span className="text-xs text-muted-foreground">Ranked by revenue</span>
+          </div>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {perWorker.map((w) => {
+              const pct = Math.round((w.revenue / maxWorkerRevenue) * 100);
+              return (
+                <div key={w.name} className="rounded-2xl border border-border bg-card p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="truncate font-medium">{w.name}</div>
+                      <div className="mt-0.5 flex gap-3 text-xs text-muted-foreground">
+                        <span><span className="font-semibold text-brand-green">{w.done}</span> done</span>
+                        <span><span className="font-semibold text-yellow-700">{w.due}</span> due</span>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-display text-lg font-semibold">{formatCents(w.revenue, w.revenue ? s.currency : "")}</div>
+                      <div className="text-[11px] text-brand-green">{formatCents(w.pay, w.pay ? s.currency : "")} pay</div>
+                    </div>
+                  </div>
+                  <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-secondary">
+                    <div className="h-full rounded-full bg-gradient-to-r from-brand-green to-brand-lime" style={{ width: `${pct}%` }} />
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </section>
       )}
 
-      {isLoading ? (
-        <div className="grid gap-3">
-          {[1, 2, 3].map((i) => <div key={i} className="h-20 animate-pulse rounded-xl bg-secondary/60" />)}
-        </div>
-      ) : jobs.length === 0 ? (
+      {/* Jobs lists */}
+      {jobs.length === 0 ? (
         <div className="rounded-2xl border-2 border-dashed border-border py-16 text-center text-muted-foreground">
-          No jobs yet.
+          No jobs in this period.
         </div>
       ) : (
-        <div className="space-y-8">
-          <JobGroup title="Due" items={due} emptyLabel="Nothing outstanding." isAdmin={isAdmin} currentUserId={me?.userId} onOpenMessages={setMsgJobId} />
-          <JobGroup title="Done" items={done} emptyLabel="No completed jobs yet." isAdmin={isAdmin} currentUserId={me?.userId} onOpenMessages={setMsgJobId} />
+        <div className="grid gap-6 md:grid-cols-2">
+          <JobColumn tone="amber" title="Outstanding" items={s.due} emptyLabel="Nothing outstanding — nice." currency={s.currency} currentUserId={me?.userId} onOpenMessages={setMsgJobId} />
+          <JobColumn tone="green" title="Completed" items={s.done} emptyLabel="No completed jobs yet." currency={s.currency} currentUserId={me?.userId} onOpenMessages={setMsgJobId} />
         </div>
       )}
       {msgJobId && <MessagesDialog jobId={msgJobId} currentUserId={me?.userId} onClose={() => setMsgJobId(null)} />}
@@ -126,24 +181,36 @@ function StatsInner() {
   );
 }
 
-function StatCard({ icon: Icon, label, value, tone }: { icon: any; label: string; value: string; tone: "green" | "yellow" | "muted" }) {
-  const toneCls = tone === "green" ? "text-brand-green" : tone === "yellow" ? "text-yellow-700" : "text-foreground";
+function HeroStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-border bg-card p-4">
-      <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-muted-foreground">
-        <Icon className="h-3.5 w-3.5" /> {label}
-      </div>
-      <div className={`mt-1 font-display text-2xl font-semibold ${toneCls}`}>{value}</div>
+    <div>
+      <div className="text-[11px] uppercase tracking-wide text-primary-foreground/70">{label}</div>
+      <div className="mt-0.5 font-display text-xl font-semibold">{value}</div>
     </div>
   );
 }
 
-function JobGroup({ title, items, emptyLabel, isAdmin, currentUserId, onOpenMessages }: { title: string; items: any[]; emptyLabel: string; isAdmin: boolean; currentUserId?: string; onOpenMessages?: (jobId: string) => void }) {
+function PipelineCard({ label, value, accent }: { label: string; value: string | number; accent: "green" | "amber" | "muted" }) {
+  const dot = accent === "green" ? "bg-brand-green" : accent === "amber" ? "bg-yellow-500" : "bg-muted-foreground/40";
+  return (
+    <div className="rounded-2xl border border-border bg-card p-4">
+      <div className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+        <span className={`h-1.5 w-1.5 rounded-full ${dot}`} />
+        {label}
+      </div>
+      <div className="mt-1 font-display text-2xl font-semibold">{value}</div>
+    </div>
+  );
+}
+
+function JobColumn({ tone, title, items, emptyLabel, currency, currentUserId: _u, onOpenMessages }: { tone: "amber" | "green"; title: string; items: any[]; emptyLabel: string; currency: string; currentUserId?: string; onOpenMessages?: (jobId: string) => void }) {
+  const chipCls = tone === "green" ? "bg-brand-green/10 text-brand-green" : "bg-yellow-500/10 text-yellow-700";
   return (
     <section>
-      <h2 className="mb-3 font-display text-sm font-semibold uppercase tracking-wide text-brand-green">
-        {title} · {items.length}
-      </h2>
+      <div className="mb-3 flex items-center gap-2">
+        <h2 className="font-display text-sm font-semibold uppercase tracking-wide">{title}</h2>
+        <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${chipCls}`}>{items.length}</span>
+      </div>
       {items.length === 0 ? (
         <div className="rounded-xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">{emptyLabel}</div>
       ) : (
@@ -153,69 +220,51 @@ function JobGroup({ title, items, emptyLabel, isAdmin, currentUserId, onOpenMess
             const total = progress.length;
             const doneCount = progress.filter((p: any) => p.completed).length;
             const pct = total > 0 ? Math.round((doneCount / total) * 100) : 0;
-            const price = j.price_cents ? `$${(j.price_cents / 100).toFixed(0)}` : null;
+            const price = j.price_cents ? formatCents(j.price_cents, currency) : null;
+            const pay = calculateWorkerPayCents(j.price_cents);
             return (
-              <div
-                key={j.id}
-                className="rounded-xl border border-border bg-card px-4 py-3 transition-all hover:-translate-y-px hover:border-brand-lime hover:shadow-sm"
-              >
+              <div key={j.id} className="group rounded-xl border border-border bg-card p-3 transition-all hover:-translate-y-px hover:border-brand-lime hover:shadow-sm">
                 <div className="flex items-start justify-between gap-3">
-                  <Link
-                    to="/jobs/$jobId"
-                    params={{ jobId: j.id }}
-                    className="min-w-0 flex-1"
-                  >
+                  <Link to="/jobs/$jobId" params={{ jobId: j.id }} className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
                       <span className="truncate font-medium">
-                        {j.contact ? `${j.contact.first_name ?? ""} ${j.contact.last_name ?? ""}`.trim() : "Client"}
+                        {j.contact ? `${j.contact.first_name ?? ""} ${j.contact.last_name ?? ""}`.trim() || "Client" : "Client"}
                       </span>
-                      <span className="shrink-0 rounded-full bg-secondary px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                        {(j.status as string).replace("_", " ")}
-                      </span>
+                      <ArrowRight className="h-3 w-3 shrink-0 -translate-x-1 text-muted-foreground opacity-0 transition group-hover:translate-x-0 group-hover:opacity-100" />
                     </div>
-                    <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
+                    <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
                       {j.job_type?.name && <span>{j.job_type.name}</span>}
-                      {j.contact?.address && (
-                        <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" />{j.contact.address}</span>
-                      )}
-                      {j.scheduled_for && <span>{format(new Date(j.scheduled_for), "d MMM, h:mm a")}</span>}
-                      {j.assignee ? (
-                        <span className="text-foreground/80">· {j.assignee.full_name || j.assignee.email}</span>
-                      ) : (
-                        <span className="text-yellow-700">· Unassigned</span>
-                      )}
+                      {j.contact?.address && <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" />{j.contact.address}</span>}
+                      {j.scheduled_for && <span>· {format(new Date(j.scheduled_for), "d MMM")}</span>}
+                    </div>
+                    <div className="mt-1 flex items-center gap-1.5 text-[11px]">
+                      <CircleDot className="h-3 w-3 text-muted-foreground" />
+                      <span className="text-muted-foreground">{j.assignee?.full_name || j.assignee?.email || "Unassigned"}</span>
                     </div>
                   </Link>
                   <div className="flex shrink-0 flex-col items-end gap-1">
-                    {price && <span className="text-sm font-semibold">{price}</span>}
-                    {calculateWorkerPayCents(j.price_cents) > 0 && (
-                      <span className="inline-flex items-center gap-1 rounded-lg bg-brand-green/10 px-2 py-0.5 text-[11px] font-semibold text-brand-green">
+                    {price && <span className="font-display text-base font-semibold">{price}</span>}
+                    {pay > 0 && (
+                      <span className="inline-flex items-center gap-1 rounded-lg bg-brand-green/10 px-2 py-0.5 text-[10px] font-semibold text-brand-green">
                         <Wallet className="h-3 w-3" />
-                        {formatWorkerPay(j.price_cents, j.currency)}
+                        {formatCents(pay, currency)}
                       </span>
                     )}
-                    {isAdmin && onOpenMessages && (
-                      <button
-                        onClick={() => onOpenMessages(j.id)}
-                        className="mt-1 inline-flex items-center gap-1 rounded-lg bg-secondary px-2 py-1 text-[11px] font-medium text-foreground hover:bg-brand-green/10 hover:text-brand-green"
-                        aria-label="Open messages"
-                      >
-                        <MessageSquare className="h-3 w-3" /> Message
+                    {onOpenMessages && (
+                      <button onClick={() => onOpenMessages(j.id)} className="inline-flex items-center gap-1 rounded-lg px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground hover:text-brand-green" aria-label="Open messages">
+                        <MessageSquare className="h-3 w-3" /> Chat
                       </button>
                     )}
                   </div>
                 </div>
                 {total > 0 && (
                   <div className="mt-2">
-                    <div className="mb-1 flex items-center justify-between text-[11px] text-muted-foreground">
-                      <span>{doneCount} of {total} tasks</span>
+                    <div className="mb-1 flex items-center justify-between text-[10px] text-muted-foreground">
+                      <span>{doneCount}/{total} tasks</span>
                       <span className="font-semibold">{pct}%</span>
                     </div>
-                    <div className="h-1.5 w-full overflow-hidden rounded-full bg-secondary">
-                      <div
-                        className={`h-full rounded-full transition-all ${pct === 100 ? "bg-brand-green" : "bg-brand-lime"}`}
-                        style={{ width: `${pct}%` }}
-                      />
+                    <div className="h-1 w-full overflow-hidden rounded-full bg-secondary">
+                      <div className={`h-full rounded-full transition-all ${pct === 100 ? "bg-brand-green" : "bg-brand-lime"}`} style={{ width: `${pct}%` }} />
                     </div>
                   </div>
                 )}
