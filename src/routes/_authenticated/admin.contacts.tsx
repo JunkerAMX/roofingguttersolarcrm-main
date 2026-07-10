@@ -38,6 +38,7 @@ function ContactsPage() {
   const del = useServerFn(deleteContact);
   const qc = useQueryClient();
   const { data: contacts = [] } = useQuery({ queryKey: ["contacts"], queryFn: () => fn() });
+  const { scrambleFirst, scrambleLast, scrambleAddress, scrambleCity, scramblePhone, scrambleEmail } = useScramble();
   const [q, setQ] = useState("");
   const filtered = contacts.filter((c: any) => {
     const s = q.toLowerCase();
