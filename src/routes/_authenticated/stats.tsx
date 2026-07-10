@@ -234,13 +234,13 @@ function JobColumn({ tone, title, items, emptyLabel, currency, currentUserId: _u
                   <Link to="/jobs/$jobId" params={{ jobId: j.id }} className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
                       <span className="truncate font-medium">
-                        {j.contact ? `${j.contact.first_name ?? ""} ${j.contact.last_name ?? ""}`.trim() || "Client" : "Client"}
+                        {j.contact ? `${scrambleFirst(j.contact.first_name) ?? ""} ${scrambleLast(j.contact.last_name) ?? ""}`.trim() || "Client" : "Client"}
                       </span>
                       <ArrowRight className="h-3 w-3 shrink-0 -translate-x-1 text-muted-foreground opacity-0 transition group-hover:translate-x-0 group-hover:opacity-100" />
                     </div>
                     <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
                       {j.job_type?.name && <span>{j.job_type.name}</span>}
-                      {j.contact?.address && <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" />{j.contact.address}</span>}
+                      {j.contact?.address && <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" />{scrambleAddress(j.contact.address)}</span>}
                       {j.scheduled_for && <span>· {format(new Date(j.scheduled_for), "d MMM")}</span>}
                     </div>
                     <div className="mt-1 flex items-center gap-1.5 text-[11px]">
