@@ -29,6 +29,7 @@ function JobDetail() {
     queryKey: ["job", jobId],
     queryFn: () => fn({ data: { jobId } }),
   });
+  useRealtimeInvalidate(["jobs", "job_checklist_progress"], [["job", jobId], ["jobs"]]);
 
   const toggle = useMutation({
     mutationFn: (v: { progressId: string; completed: boolean; note?: string }) => toggleFn({ data: v }),
