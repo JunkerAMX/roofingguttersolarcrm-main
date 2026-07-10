@@ -11,6 +11,7 @@ import { format, formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useNow } from "@/hooks/use-now";
+import { useRealtimeInvalidate } from "@/hooks/use-realtime-invalidate";
 
 export const Route = createFileRoute("/_authenticated/jobs/$jobId")({
   component: JobDetail,
