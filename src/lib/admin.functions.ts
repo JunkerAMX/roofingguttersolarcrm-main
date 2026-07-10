@@ -210,6 +210,34 @@ export const deleteJob = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+const updateJobSchema = z.object({
+  id: z.string().uuid(),
+  job_type_id: z.string().uuid().optional(),
+  contact_id: z.string().uuid().nullable().optional(),
+  status: z.enum(["scheduled", "in_progress", "completed", "cancelled"]).optional(),
+  price_cents: z.number().int().nonnegative().nullable().optional(),
+  currency: z.string().trim().min(1).max(8).optional(),
+  scheduled_for: z.string().nullable().optional(),
+  due_date: z.string().nullable().optional(),
+  notes: z.string().max(2000).nullable().optional(),
+});
+
+export const updateJob = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: z.input<typeof updateJobSchema>) => updateJobSchema.parse(d))
+  .handler(async ({ context, data }) => {
+    await requireAdmin(context.supabase, context.userId);
+    const { id, ...fields } = data;
+    const clean: Record<string, any> = {};
+    for (const [k, v] of Object.entries(fields)) {
+      if (v === undefined) continue;
+      clean[k] = typeof v === "string" && v.trim() === "" ? null : v;
+    }
+    const { error } = await context.supabase.from("jobs").update(clean).eq("id", id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
 export const getSettings = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
