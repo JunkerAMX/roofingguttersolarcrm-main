@@ -107,6 +107,7 @@ function JobDetail() {
 
   const now = useNow(15000);
   const [msgOpen, setMsgOpen] = useState(false);
+  const { scrambleFirst, scrambleLast, scrambleAddress, scrambleCity } = useScramble();
 
   if (isLoading || !data) return <AppShell><div className="animate-pulse space-y-4"><div className="h-8 w-40 rounded bg-secondary" /><div className="h-64 rounded-2xl bg-secondary" /></div></AppShell>;
 
@@ -115,11 +116,11 @@ function JobDetail() {
   const total = progress.length;
   const pct = total ? Math.round((done / total) * 100) : 0;
   const contact = job.contact;
-  const { scrambleFirst, scrambleLast, scrambleAddress, scrambleCity } = useScramble();
   const displayName = contact ? `${scrambleFirst(contact.first_name) ?? ""} ${scrambleLast(contact.last_name) ?? ""}`.trim() : "";
   const displayAddress = contact?.address ? scrambleAddress(contact.address) : "";
   const displayCity = contact?.city ? scrambleCity(contact.city) : "";
   const fullDisplayAddress = [displayAddress, displayCity, contact?.state, contact?.postal_code].filter(Boolean).join(", ");
+
 
   const jobStartMs = job.scheduled_for ? new Date(job.scheduled_for).getTime() : null;
   const isActive = jobStartMs ? jobStartMs <= now : true;
