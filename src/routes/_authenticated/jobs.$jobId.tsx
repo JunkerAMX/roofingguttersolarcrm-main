@@ -13,6 +13,8 @@ import { cn } from "@/lib/utils";
 import { useNow } from "@/hooks/use-now";
 import { useRealtimeInvalidate } from "@/hooks/use-realtime-invalidate";
 import { useScramble } from "@/hooks/use-scramble";
+import { formatJobDateTime } from "@/lib/time";
+
 
 
 export const Route = createFileRoute("/_authenticated/jobs/$jobId")({
@@ -107,6 +109,7 @@ function JobDetail() {
 
   const now = useNow(15000);
   const [msgOpen, setMsgOpen] = useState(false);
+  const { scrambleFirst, scrambleLast, scrambleAddress, scrambleCity } = useScramble();
 
   if (isLoading || !data) return <AppShell><div className="animate-pulse space-y-4"><div className="h-8 w-40 rounded bg-secondary" /><div className="h-64 rounded-2xl bg-secondary" /></div></AppShell>;
 
@@ -115,11 +118,11 @@ function JobDetail() {
   const total = progress.length;
   const pct = total ? Math.round((done / total) * 100) : 0;
   const contact = job.contact;
-  const { scrambleFirst, scrambleLast, scrambleAddress, scrambleCity } = useScramble();
   const displayName = contact ? `${scrambleFirst(contact.first_name) ?? ""} ${scrambleLast(contact.last_name) ?? ""}`.trim() : "";
   const displayAddress = contact?.address ? scrambleAddress(contact.address) : "";
   const displayCity = contact?.city ? scrambleCity(contact.city) : "";
   const fullDisplayAddress = [displayAddress, displayCity, contact?.state, contact?.postal_code].filter(Boolean).join(", ");
+
 
   const jobStartMs = job.scheduled_for ? new Date(job.scheduled_for).getTime() : null;
   const isActive = jobStartMs ? jobStartMs <= now : true;
@@ -215,7 +218,7 @@ function JobDetail() {
                 <div>
                   <div className="font-semibold text-yellow-900">Job not active yet</div>
                   <div className="text-yellow-900/80">
-                    Starts {format(new Date(jobStartMs), "EEE d MMM 'at' h:mm a")} · in {formatDistanceToNow(new Date(jobStartMs))}. You can review the details now — tasks unlock at the appointment time.
+                    Starts {formatJobDateTime(new Date(jobStartMs))} · in {formatDistanceToNow(new Date(jobStartMs))}. You can review the details now — tasks unlock at the appointment time.
                   </div>
                 </div>
               </div>
