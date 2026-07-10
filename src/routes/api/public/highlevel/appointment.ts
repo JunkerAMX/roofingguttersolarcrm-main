@@ -76,7 +76,7 @@ function normalizeScheduledFor(v: any, tz: string | null): string | null {
   const hasTz = /Z$|[+\-]\d{2}:?\d{2}$/.test(s);
   const zone = tz || null;
   const wall = zone && !hasTz ? parseWallClockString(s) : null;
-  if (wall) {
+  if (wall && zone) {
     const guess = Date.UTC(wall.year, wall.month - 1, wall.day, wall.hour, wall.minute, wall.second);
     const offset = tzOffsetMinutes(zone, new Date(guess));
     return new Date(guess - offset * 60000).toISOString();
