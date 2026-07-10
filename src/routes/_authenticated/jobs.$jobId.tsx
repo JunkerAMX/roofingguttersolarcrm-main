@@ -11,6 +11,7 @@ import { format, formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useNow } from "@/hooks/use-now";
+import { useRealtimeInvalidate } from "@/hooks/use-realtime-invalidate";
 
 export const Route = createFileRoute("/_authenticated/jobs/$jobId")({
   component: JobDetail,
@@ -29,6 +30,7 @@ function JobDetail() {
     queryKey: ["job", jobId],
     queryFn: () => fn({ data: { jobId } }),
   });
+  useRealtimeInvalidate(["jobs", "job_checklist_progress"], [["job", jobId], ["jobs"]]);
 
   const toggle = useMutation({
     mutationFn: (v: { progressId: string; completed: boolean; note?: string }) => toggleFn({ data: v }),

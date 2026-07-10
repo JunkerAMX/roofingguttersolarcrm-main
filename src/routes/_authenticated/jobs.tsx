@@ -7,6 +7,7 @@ import { calculateWorkerPayCents, formatCents, formatWorkerPay } from "@/lib/pay
 import { MapPin, Clock, DollarSign, Wallet, CheckCircle2, Lock } from "lucide-react";
 import { format, formatDistanceToNow, isToday, isTomorrow, isYesterday, startOfDay } from "date-fns";
 import { useNow } from "@/hooks/use-now";
+import { useRealtimeInvalidate } from "@/hooks/use-realtime-invalidate";
 
 export const Route = createFileRoute("/_authenticated/jobs")({
   component: JobsPage,
@@ -42,6 +43,8 @@ function JobsPage() {
     queryKey: ["jobs", "today"],
     queryFn: () => fn({ data: { scope: "today" } }),
   });
+  useRealtimeInvalidate(["jobs", "job_checklist_progress"], [["jobs"]]);
+
 
   const isWorker = !!me && !me.isAdmin;
   const sections = groupJobsByDay(jobs);

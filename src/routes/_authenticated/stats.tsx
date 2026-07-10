@@ -8,6 +8,7 @@ import { calculateWorkerPayCents, formatCents } from "@/lib/pay";
 import { MapPin, Wallet, TrendingUp, Users, MessageSquare, ArrowRight, CircleDot } from "lucide-react";
 import { format, isThisMonth, isThisWeek } from "date-fns";
 import { useMemo, useState } from "react";
+import { useRealtimeInvalidate } from "@/hooks/use-realtime-invalidate";
 
 export const Route = createFileRoute("/_authenticated/stats")({
   component: StatsPage,
@@ -34,6 +35,7 @@ function StatsInner() {
   });
   const [msgJobId, setMsgJobId] = useState<string | null>(null);
   const [range, setRange] = useState<Range>("all");
+  useRealtimeInvalidate(["jobs", "job_checklist_progress"], [["jobs"]]);
 
   const jobs = useMemo(() => {
     if (range === "all") return allJobs;
