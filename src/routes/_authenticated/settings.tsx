@@ -18,6 +18,14 @@ function SettingsPage() {
   const router = useRouter();
   const meFn = useServerFn(getMe);
   const { data: me, isLoading } = useQuery({ queryKey: ["me"], queryFn: () => meFn() });
+  const { theme, setTheme, mounted } = useTheme();
+
+  const themeOptions: { value: Theme; label: string; icon: typeof Sun }[] = [
+    { value: "light", label: "Light", icon: Sun },
+    { value: "dark", label: "Dark", icon: Moon },
+    { value: "system", label: "System", icon: Monitor },
+  ];
+
 
   async function signOut() {
     await supabase.auth.signOut();
