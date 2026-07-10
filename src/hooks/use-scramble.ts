@@ -70,9 +70,34 @@ export function useScramble() {
 
   const scrambleText = useCallback((s?: string | null) => {
     if (!enabled || !s) return s ?? "";
-    // Replace letters with x's, keeping length and word boundaries
     return s.replace(/[a-zA-Z]/g, "x");
   }, [enabled]);
 
-  return { enabled, mounted, setScramble, scrambleFirst, scrambleLast, scrambleAddress, scrambleCity, scrambleText };
+  const scramblePhone = useCallback((s?: string | null) => {
+    if (!enabled || !s) return s ?? "";
+    const h = hash("p" + s);
+    const d = String(h).padStart(8, "0").slice(0, 8);
+    return `04${d.slice(0, 2)} ${d.slice(2, 5)} ${d.slice(5, 8)}`;
+  }, [enabled]);
+
+  const scrambleEmail = useCallback((s?: string | null) => {
+    if (!enabled || !s) return s ?? "";
+    const h = hash("e" + s);
+    const first = FIRST[h % FIRST.length].toLowerCase();
+    const last = LAST[(h >> 3) % LAST.length].toLowerCase();
+    return `${first}.${last}@example.com`;
+  }, [enabled]);
+
+  return {
+    enabled,
+    mounted,
+    setScramble,
+    scrambleFirst,
+    scrambleLast,
+    scrambleAddress,
+    scrambleCity,
+    scrambleText,
+    scramblePhone,
+    scrambleEmail,
+  };
 }

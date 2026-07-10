@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState, type ChangeEvent, type ComponentProps } from "react";
 import { listContacts, deleteContact, saveContact } from "@/lib/admin.functions";
+import { useScramble } from "@/hooks/use-scramble";
 import { Edit3, Search, Trash2 } from "lucide-react";
 import {
   AlertDialog,
@@ -37,6 +38,7 @@ function ContactsPage() {
   const del = useServerFn(deleteContact);
   const qc = useQueryClient();
   const { data: contacts = [] } = useQuery({ queryKey: ["contacts"], queryFn: () => fn() });
+  const { scrambleFirst, scrambleLast, scrambleAddress, scrambleCity, scramblePhone, scrambleEmail } = useScramble();
   const [q, setQ] = useState("");
   const filtered = contacts.filter((c: any) => {
     const s = q.toLowerCase();
@@ -65,11 +67,11 @@ function ContactsPage() {
           {filtered.map((c: any) => (
             <li key={c.id} className="flex items-start justify-between gap-3 p-4">
               <div className="min-w-0 flex-1">
-                <div className="font-medium">{[c.first_name, c.last_name].filter(Boolean).join(" ") || c.highlevel_contact_id || "—"}</div>
+                <div className="font-medium">{[scrambleFirst(c.first_name), scrambleLast(c.last_name)].filter(Boolean).join(" ") || c.highlevel_contact_id || "—"}</div>
                 <div className="grid gap-1 text-xs text-muted-foreground sm:grid-cols-3">
-                  {c.email && <div>{c.email}</div>}
-                  {c.phone && <div>{c.phone}</div>}
-                  {c.address && <div>{[c.address, c.city].filter(Boolean).join(", ")}</div>}
+                  {c.email && <div>{scrambleEmail(c.email)}</div>}
+                  {c.phone && <div>{scramblePhone(c.phone)}</div>}
+                  {c.address && <div>{[scrambleAddress(c.address), scrambleCity(c.city)].filter(Boolean).join(", ")}</div>}
                 </div>
               </div>
               <div className="flex shrink-0 items-center gap-1">
