@@ -5,7 +5,7 @@ import { AppShell } from "@/components/app-shell";
 import { listMyJobs, getMe } from "@/lib/jobs.functions";
 import { calculateWorkerPayCents, formatCents, formatWorkerPay } from "@/lib/pay";
 import { MapPin, Clock, DollarSign, Wallet, CheckCircle2, Lock, LayoutGrid, List } from "lucide-react";
-import { format } from "date-fns";
+import { format, formatDistanceToNow } from "date-fns";
 import { useEffect, useState } from "react";
 import { useNow } from "@/hooks/use-now";
 import { useRealtimeInvalidate } from "@/hooks/use-realtime-invalidate";
