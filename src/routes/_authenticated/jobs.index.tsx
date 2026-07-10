@@ -160,13 +160,13 @@ function useJobStatus(job: any) {
   const startMs = job.scheduled_for ? new Date(job.scheduled_for).getTime() : null;
   const isActive = startMs ? startMs <= now : true;
   const statusColor = !isActive
-    ? "bg-warning text-warning-foreground"
+    ? "bg-warning/10 text-warning"
     : ({
-        scheduled: "bg-success text-success-foreground",
-        in_progress: "bg-success text-success-foreground",
-        completed: "bg-brand-green text-white",
-        cancelled: "bg-muted text-muted-foreground",
-      }[job.status as string] ?? "bg-muted");
+        scheduled: "bg-brand-green/10 text-brand-green",
+        in_progress: "bg-brand-green/10 text-brand-green",
+        completed: "bg-brand-green/10 text-brand-green",
+        cancelled: "bg-muted/40 text-muted-foreground",
+      }[job.status as string] ?? "bg-muted/40 text-muted-foreground");
   const statusLabel = !isActive ? "upcoming" : (job.status as string).replace("_", " ");
   return { isActive, statusColor, statusLabel, startMs };
 }
