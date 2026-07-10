@@ -8,6 +8,7 @@ import { calculateWorkerPayCents, formatCents } from "@/lib/pay";
 import { MapPin, Wallet, TrendingUp, Users, MessageSquare, ArrowRight, CircleDot } from "lucide-react";
 import { format, isThisMonth, isThisWeek } from "date-fns";
 import { useMemo, useState } from "react";
+import { useRealtimeInvalidate } from "@/hooks/use-realtime-invalidate";
 
 export const Route = createFileRoute("/_authenticated/stats")({
   component: StatsPage,
