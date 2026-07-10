@@ -35,6 +35,7 @@ function StatsInner() {
   });
   const [msgJobId, setMsgJobId] = useState<string | null>(null);
   const [range, setRange] = useState<Range>("all");
+  useRealtimeInvalidate(["jobs", "job_checklist_progress"], [["jobs"]]);
 
   const jobs = useMemo(() => {
     if (range === "all") return allJobs;
