@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState, type ChangeEvent, type ComponentProps } from "react";
 import { listContacts, deleteContact, saveContact } from "@/lib/admin.functions";
+import { useScramble } from "@/hooks/use-scramble";
 import { Edit3, Search, Trash2 } from "lucide-react";
 import {
   AlertDialog,
