@@ -79,13 +79,23 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
   useEffect(() => {
+    const stored = (localStorage.getItem("theme") as "light" | "dark" | "system" | null) ?? "system";
+    const isDark = stored === "dark" || (stored === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+    document.documentElement.classList.toggle("dark", isDark);
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    const onMq = () => {
+      const cur = (localStorage.getItem("theme") as "light" | "dark" | "system" | null) ?? "system";
+      if (cur === "system") document.documentElement.classList.toggle("dark", mq.matches);
+    };
+    mq.addEventListener("change", onMq);
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
       if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
       router.invalidate();
       if (event !== "SIGNED_OUT") queryClient.invalidateQueries();
     });
-    return () => sub.subscription.unsubscribe();
+    return () => { sub.subscription.unsubscribe(); mq.removeEventListener("change", onMq); };
   }, [queryClient, router]);
+
   return (
     <QueryClientProvider client={queryClient}>
       <Outlet />

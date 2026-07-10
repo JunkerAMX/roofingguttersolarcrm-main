@@ -5,7 +5,10 @@ import { AppShell } from "@/components/app-shell";
 import { getMe } from "@/lib/jobs.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { useRouter } from "@tanstack/react-router";
-import { LogOut, User, Shield, Mail } from "lucide-react";
+import { LogOut, User, Shield, Mail, Sun, Moon, Monitor } from "lucide-react";
+import { useTheme, type Theme } from "@/hooks/use-theme";
+import { cn } from "@/lib/utils";
+
 
 export const Route = createFileRoute("/_authenticated/settings")({
   component: SettingsPage,
@@ -15,6 +18,14 @@ function SettingsPage() {
   const router = useRouter();
   const meFn = useServerFn(getMe);
   const { data: me, isLoading } = useQuery({ queryKey: ["me"], queryFn: () => meFn() });
+  const { theme, setTheme, mounted } = useTheme();
+
+  const themeOptions: { value: Theme; label: string; icon: typeof Sun }[] = [
+    { value: "light", label: "Light", icon: Sun },
+    { value: "dark", label: "Dark", icon: Moon },
+    { value: "system", label: "System", icon: Monitor },
+  ];
+
 
   async function signOut() {
     await supabase.auth.signOut();
@@ -53,6 +64,33 @@ function SettingsPage() {
               </span>
             </div>
           </div>
+
+          <div className="rounded-2xl border border-border bg-card p-6">
+            <h2 className="font-display text-lg font-semibold">Appearance</h2>
+            <p className="mt-1 text-xs text-muted-foreground">Choose how the app looks.</p>
+            <div className="mt-4 grid grid-cols-3 gap-2">
+              {themeOptions.map((opt) => {
+                const active = mounted && theme === opt.value;
+                return (
+                  <button
+                    key={opt.value}
+                    onClick={() => setTheme(opt.value)}
+                    className={cn(
+                      "flex flex-col items-center gap-2 rounded-xl border px-3 py-4 text-xs font-medium transition-all duration-200 ease-out active:scale-[0.97]",
+                      active
+                        ? "border-primary bg-primary/10 text-foreground"
+                        : "border-border bg-background text-muted-foreground hover:border-primary/40 hover:text-foreground",
+                    )}
+                  >
+                    <opt.icon className="h-5 w-5" />
+                    {opt.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+
 
           <button
             onClick={signOut}
