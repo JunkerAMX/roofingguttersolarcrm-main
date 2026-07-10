@@ -65,6 +65,33 @@ function SettingsPage() {
             </div>
           </div>
 
+          <div className="rounded-2xl border border-border bg-card p-6">
+            <h2 className="font-display text-lg font-semibold">Appearance</h2>
+            <p className="mt-1 text-xs text-muted-foreground">Choose how the app looks.</p>
+            <div className="mt-4 grid grid-cols-3 gap-2">
+              {themeOptions.map((opt) => {
+                const active = mounted && theme === opt.value;
+                return (
+                  <button
+                    key={opt.value}
+                    onClick={() => setTheme(opt.value)}
+                    className={cn(
+                      "flex flex-col items-center gap-2 rounded-xl border px-3 py-4 text-xs font-medium transition-all duration-200 ease-out active:scale-[0.97]",
+                      active
+                        ? "border-primary bg-primary/10 text-foreground"
+                        : "border-border bg-background text-muted-foreground hover:border-primary/40 hover:text-foreground",
+                    )}
+                  >
+                    <opt.icon className="h-5 w-5" />
+                    {opt.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+
+
           <button
             onClick={signOut}
             className="flex w-full items-center justify-center gap-2 rounded-2xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm font-semibold text-destructive transition-all duration-200 ease-out hover:bg-destructive/10 active:scale-[0.98]"
