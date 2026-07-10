@@ -67,11 +67,11 @@ function ContactsPage() {
           {filtered.map((c: any) => (
             <li key={c.id} className="flex items-start justify-between gap-3 p-4">
               <div className="min-w-0 flex-1">
-                <div className="font-medium">{[c.first_name, c.last_name].filter(Boolean).join(" ") || c.highlevel_contact_id || "—"}</div>
+                <div className="font-medium">{[scrambleFirst(c.first_name), scrambleLast(c.last_name)].filter(Boolean).join(" ") || c.highlevel_contact_id || "—"}</div>
                 <div className="grid gap-1 text-xs text-muted-foreground sm:grid-cols-3">
-                  {c.email && <div>{c.email}</div>}
-                  {c.phone && <div>{c.phone}</div>}
-                  {c.address && <div>{[c.address, c.city].filter(Boolean).join(", ")}</div>}
+                  {c.email && <div>{scrambleEmail(c.email)}</div>}
+                  {c.phone && <div>{scramblePhone(c.phone)}</div>}
+                  {c.address && <div>{[scrambleAddress(c.address), scrambleCity(c.city)].filter(Boolean).join(", ")}</div>}
                 </div>
               </div>
               <div className="flex shrink-0 items-center gap-1">
