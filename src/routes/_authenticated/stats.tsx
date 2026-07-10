@@ -9,6 +9,8 @@ import { MapPin, Wallet, TrendingUp, Users, MessageSquare, ArrowRight, CircleDot
 import { format, isThisMonth, isThisWeek } from "date-fns";
 import { useMemo, useState } from "react";
 import { useRealtimeInvalidate } from "@/hooks/use-realtime-invalidate";
+import { useScramble } from "@/hooks/use-scramble";
+
 
 export const Route = createFileRoute("/_authenticated/stats")({
   component: StatsPage,
@@ -206,6 +208,8 @@ function PipelineCard({ label, value, accent }: { label: string; value: string |
 }
 
 function JobColumn({ tone, title, items, emptyLabel, currency, currentUserId: _u, onOpenMessages }: { tone: "amber" | "green"; title: string; items: any[]; emptyLabel: string; currency: string; currentUserId?: string; onOpenMessages?: (jobId: string) => void }) {
+  const { scrambleFirst, scrambleLast, scrambleAddress } = useScramble();
+
   const chipCls = tone === "green" ? "bg-brand-green/10 text-brand-green" : "bg-yellow-500/10 text-yellow-700";
   return (
     <section>
