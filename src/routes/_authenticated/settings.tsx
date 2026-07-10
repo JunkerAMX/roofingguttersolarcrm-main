@@ -5,9 +5,11 @@ import { AppShell } from "@/components/app-shell";
 import { getMe } from "@/lib/jobs.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { useRouter } from "@tanstack/react-router";
-import { LogOut, User, Shield, Mail, Sun, Moon, Monitor } from "lucide-react";
+import { LogOut, User, Shield, Mail, Sun, Moon, Monitor, EyeOff } from "lucide-react";
 import { useTheme, type Theme } from "@/hooks/use-theme";
+import { useScramble } from "@/hooks/use-scramble";
 import { cn } from "@/lib/utils";
+
 
 
 export const Route = createFileRoute("/_authenticated/settings")({
@@ -19,6 +21,8 @@ function SettingsPage() {
   const meFn = useServerFn(getMe);
   const { data: me, isLoading } = useQuery({ queryKey: ["me"], queryFn: () => meFn() });
   const { theme, setTheme, mounted } = useTheme();
+  const { enabled: scrambleOn, mounted: scrambleMounted, setScramble } = useScramble();
+
 
   const themeOptions: { value: Theme; label: string; icon: typeof Sun }[] = [
     { value: "light", label: "Light", icon: Sun },
@@ -89,6 +93,40 @@ function SettingsPage() {
               })}
             </div>
           </div>
+
+          {me?.isAdmin && (
+            <div className="rounded-2xl border border-border bg-card p-6">
+              <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <h2 className="flex items-center gap-2 font-display text-lg font-semibold">
+                    <EyeOff className="h-4 w-4 text-brand-green" /> Scramble mode
+                  </h2>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Replace client names and addresses with fake values on screen. Only affects what you see — data is unchanged.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setScramble(!scrambleOn)}
+                  disabled={!scrambleMounted}
+                  role="switch"
+                  aria-checked={scrambleOn}
+                  className={cn(
+                    "relative h-7 w-12 shrink-0 rounded-full transition-colors",
+                    scrambleOn ? "bg-primary" : "bg-secondary",
+                  )}
+                >
+                  <span
+                    className={cn(
+                      "absolute top-0.5 h-6 w-6 rounded-full bg-white shadow transition-transform",
+                      scrambleOn ? "translate-x-[22px]" : "translate-x-0.5",
+                    )}
+                  />
+                </button>
+              </div>
+            </div>
+          )}
+
+
 
 
 
