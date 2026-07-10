@@ -43,6 +43,8 @@ function JobsPage() {
     queryKey: ["jobs", "today"],
     queryFn: () => fn({ data: { scope: "today" } }),
   });
+  useRealtimeInvalidate(["jobs", "job_checklist_progress"], [["jobs"]]);
+
 
   const isWorker = !!me && !me.isAdmin;
   const sections = groupJobsByDay(jobs);
