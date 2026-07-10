@@ -9,7 +9,7 @@ import { format, formatDistanceToNow, isToday, isTomorrow, isYesterday, startOfD
 import { useNow } from "@/hooks/use-now";
 
 export const Route = createFileRoute("/_authenticated/jobs")({
-  component: TodayPage,
+  component: JobsPage,
   errorComponent: ({ error }) => <div className="p-8 text-destructive">{error.message}</div>,
 });
 
