@@ -176,11 +176,13 @@ function JobCard({ job, showPay, isWorker }: { job: any; showPay?: boolean; isWo
   const price = job.price_cents ? `$${(job.price_cents / 100).toFixed(2)}` : null;
   const { isActive, statusColor, statusLabel, startMs } = useJobStatus(job);
 
+  const activeOutline = isActive ? "ring-2 ring-brand-green ring-offset-2 ring-offset-background" : "";
+
   return (
     <Link
       to="/jobs/$jobId"
       params={{ jobId: job.id }}
-      className="group block rounded-2xl border border-border bg-card p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:border-brand-lime hover:shadow-md"
+      className={`group block rounded-2xl border border-border bg-card p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:border-brand-lime hover:shadow-md ${activeOutline}`}
     >
       <div className="mb-2 flex items-start justify-between gap-2">
         <div>
@@ -239,11 +241,13 @@ function JobListItem({ job, showPay, isWorker }: { job: any; showPay?: boolean; 
   const price = job.price_cents ? `$${(job.price_cents / 100).toFixed(2)}` : null;
   const { isActive, statusColor, statusLabel, startMs } = useJobStatus(job);
 
+  const activeOutline = isActive ? "ring-2 ring-brand-green ring-offset-2 ring-offset-background" : "";
+
   return (
     <Link
       to="/jobs/$jobId"
       params={{ jobId: job.id }}
-      className="group flex flex-col gap-3 rounded-2xl border border-border bg-card p-4 shadow-sm transition-all hover:border-brand-lime hover:shadow-md sm:flex-row sm:items-center sm:justify-between"
+      className={`group flex flex-col gap-3 rounded-2xl border border-border bg-card p-4 shadow-sm transition-all hover:border-brand-lime hover:shadow-md sm:flex-row sm:items-center sm:justify-between ${activeOutline}`}
     >
       <div className="min-w-0 flex-1">
         <div className="mb-1 flex items-center gap-2">
