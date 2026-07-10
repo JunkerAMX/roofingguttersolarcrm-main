@@ -106,19 +106,22 @@ function SettingsPage() {
                   </p>
                 </div>
                 <button
+                  type="button"
                   onClick={() => setScramble(!scrambleOn)}
                   disabled={!scrambleMounted}
                   role="switch"
                   aria-checked={scrambleOn}
+                  aria-label="Toggle scramble mode"
                   className={cn(
-                    "relative h-7 w-12 shrink-0 rounded-full transition-colors",
-                    scrambleOn ? "bg-primary" : "bg-secondary",
+                    "relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent p-0 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
+                    scrambleOn ? "bg-primary" : "bg-input",
                   )}
                 >
                   <span
+                    aria-hidden="true"
                     className={cn(
-                      "absolute top-0.5 h-6 w-6 rounded-full bg-white shadow transition-transform",
-                      scrambleOn ? "translate-x-[22px]" : "translate-x-0.5",
+                      "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-background shadow ring-0 transition-transform",
+                      scrambleOn ? "translate-x-5" : "translate-x-0",
                     )}
                   />
                 </button>
