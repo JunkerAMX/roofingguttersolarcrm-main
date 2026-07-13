@@ -99,8 +99,9 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Outlet />
-      <RoutePendingIndicator />
+      <RouteLoadingGate>
+        <Outlet />
+      </RouteLoadingGate>
       <Toaster position="top-center" richColors closeButton expand visibleToasts={4} />
     </QueryClientProvider>
   );
