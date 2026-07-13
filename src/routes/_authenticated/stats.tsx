@@ -187,6 +187,12 @@ function StatsInner() {
   );
 }
 
+function shortName(name: string) {
+  const parts = name.trim().split(/\s+/);
+  if (parts.length <= 1) return parts[0] ?? name;
+  return `${parts[0]} ${parts[parts.length - 1][0]}.`;
+}
+
 function HeroStat({ label, value }: { label: string; value: string }) {
   return (
     <div>
