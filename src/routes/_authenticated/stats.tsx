@@ -150,7 +150,7 @@ function StatsInner() {
                 <div key={w.name} className="rounded-2xl border border-border bg-card p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
-                      <div className="truncate font-medium">{w.name}</div>
+                      <div className="truncate font-medium">{shortName(w.name)}</div>
                       <div className="mt-0.5 flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
                         <span><span className="font-semibold text-brand-green">{w.done}</span> done</span>
                         <span><span className="font-semibold text-warning">{w.due}</span> due</span>
@@ -185,6 +185,12 @@ function StatsInner() {
       {msgJobId && <MessagesDialog jobId={msgJobId} currentUserId={me?.userId} onClose={() => setMsgJobId(null)} />}
     </AppShell>
   );
+}
+
+function shortName(name: string) {
+  const parts = name.trim().split(/\s+/);
+  if (parts.length <= 1) return parts[0] ?? name;
+  return `${parts[0]} ${parts[parts.length - 1][0]}.`;
 }
 
 function HeroStat({ label, value }: { label: string; value: string }) {
