@@ -115,14 +115,14 @@ function StatsInner() {
         <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-primary-foreground/70">
           <TrendingUp className="h-3.5 w-3.5" /> Revenue earned
         </div>
-        <div className="mt-2 font-display text-5xl font-bold sm:text-6xl">{formatCents(s.revenueDone, s.currency)}</div>
+        <div className="mt-2 font-display text-4xl font-bold tracking-tight sm:text-6xl">{formatCents(s.revenueDone, s.currency)}</div>
         <div className="mt-1 text-sm text-primary-foreground/80">
           from {s.done.length} completed job{s.done.length === 1 ? "" : "s"}
         </div>
-        <div className="mt-6 grid grid-cols-3 gap-4 border-t border-primary-foreground/15 pt-5 text-sm">
+        <div className="mt-6 grid grid-cols-3 gap-2 border-t border-primary-foreground/15 pt-5 text-sm sm:gap-4">
           <HeroStat label="Profit" value={formatCents(s.profitDone, s.currency)} />
           <HeroStat label="Worker pay" value={formatCents(s.payDone, s.currency)} />
-          <HeroStat label="Pending revenue" value={formatCents(s.revenuePending, s.currency)} />
+          <HeroStat label="Pending" value={formatCents(s.revenuePending, s.currency)} />
         </div>
       </div>
 
