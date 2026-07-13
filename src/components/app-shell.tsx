@@ -15,7 +15,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const getMeFn = useServerFn(getMe);
   const { data: me } = useQuery({ queryKey: ["me"], queryFn: () => getMeFn() });
-  const [menuOpen, setMenuOpen] = useState(false);
+  
 
   const nav = [
     { to: "/jobs", label: "Jobs", icon: Home },
