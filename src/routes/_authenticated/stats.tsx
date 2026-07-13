@@ -232,7 +232,7 @@ function JobColumn({ tone, title, items, emptyLabel, currency, currentUserId: _u
             const pay = calculateWorkerPayCents(j.price_cents);
             return (
               <div key={j.id} className="group rounded-xl border border-border bg-card p-3 transition-all hover:-translate-y-px hover:border-brand-lime hover:shadow-sm">
-                <div className="flex items-start justify-between gap-3">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
                   <Link to="/jobs/$jobId" params={{ jobId: j.id }} className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
                       <span className="truncate font-medium">
@@ -242,15 +242,15 @@ function JobColumn({ tone, title, items, emptyLabel, currency, currentUserId: _u
                     </div>
                     <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
                       {j.job_type?.name && <span>{j.job_type.name}</span>}
-                      {j.contact?.address && <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" />{scrambleAddress(j.contact.address)}</span>}
+                      {j.contact?.address && <span className="inline-flex items-center gap-1 min-w-0"><MapPin className="h-3 w-3 shrink-0" /><span className="truncate">{scrambleAddress(j.contact.address)}</span></span>}
                       {j.scheduled_for && <span>· {formatJobDayMonth(j.scheduled_for, getJobTimeZone(j))}</span>}
                     </div>
                     <div className="mt-1 flex items-center gap-1.5 text-[11px]">
-                      <CircleDot className="h-3 w-3 text-muted-foreground" />
-                      <span className="text-muted-foreground">{j.assignee?.full_name || j.assignee?.email || "Unassigned"}</span>
+                      <CircleDot className="h-3 w-3 shrink-0 text-muted-foreground" />
+                      <span className="truncate text-muted-foreground">{j.assignee?.full_name || j.assignee?.email || "Unassigned"}</span>
                     </div>
                   </Link>
-                  <div className="flex shrink-0 flex-col items-end gap-1">
+                  <div className="flex shrink-0 flex-wrap items-center gap-1.5 sm:flex-col sm:items-end sm:gap-1">
                     {price && <span className="font-display text-base font-semibold">{price}</span>}
                     {pay > 0 && (
                       <span className="inline-flex items-center gap-1 rounded-lg bg-brand-green/10 px-2 py-0.5 text-[10px] font-semibold text-brand-green">
