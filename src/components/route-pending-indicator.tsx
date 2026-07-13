@@ -3,7 +3,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { Loader2 } from "lucide-react";
 
 export function RouteLoadingGate({ children }: { children: ReactNode }) {
-  const isLoading = useRouterState((s) => s.isLoading || s.isTransitioning);
+  const isLoading = useRouterState({ select: (s) => s.isLoading || s.isTransitioning });
   const [showLoader, setShowLoader] = useState(false);
 
   useEffect(() => {
