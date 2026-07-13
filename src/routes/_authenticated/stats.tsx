@@ -190,9 +190,9 @@ function StatsInner() {
 
 function HeroStat({ label, value }: { label: string; value: string }) {
   return (
-    <div>
-      <div className="text-[11px] uppercase tracking-wide text-primary-foreground/70">{label}</div>
-      <div className="mt-0.5 font-display text-xl font-semibold">{value}</div>
+    <div className="min-w-0">
+      <div className="truncate text-[10px] uppercase tracking-wide text-primary-foreground/70 sm:text-[11px]">{label}</div>
+      <div className="mt-0.5 truncate font-display text-base font-semibold sm:text-xl">{value}</div>
     </div>
   );
 }
