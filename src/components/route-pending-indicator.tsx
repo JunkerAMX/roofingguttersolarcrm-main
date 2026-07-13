@@ -15,17 +15,16 @@ export function RouteLoadingGate({ children }: { children: ReactNode }) {
     return () => clearTimeout(t);
   }, [isLoading]);
 
-  return (
-    <>
-      <div style={{ display: showLoader ? "none" : "contents" }}>{children}</div>
-      {showLoader && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background animate-in fade-in duration-150">
-          <div className="flex items-center gap-3 rounded-2xl border border-border/60 bg-card px-5 py-4 shadow-lg">
-            <Loader2 className="h-5 w-5 animate-spin text-brand-green" />
-            <span className="text-sm font-medium text-foreground">Loading…</span>
-          </div>
+  if (showLoader) {
+    return (
+      <div className="flex min-h-[40vh] items-center justify-center py-16 animate-in fade-in duration-150">
+        <div className="flex items-center gap-3 text-muted-foreground">
+          <Loader2 className="h-5 w-5 animate-spin text-brand-green" />
+          <span className="text-sm font-medium">Loading…</span>
         </div>
-      )}
-    </>
-  );
+      </div>
+    );
+  }
+
+  return <>{children}</>;
 }

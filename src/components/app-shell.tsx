@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/logo.png";
 import { cn } from "@/lib/utils";
 import { NotificationBell } from "@/components/notification-bell";
+import { RouteLoadingGate } from "@/components/route-pending-indicator";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const router = useRouter();
@@ -93,7 +94,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         )}
       </header>
-      <main className="mx-auto max-w-6xl px-4 py-6 sm:py-8">{children}</main>
+      <main className="mx-auto max-w-6xl px-4 py-6 sm:py-8"><RouteLoadingGate>{children}</RouteLoadingGate></main>
     </div>
   );
 }
