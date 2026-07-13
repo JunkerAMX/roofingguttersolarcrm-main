@@ -12,7 +12,7 @@ import { Toaster } from "sonner";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { supabase } from "@/integrations/supabase/client";
-import { RoutePendingIndicator } from "@/components/route-pending-indicator";
+import { RouteLoadingGate } from "@/components/route-pending-indicator";
 
 function NotFoundComponent() {
   return (
@@ -99,8 +99,9 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Outlet />
-      <RoutePendingIndicator />
+      <RouteLoadingGate>
+        <Outlet />
+      </RouteLoadingGate>
       <Toaster position="top-center" richColors closeButton expand visibleToasts={4} />
     </QueryClientProvider>
   );
