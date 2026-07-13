@@ -149,15 +149,15 @@ function StatsInner() {
               return (
                 <div key={w.name} className="rounded-2xl border border-border bg-card p-4">
                   <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
+                    <div className="min-w-0 flex-1">
                       <div className="truncate font-medium">{w.name}</div>
-                      <div className="mt-0.5 flex gap-3 text-xs text-muted-foreground">
+                      <div className="mt-0.5 flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
                         <span><span className="font-semibold text-brand-green">{w.done}</span> done</span>
                         <span><span className="font-semibold text-warning">{w.due}</span> due</span>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <div className="font-display text-lg font-semibold">{formatCents(w.revenue, w.revenue ? s.currency : "")}</div>
+                    <div className="shrink-0 text-right">
+                      <div className="font-display text-base font-semibold sm:text-lg">{formatCents(w.revenue, w.revenue ? s.currency : "")}</div>
                       <div className="text-[11px] text-brand-green">{formatCents(w.pay, w.pay ? s.currency : "")} pay</div>
                     </div>
                   </div>
