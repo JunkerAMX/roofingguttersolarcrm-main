@@ -239,6 +239,22 @@ export const Route = createFileRoute("/api/public/highlevel/appointment")({
         // Price sent in whole dollars (e.g. 249) → converted to cents for storage.
         const price_cents = toCents(pick(custom.price, payload.price, appt.price, custom.price_cents, payload.price_cents, appt.price_cents));
         const notes = pick(custom.notes, appt.notes, payload.notes, payload.Message);
+        const service_details = pick(
+          custom.service_details, custom.cleaning_type, custom.what_needs_cleaning,
+          payload.service_details, payload.cleaning_type, payload.what_needs_cleaning,
+          appt.service_details,
+        );
+        const twoStoreyRaw = pick(
+          custom.is_two_storey, custom.two_storey, custom.twoStorey, custom.two_story,
+          payload.is_two_storey, payload.two_storey, payload.twoStorey, payload.two_story,
+        );
+        const is_two_storey =
+          twoStoreyRaw === null || twoStoreyRaw === undefined
+            ? null
+            : ["true", "yes", "y", "1", true, 1].includes(
+                typeof twoStoreyRaw === "string" ? twoStoreyRaw.toLowerCase().trim() : twoStoreyRaw,
+              );
+
 
         const { data: job, error: jerr } = await supabaseAdmin
           .from("jobs")
