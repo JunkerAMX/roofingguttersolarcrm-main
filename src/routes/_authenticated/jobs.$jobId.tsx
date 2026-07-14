@@ -178,32 +178,17 @@ function JobDetail() {
                 >
                   <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
                   <span>{fullDisplayAddress}</span>
-
                 </a>
               )}
-              {contact?.phone && (() => {
-                const p = scramblePhone(contact.phone);
-                return (
-                  <a href={`tel:${p}`} className="flex items-center gap-2 text-foreground hover:text-brand-green">
-                    <Phone className="h-4 w-4" /> {p}
-                  </a>
-                );
-              })()}
-              {contact?.email && (() => {
-                const e = scrambleEmail(contact.email);
-                return (
-                  <a href={`mailto:${e}`} className="flex items-center gap-2 text-foreground hover:text-brand-green">
-                    <Mail className="h-4 w-4" /> {e}
-                  </a>
-                );
-              })()}
             </div>
 
             {((job as any).service_details || (job as any).is_two_storey !== null && (job as any).is_two_storey !== undefined) && (
               <div className="mt-4 divide-y divide-border rounded-xl border border-border bg-background">
                 {(job as any).service_details && (
                   <div className="p-3">
-                    <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">What needs cleaning</div>
+                    <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                      What needs cleaning · <span className="text-brand-green">{job.job_type?.name}</span>
+                    </div>
                     <div className="mt-1 text-base font-semibold text-foreground">{(job as any).service_details}</div>
                   </div>
                 )}
@@ -215,20 +200,38 @@ function JobDetail() {
                     ) : (
                       <X className="h-5 w-5 text-muted-foreground" strokeWidth={3} />
                     )}
-
                   </div>
                 )}
               </div>
             )}
 
-
-
-            {job.notes && (
-              <div className="mt-4 rounded-xl bg-secondary/60 p-3 text-sm">
-                <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Job notes</div>
-                {job.notes}
-              </div>
+            {(contact?.phone || contact?.email) && (
+              <details className="mt-4 group rounded-xl border border-border bg-background">
+                <summary className="flex cursor-pointer items-center justify-between p-3 text-sm font-semibold text-muted-foreground list-none [&::-webkit-details-marker]:hidden">
+                  <span>Extra contact details</span>
+                  <span className="text-xs transition-transform group-open:rotate-180">▾</span>
+                </summary>
+                <div className="grid gap-2 border-t border-border p-3 text-sm">
+                  {contact?.phone && (() => {
+                    const p = scramblePhone(contact.phone);
+                    return (
+                      <a href={`tel:${p}`} className="flex items-center gap-2 text-foreground hover:text-brand-green">
+                        <Phone className="h-4 w-4" /> {p}
+                      </a>
+                    );
+                  })()}
+                  {contact?.email && (() => {
+                    const e = scrambleEmail(contact.email);
+                    return (
+                      <a href={`mailto:${e}`} className="flex items-center gap-2 text-foreground hover:text-brand-green">
+                        <Mail className="h-4 w-4" /> {e}
+                      </a>
+                    );
+                  })()}
+                </div>
+              </details>
             )}
+
 
 
           </div>
