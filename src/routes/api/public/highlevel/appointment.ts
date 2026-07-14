@@ -25,22 +25,6 @@ function pickText(...vals: any[]): string | null {
   return null;
 }
 
-function buildWorkerBriefing(ctx: {
-  customerMessage: string | null;
-  existingNotes: string | null;
-  serviceDetails: string | null;
-  jobTypeHint: string | null;
-  isTwoStorey: boolean | null;
-}) {
-  const lines: string[] = [];
-  if (ctx.customerMessage) lines.push(`- Customer request: ${ctx.customerMessage}`);
-  if (ctx.existingNotes && ctx.existingNotes !== ctx.customerMessage) lines.push(`- Job notes: ${ctx.existingNotes}`);
-  const service = [ctx.jobTypeHint, ctx.serviceDetails].filter(Boolean).join(" — ");
-  if (service) lines.push(`- Service: ${service}`);
-  if (ctx.isTwoStorey !== null) lines.push(`- Two-storey: ${ctx.isTwoStorey ? "yes" : "no"}`);
-  return lines.length ? lines.join("\n") : null;
-}
-
 // Price arrives in whole dollars (e.g. 249). Store as cents.
 function toCents(v: any): number | null {
   if (v === undefined || v === null || v === "") return null;
@@ -291,13 +275,7 @@ export const Route = createFileRoute("/api/public/highlevel/appointment")({
                 typeof twoStoreyRaw === "string" ? twoStoreyRaw.toLowerCase().trim() : twoStoreyRaw,
               );
 
-        const notes = buildWorkerBriefing({
-          customerMessage,
-          existingNotes,
-          serviceDetails: service_details ? String(service_details) : null,
-          jobTypeHint: jobTypeHint ? String(jobTypeHint) : null,
-          isTwoStorey: is_two_storey,
-        });
+        const jobContextNotes = [customerMessage, existingNotes].filter(Boolean).join("\n") || null;
 
 
         const { data: job, error: jerr } = await supabaseAdmin
@@ -312,7 +290,7 @@ export const Route = createFileRoute("/api/public/highlevel/appointment")({
             currency: pick(custom.currency, payload.currency, appt.currency) ?? "AUD",
             scheduled_for,
             due_date,
-            notes,
+            notes: null,
             service_details,
             is_two_storey,
             highlevel_payload: payload,
@@ -345,15 +323,13 @@ export const Route = createFileRoute("/api/public/highlevel/appointment")({
         try {
           if (highlevel_contact_id) {
             const aiNotes = await generateWorkerNotesFromHL(String(highlevel_contact_id), {
-              existingNotes: notes,
+              appointmentNotes: jobContextNotes,
               serviceDetails: service_details,
               jobTypeHint: jobTypeHint ? String(jobTypeHint) : null,
               isTwoStorey: is_two_storey,
             });
             if (aiNotes) {
-              const combined = [notes?.trim(), `--- AI briefing (from contact chat history) ---\n${aiNotes}`]
-                .filter(Boolean).join("\n\n");
-              await supabaseAdmin.from("jobs").update({ notes: combined }).eq("id", job.id);
+              await supabaseAdmin.from("jobs").update({ notes: aiNotes }).eq("id", job.id);
             }
           }
         } catch (e) {
@@ -368,7 +344,7 @@ export const Route = createFileRoute("/api/public/highlevel/appointment")({
 
 async function generateWorkerNotesFromHL(
   contactId: string,
-  ctx: { existingNotes: string | null; serviceDetails: string | null; jobTypeHint: string | null; isTwoStorey: boolean | null },
+  ctx: { appointmentNotes: string | null; serviceDetails: string | null; jobTypeHint: string | null; isTwoStorey: boolean | null },
 ): Promise<string | null> {
   const pit = process.env.HIGHLEVEL_PIT;
   const locationId = process.env.HIGHLEVEL_LOCATION_ID;
@@ -394,11 +370,13 @@ async function generateWorkerNotesFromHL(
   const conversations: any[] = convData?.conversations ?? [];
   if (!conversations.length) return null;
 
-  // 2. Fetch messages for each conversation (cap for safety)
+  // 2. Fetch messages for each conversation (cap for safety). HighLevel defaults
+  // to 20 newest messages, which can be only appointment activity; request more
+  // so older real SMS/customer history is included.
   const allMessages: { convId: string; body: string; direction: string; type: string; messageType: string; dateAdded: string }[] = [];
   for (const conv of conversations.slice(0, 5)) {
     const msgRes = await fetch(
-      `https://services.leadconnectorhq.com/conversations/${conv.id}/messages`,
+      `https://services.leadconnectorhq.com/conversations/${conv.id}/messages?limit=100`,
       { headers: hlHeaders },
     );
     if (!msgRes.ok) continue;
@@ -426,12 +404,11 @@ async function generateWorkerNotesFromHL(
   // Sort oldest → newest, cap the last 60
   allMessages.sort((a, b) => (a.dateAdded > b.dateAdded ? 1 : -1));
   const trimmed = allMessages.slice(-60);
+  if (!trimmed.length) return null;
 
-  const transcript = trimmed.length
-    ? trimmed
-        .map((m) => `[${m.direction === "inbound" ? "Customer" : "Us"} • ${m.messageType || m.type}] ${m.body}`)
-        .join("\n")
-    : "(No prior customer messages on record.)";
+  const transcript = trimmed
+    .map((m) => `[${m.direction === "inbound" ? "Customer" : "Us"} • ${m.messageType || m.type}] ${m.body}`)
+    .join("\n");
 
   // 3. Ask Lovable AI to summarize for the worker
   const systemPrompt = `You brief a field service worker before a job. Read the chat/message history between our business and the customer and produce a short briefing.
@@ -447,13 +424,13 @@ Rules:
 - Short. Bullet points. No preamble.
 - Skip greetings, booking logistics, and generic template messages.
 - Do not invent details not in the transcript.
-- If there is no meaningful customer conversation on record, reply exactly with: No prior conversation on record — brief on job details only.`;
+- If the transcript has no useful worker notes, reply exactly with: NONE.`;
 
   const userPrompt = `Job context:
 - Service type: ${ctx.jobTypeHint ?? "unknown"}
 - Service details: ${ctx.serviceDetails ?? "n/a"}
 - Two-storey: ${ctx.isTwoStorey === null ? "unknown" : ctx.isTwoStorey ? "yes" : "no"}
-- Existing notes on job: ${ctx.existingNotes ?? "(none)"}
+- Appointment form notes/customer request: ${ctx.appointmentNotes ?? "(none)"}
 
 Message history (oldest → newest):
 ${transcript}`;
@@ -474,10 +451,10 @@ ${transcript}`;
   });
   if (!aiRes.ok) {
     console.error("Lovable AI failed", aiRes.status, await aiRes.text());
-    return trimmed.length ? "No AI summary available — see chat history in HighLevel." : "No prior conversation on record — brief on job details only.";
+    return null;
   }
   const aiData = await aiRes.json() as any;
   const text = String(aiData?.choices?.[0]?.message?.content ?? "").trim();
-  if (!text) return trimmed.length ? "No AI summary available — see chat history in HighLevel." : "No prior conversation on record — brief on job details only.";
+  if (!text || text.toUpperCase() === "NONE") return null;
   return text;
 }
