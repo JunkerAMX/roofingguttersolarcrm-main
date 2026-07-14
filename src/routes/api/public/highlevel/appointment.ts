@@ -390,23 +390,32 @@ async function generateWorkerNotesFromHL(
     .join("\n");
 
   // 3. Ask Lovable AI to summarize for the worker
-  const systemPrompt = `You brief a field service worker before a job. Read the chat/message history between our business and the customer and produce a short briefing.
+  const systemPrompt = `You brief a field service worker before a job. Read the chat/message history between our business and the customer and extract ONLY extra context the worker needs on site.
 
-Focus on:
-- Confirmed service address/suburb if mentioned
-- Confirmed service time, scope, and price if mentioned
-- Access instructions (gate codes, parking, pets, side access)
-- Specific problem areas or requests the customer mentioned
-- Special conditions (fragile items, tenants, timing constraints)
-- Anything the customer explicitly asked for or complained about
-- Confirmed pricing/scope agreements
+DO NOT include (already shown elsewhere in the app):
+- Address, suburb, or location
+- Appointment time or date
+- Price, quote, or payment info
+- Service type / scope / package name
+- Two-storey flag
+
+DO include anything the customer mentioned like:
+- How to access the property (gate codes, side access, lockbox, "come to back door")
+- Parking instructions
+- Pets, kids, tenants, or people on site
+- Hard-to-reach areas, problem spots, specific rooms/sides of house
+- "Back of house", "upstairs bathroom", specific gutters, etc.
+- Timing constraints ("after 2pm", "call before arriving")
+- Fragile items, sensitive areas, things to avoid
+- Complaints, concerns, or specific requests
+- Anything unusual the worker should know
 
 Rules:
-- Short. Bullet points. No preamble.
-- Skip greetings and generic template messages.
-- Do not invent details not in the transcript.
-- If the transcript has customer/business messages but only booking details, still summarize the confirmed address, time, scope, and price from those messages.
-- Reply exactly with NONE only when there are no meaningful real messages to summarize.`;
+- Short bullet points. No preamble, no headings.
+- Only include facts the customer actually said in the transcript.
+- Do not invent details.
+- Reply exactly with NONE when the transcript has no such extra context (only greetings, booking confirmations, or template messages).`;
+
 
   const userPrompt = `Job context:
 - Service type: ${ctx.jobTypeHint ?? "unknown"}
