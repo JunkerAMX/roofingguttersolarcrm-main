@@ -113,7 +113,15 @@ export const toggleChecklistItem = createServerFn({ method: "POST" })
           .select("*, contact:contacts(*), assignee:profiles!jobs_assigned_to_fkey(id, full_name, email, phone, stripe_account_id)")
           .eq("id", prog.job_id)
           .maybeSingle();
-        const worker = (full as any)?.assignee ?? null;
+        let worker = (full as any)?.assignee ?? null;
+        if (!worker) {
+          const { data: me } = await supabase
+            .from("profiles")
+            .select("id, full_name, email, phone, stripe_account_id")
+            .eq("id", userId)
+            .maybeSingle();
+          worker = me ?? null;
+        }
         try {
           const res = await fetch(settings.highlevel_payment_webhook_url, {
             method: "POST",
