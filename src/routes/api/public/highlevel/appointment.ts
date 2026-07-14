@@ -300,8 +300,135 @@ export const Route = createFileRoute("/api/public/highlevel/appointment")({
           }
         }
 
+        // Enrich notes from HighLevel conversation history via Lovable AI (best-effort)
+        try {
+          if (highlevel_contact_id) {
+            const aiNotes = await generateWorkerNotesFromHL(String(highlevel_contact_id), {
+              existingNotes: notes,
+              serviceDetails: service_details,
+              jobTypeHint: jobTypeHint ? String(jobTypeHint) : null,
+              isTwoStorey: is_two_storey,
+            });
+            if (aiNotes) {
+              const combined = [notes?.trim(), `--- AI briefing (from contact chat history) ---\n${aiNotes}`]
+                .filter(Boolean).join("\n\n");
+              await supabaseAdmin.from("jobs").update({ notes: combined }).eq("id", job.id);
+            }
+          }
+        } catch (e) {
+          console.error("HL enrichment failed", (e as Error)?.message);
+        }
+
         return Response.json({ ok: true, job_id: job.id, contact_matched: !!contact_id });
       },
     },
   },
 });
+
+async function generateWorkerNotesFromHL(
+  contactId: string,
+  ctx: { existingNotes: string | null; serviceDetails: string | null; jobTypeHint: string | null; isTwoStorey: boolean | null },
+): Promise<string | null> {
+  const pit = process.env.HIGHLEVEL_PIT;
+  const locationId = process.env.HIGHLEVEL_LOCATION_ID;
+  const lovableKey = process.env.LOVABLE_API_KEY;
+  if (!pit || !locationId || !lovableKey) return null;
+
+  const hlHeaders = {
+    Authorization: `Bearer ${pit}`,
+    Version: "2021-04-15",
+    Accept: "application/json",
+  };
+
+  // 1. Search conversations for this contact
+  const convRes = await fetch(
+    `https://services.leadconnectorhq.com/conversations/search?locationId=${encodeURIComponent(locationId)}&contactId=${encodeURIComponent(contactId)}`,
+    { headers: hlHeaders },
+  );
+  if (!convRes.ok) {
+    console.error("HL conversations/search failed", convRes.status, await convRes.text());
+    return null;
+  }
+  const convData = await convRes.json() as any;
+  const conversations: any[] = convData?.conversations ?? [];
+  if (!conversations.length) return null;
+
+  // 2. Fetch messages for each conversation (cap for safety)
+  const allMessages: { convId: string; body: string; direction: string; type: string; dateAdded: string }[] = [];
+  for (const conv of conversations.slice(0, 5)) {
+    const msgRes = await fetch(
+      `https://services.leadconnectorhq.com/conversations/${conv.id}/messages`,
+      { headers: hlHeaders },
+    );
+    if (!msgRes.ok) continue;
+    const msgData = await msgRes.json() as any;
+    const msgs: any[] = msgData?.messages?.messages ?? msgData?.messages ?? [];
+    for (const m of msgs) {
+      const body = String(m.body ?? m.message ?? "").trim();
+      if (!body) continue;
+      allMessages.push({
+        convId: conv.id,
+        body,
+        direction: m.direction ?? "",
+        type: m.type ?? m.messageType ?? "",
+        dateAdded: m.dateAdded ?? m.createdAt ?? "",
+      });
+    }
+  }
+  if (!allMessages.length) return null;
+
+  // Sort oldest → newest, cap the last 60 messages
+  allMessages.sort((a, b) => (a.dateAdded > b.dateAdded ? 1 : -1));
+  const trimmed = allMessages.slice(-60);
+  const transcript = trimmed
+    .map((m) => `[${m.direction === "inbound" ? "Customer" : "Us"} • ${m.type}] ${m.body}`)
+    .join("\n");
+
+  // 3. Ask Lovable AI to summarize for the worker
+  const systemPrompt = `You brief a field service worker before a job. Read the chat/message history between our business and the customer. Extract ONLY what the worker needs to know on-site.
+
+Focus on:
+- Access instructions (gate codes, parking, pets, side access)
+- Specific problem areas or requests the customer mentioned
+- Special conditions (fragile items, tenants, timing constraints)
+- Anything the customer explicitly asked for or complained about
+- Confirmed pricing/scope agreements
+
+Rules:
+- Short. Use bullet points.
+- Skip small talk, greetings, booking logistics already handled.
+- If nothing useful, reply with exactly: NONE
+- Do not invent details not in the transcript.`;
+
+  const userPrompt = `Job context:
+- Service type: ${ctx.jobTypeHint ?? "unknown"}
+- Service details: ${ctx.serviceDetails ?? "n/a"}
+- Two-storey: ${ctx.isTwoStorey === null ? "unknown" : ctx.isTwoStorey ? "yes" : "no"}
+- Existing notes on job: ${ctx.existingNotes ?? "(none)"}
+
+Message history (oldest → newest):
+${transcript}`;
+
+  const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Lovable-API-Key": lovableKey,
+    },
+    body: JSON.stringify({
+      model: "google/gemini-3.5-flash",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+      ],
+    }),
+  });
+  if (!aiRes.ok) {
+    console.error("Lovable AI failed", aiRes.status, await aiRes.text());
+    return null;
+  }
+  const aiData = await aiRes.json() as any;
+  const text = String(aiData?.choices?.[0]?.message?.content ?? "").trim();
+  if (!text || text === "NONE") return null;
+  return text;
+}
