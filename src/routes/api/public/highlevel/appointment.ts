@@ -414,6 +414,8 @@ async function generateWorkerNotesFromHL(
   const systemPrompt = `You brief a field service worker before a job. Read the chat/message history between our business and the customer and produce a short briefing.
 
 Focus on:
+- Confirmed service address/suburb if mentioned
+- Confirmed service time, scope, and price if mentioned
 - Access instructions (gate codes, parking, pets, side access)
 - Specific problem areas or requests the customer mentioned
 - Special conditions (fragile items, tenants, timing constraints)
@@ -422,9 +424,10 @@ Focus on:
 
 Rules:
 - Short. Bullet points. No preamble.
-- Skip greetings, booking logistics, and generic template messages.
+- Skip greetings and generic template messages.
 - Do not invent details not in the transcript.
-- If the transcript has no useful worker notes, reply exactly with: NONE.`;
+- If the transcript has customer/business messages but only booking details, still summarize the confirmed address, time, scope, and price from those messages.
+- Reply exactly with NONE only when there are no meaningful real messages to summarize.`;
 
   const userPrompt = `Job context:
 - Service type: ${ctx.jobTypeHint ?? "unknown"}
@@ -440,9 +443,11 @@ ${transcript}`;
     headers: {
       "Content-Type": "application/json",
       "Lovable-API-Key": lovableKey,
+      "X-Lovable-AIG-SDK": "raw-fetch",
     },
     body: JSON.stringify({
       model: "google/gemini-2.5-flash",
+      max_tokens: 8192,
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt },
