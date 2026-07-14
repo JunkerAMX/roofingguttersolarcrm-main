@@ -254,8 +254,6 @@ export const Route = createFileRoute("/api/public/highlevel/appointment")({
         const due_date = toDateOnly(pick(custom.due_date, appt.due_date, payload.due_date), tz) ?? toDateOnly(scheduled_for, tz);
         // Price sent in whole dollars (e.g. 249) → converted to cents for storage.
         const price_cents = toCents(pick(custom.price, payload.price, appt.price, custom.price_cents, payload.price_cents, appt.price_cents));
-        const customerMessage = pickText(payload.Message, payload.message, payload.customer_message, payload.customerMessage);
-        const existingNotes = pickText(payload.notes, appt.notes, custom.notes);
         const service_details = pick(
           custom.service_details, custom.cleaning_type, custom.what_needs_cleaning,
           payload.service_details, payload.cleaning_type, payload.what_needs_cleaning,
@@ -274,8 +272,6 @@ export const Route = createFileRoute("/api/public/highlevel/appointment")({
             : ["true", "yes", "y", "1", true, 1].includes(
                 typeof twoStoreyRaw === "string" ? twoStoreyRaw.toLowerCase().trim() : twoStoreyRaw,
               );
-
-        const jobContextNotes = [customerMessage, existingNotes].filter(Boolean).join("\n") || null;
 
 
         const { data: job, error: jerr } = await supabaseAdmin
@@ -323,7 +319,6 @@ export const Route = createFileRoute("/api/public/highlevel/appointment")({
         try {
           if (highlevel_contact_id) {
             const aiNotes = await generateWorkerNotesFromHL(String(highlevel_contact_id), {
-              appointmentNotes: jobContextNotes,
               serviceDetails: service_details,
               jobTypeHint: jobTypeHint ? String(jobTypeHint) : null,
               isTwoStorey: is_two_storey,
@@ -344,7 +339,7 @@ export const Route = createFileRoute("/api/public/highlevel/appointment")({
 
 async function generateWorkerNotesFromHL(
   contactId: string,
-  ctx: { appointmentNotes: string | null; serviceDetails: string | null; jobTypeHint: string | null; isTwoStorey: boolean | null },
+  ctx: { serviceDetails: string | null; jobTypeHint: string | null; isTwoStorey: boolean | null },
 ): Promise<string | null> {
   const pit = process.env.HIGHLEVEL_PIT;
   const locationId = process.env.HIGHLEVEL_LOCATION_ID;
@@ -433,7 +428,6 @@ Rules:
 - Service type: ${ctx.jobTypeHint ?? "unknown"}
 - Service details: ${ctx.serviceDetails ?? "n/a"}
 - Two-storey: ${ctx.isTwoStorey === null ? "unknown" : ctx.isTwoStorey ? "yes" : "no"}
-- Appointment form notes/customer request: ${ctx.appointmentNotes ?? "(none)"}
 
 Message history (oldest → newest):
 ${transcript}`;
