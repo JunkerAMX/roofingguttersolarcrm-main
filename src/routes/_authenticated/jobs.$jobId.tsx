@@ -171,12 +171,12 @@ function JobDetail() {
             <div className="mt-4 space-y-1.5 text-sm">
               {contact?.address && (
                 <div>
-                  <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Location: </span>
+                  <span className="text-xs font-bold uppercase tracking-wide text-foreground">Location: </span>
                   <a
                     href={`https://maps.google.com/?q=${encodeURIComponent(fullDisplayAddress)}`}
                     target="_blank"
                     rel="noreferrer"
-                    className="font-medium hover:text-brand-green"
+                    className="font-medium text-muted-foreground hover:text-brand-green"
                   >
                     {fullDisplayAddress}
                   </a>
@@ -184,15 +184,15 @@ function JobDetail() {
               )}
               {(job as any).service_details && (
                 <div>
-                  <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">What needs cleaning: </span>
-                  <span className="font-semibold">{(job as any).service_details}</span>
+                  <span className="text-xs font-bold uppercase tracking-wide text-foreground">What needs cleaning: </span>
+                  <span className="font-medium text-muted-foreground">{(job as any).service_details}</span>
                   <span className="text-muted-foreground"> · </span>
                   <span className="font-medium text-brand-green">{job.job_type?.name}</span>
                 </div>
               )}
               {(job as any).is_two_storey !== null && (job as any).is_two_storey !== undefined && (
                 <div className="flex items-center gap-1.5">
-                  <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">2-storey building:</span>
+                  <span className="text-xs font-bold uppercase tracking-wide text-foreground">2-storey building:</span>
                   {(job as any).is_two_storey ? (
                     <Check className="h-4 w-4 text-brand-green" strokeWidth={3} />
                   ) : (
@@ -204,7 +204,8 @@ function JobDetail() {
 
 
             {(contact?.phone || contact?.email) && (
-              <details className="group mt-3">
+              <details className="group mt-6">
+
                 <summary className="flex cursor-pointer items-center gap-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground hover:text-foreground list-none [&::-webkit-details-marker]:hidden">
                   Extra contact details
                   <span className="transition-transform group-open:rotate-180">▾</span>
