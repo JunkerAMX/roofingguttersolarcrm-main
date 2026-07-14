@@ -132,6 +132,9 @@ export const toggleChecklistItem = createServerFn({ method: "POST" })
               highlevel_contact_id: full?.contact?.highlevel_contact_id,
               amount_cents: full?.price_cents,
               currency: full?.currency,
+              service_details: (full as any)?.service_details ?? null,
+              is_two_storey: (full as any)?.is_two_storey ?? null,
+              two_storey_answer: (full as any)?.is_two_storey === true ? "yes" : (full as any)?.is_two_storey === false ? "no" : null,
               contact: full?.contact,
               worker,
               worker_stripe_account_id: worker?.stripe_account_id ?? null,
@@ -141,6 +144,7 @@ export const toggleChecklistItem = createServerFn({ method: "POST" })
               worker_phone: worker?.phone ?? null,
             }),
           });
+
           if (res.ok) paymentSent = true;
         } catch (e) {
           console.error("HL webhook failed", e);
