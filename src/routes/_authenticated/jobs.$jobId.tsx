@@ -202,6 +202,12 @@ function JobDetail() {
               )}
             </div>
 
+            {job.notes && (
+              <div className="mt-6 rounded-lg border border-border bg-secondary/40 p-3">
+                <div className="mb-1 text-xs font-bold uppercase tracking-wide text-foreground">Notes</div>
+                <p className="whitespace-pre-wrap text-sm text-muted-foreground">{job.notes}</p>
+              </div>
+            )}
 
             {(contact?.phone || contact?.email) && (
               <details className="group mt-6">
