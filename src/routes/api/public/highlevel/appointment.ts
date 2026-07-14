@@ -9,22 +9,6 @@ function pick(...vals: any[]) {
   return null;
 }
 
-function cleanText(v: any): string | null {
-  if (v === undefined || v === null) return null;
-  const text = String(v).trim();
-  if (!text) return null;
-  if (["none", "null", "n/a", "na", "nil", "-"].includes(text.toLowerCase())) return null;
-  return text;
-}
-
-function pickText(...vals: any[]): string | null {
-  for (const v of vals) {
-    const text = cleanText(v);
-    if (text) return text;
-  }
-  return null;
-}
-
 // Price arrives in whole dollars (e.g. 249). Store as cents.
 function toCents(v: any): number | null {
   if (v === undefined || v === null || v === "") return null;
