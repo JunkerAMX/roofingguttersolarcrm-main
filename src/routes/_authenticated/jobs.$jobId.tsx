@@ -200,21 +200,22 @@ function JobDetail() {
             </div>
 
             {((job as any).service_details || (job as any).is_two_storey !== null && (job as any).is_two_storey !== undefined) && (
-              <dl className="mt-4 space-y-1.5 text-sm">
+              <div className="mt-4 divide-y divide-border rounded-xl border border-border bg-background">
                 {(job as any).service_details && (
-                  <div className="flex gap-2">
-                    <dt className="w-28 shrink-0 text-muted-foreground">Service</dt>
-                    <dd className="min-w-0 font-medium">{(job as any).service_details}</dd>
+                  <div className="p-3">
+                    <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">What needs cleaning</div>
+                    <div className="mt-1 text-base font-semibold text-foreground">{(job as any).service_details}</div>
                   </div>
                 )}
                 {(job as any).is_two_storey !== null && (job as any).is_two_storey !== undefined && (
-                  <div className="flex gap-2">
-                    <dt className="w-28 shrink-0 text-muted-foreground">2-storey</dt>
-                    <dd className="font-medium">{(job as any).is_two_storey ? "Yes" : "No"}</dd>
+                  <div className="flex items-center justify-between p-3">
+                    <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">2-storey building?</div>
+                    <div className="text-base font-bold">{(job as any).is_two_storey ? "Yes" : "No"}</div>
                   </div>
                 )}
-              </dl>
+              </div>
             )}
+
 
 
             {job.notes && (
