@@ -168,31 +168,28 @@ function JobDetail() {
               )}
             </div>
 
-            <div className="mt-4 divide-y divide-border rounded-xl border border-border bg-background">
+            <div className="mt-4 divide-y divide-border">
               {contact?.address && (
                 <a
                   href={`https://maps.google.com/?q=${encodeURIComponent(fullDisplayAddress)}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="flex items-start gap-3 p-3 hover:bg-secondary/40"
+                  className="block py-3 hover:text-brand-green"
                 >
-                  <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-brand-green" />
-                  <div className="min-w-0">
-                    <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Location</div>
-                    <div className="mt-0.5 text-sm font-medium text-foreground">{fullDisplayAddress}</div>
-                  </div>
+                  <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Location</div>
+                  <div className="mt-0.5 text-sm font-medium">{fullDisplayAddress}</div>
                 </a>
               )}
               {(job as any).service_details && (
-                <div className="p-3">
+                <div className="py-3">
                   <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                     What needs cleaning · <span className="text-brand-green">{job.job_type?.name}</span>
                   </div>
-                  <div className="mt-0.5 text-sm font-semibold text-foreground">{(job as any).service_details}</div>
+                  <div className="mt-0.5 text-sm font-semibold">{(job as any).service_details}</div>
                 </div>
               )}
               {(job as any).is_two_storey !== null && (job as any).is_two_storey !== undefined && (
-                <div className="flex items-center justify-between p-3">
+                <div className="flex items-center justify-between py-3">
                   <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">2-storey building?</div>
                   {(job as any).is_two_storey ? (
                     <Check className="h-5 w-5 text-brand-green" strokeWidth={3} />
@@ -203,33 +200,33 @@ function JobDetail() {
               )}
             </div>
 
-
             {(contact?.phone || contact?.email) && (
-              <details className="mt-4 group rounded-xl border border-border bg-background">
-                <summary className="flex cursor-pointer items-center justify-between p-3 text-sm font-semibold text-muted-foreground list-none [&::-webkit-details-marker]:hidden">
-                  <span>Extra contact details</span>
-                  <span className="text-xs transition-transform group-open:rotate-180">▾</span>
+              <details className="group mt-3">
+                <summary className="flex cursor-pointer items-center gap-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground hover:text-foreground list-none [&::-webkit-details-marker]:hidden">
+                  Extra contact details
+                  <span className="transition-transform group-open:rotate-180">▾</span>
                 </summary>
-                <div className="grid gap-2 border-t border-border p-3 text-sm">
+                <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm">
                   {contact?.phone && (() => {
                     const p = scramblePhone(contact.phone);
                     return (
-                      <a href={`tel:${p}`} className="flex items-center gap-2 text-foreground hover:text-brand-green">
-                        <Phone className="h-4 w-4" /> {p}
+                      <a href={`tel:${p}`} className="flex items-center gap-1.5 hover:text-brand-green">
+                        <Phone className="h-3.5 w-3.5" /> {p}
                       </a>
                     );
                   })()}
                   {contact?.email && (() => {
                     const e = scrambleEmail(contact.email);
                     return (
-                      <a href={`mailto:${e}`} className="flex items-center gap-2 text-foreground hover:text-brand-green">
-                        <Mail className="h-4 w-4" /> {e}
+                      <a href={`mailto:${e}`} className="flex items-center gap-1.5 hover:text-brand-green">
+                        <Mail className="h-3.5 w-3.5" /> {e}
                       </a>
                     );
                   })()}
                 </div>
               </details>
             )}
+
 
 
 
