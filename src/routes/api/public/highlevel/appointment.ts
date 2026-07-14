@@ -354,7 +354,7 @@ async function generateWorkerNotesFromHL(
   if (!conversations.length) return null;
 
   // 2. Fetch messages for each conversation (cap for safety)
-  const allMessages: { convId: string; body: string; direction: string; type: string; dateAdded: string }[] = [];
+  const allMessages: { convId: string; body: string; direction: string; type: string; messageType: string; dateAdded: string }[] = [];
   for (const conv of conversations.slice(0, 5)) {
     const msgRes = await fetch(
       `https://services.leadconnectorhq.com/conversations/${conv.id}/messages`,
@@ -366,26 +366,34 @@ async function generateWorkerNotesFromHL(
     for (const m of msgs) {
       const body = String(m.body ?? m.message ?? "").trim();
       if (!body) continue;
+      const messageType = String(m.messageType ?? "");
+      // Skip activity notifications (appointment created/deleted etc.) - not real messages
+      if (messageType.startsWith("TYPE_ACTIVITY")) continue;
+      // Skip unfilled template placeholders like "Payment link: ((PAYMENT))"
+      if (/\(\([A-Z_]+\)\)/.test(body)) continue;
       allMessages.push({
         convId: conv.id,
         body,
         direction: m.direction ?? "",
-        type: m.type ?? m.messageType ?? "",
+        type: String(m.type ?? ""),
+        messageType,
         dateAdded: m.dateAdded ?? m.createdAt ?? "",
       });
     }
   }
-  if (!allMessages.length) return null;
 
-  // Sort oldest → newest, cap the last 60 messages
+  // Sort oldest → newest, cap the last 60
   allMessages.sort((a, b) => (a.dateAdded > b.dateAdded ? 1 : -1));
   const trimmed = allMessages.slice(-60);
-  const transcript = trimmed
-    .map((m) => `[${m.direction === "inbound" ? "Customer" : "Us"} • ${m.type}] ${m.body}`)
-    .join("\n");
+
+  const transcript = trimmed.length
+    ? trimmed
+        .map((m) => `[${m.direction === "inbound" ? "Customer" : "Us"} • ${m.messageType || m.type}] ${m.body}`)
+        .join("\n")
+    : "(No prior customer messages on record.)";
 
   // 3. Ask Lovable AI to summarize for the worker
-  const systemPrompt = `You brief a field service worker before a job. Read the chat/message history between our business and the customer. Extract ONLY what the worker needs to know on-site.
+  const systemPrompt = `You brief a field service worker before a job. Read the chat/message history between our business and the customer and produce a short briefing.
 
 Focus on:
 - Access instructions (gate codes, parking, pets, side access)
@@ -395,10 +403,10 @@ Focus on:
 - Confirmed pricing/scope agreements
 
 Rules:
-- Short. Use bullet points.
-- Skip small talk, greetings, booking logistics already handled.
-- If nothing useful, reply with exactly: NONE
-- Do not invent details not in the transcript.`;
+- Short. Bullet points. No preamble.
+- Skip greetings, booking logistics, and generic template messages.
+- Do not invent details not in the transcript.
+- If there is no meaningful customer conversation on record, reply exactly with: No prior conversation on record — brief on job details only.`;
 
   const userPrompt = `Job context:
 - Service type: ${ctx.jobTypeHint ?? "unknown"}
