@@ -168,10 +168,10 @@ function JobDetail() {
               )}
             </div>
 
-            <div className="mt-4 space-y-1.5 text-sm">
+            <div className="mt-5 space-y-3 text-sm leading-relaxed">
               {contact?.address && (
-                <div>
-                  <span className="text-xs font-bold uppercase tracking-wide text-foreground">Location: </span>
+                <div className="flex flex-col gap-0.5 sm:flex-row sm:flex-wrap sm:gap-x-2">
+                  <span className="text-xs font-bold uppercase tracking-wide text-foreground">Location</span>
                   <a
                     href={`https://maps.google.com/?q=${encodeURIComponent(fullDisplayAddress)}`}
                     target="_blank"
@@ -183,16 +183,17 @@ function JobDetail() {
                 </div>
               )}
               {(job as any).service_details && (
-                <div>
-                  <span className="text-xs font-bold uppercase tracking-wide text-foreground">Service: </span>
-                  <span className="font-medium text-brand-green">{job.job_type?.name}</span>
-                  <span className="text-muted-foreground"> · </span>
-                  <span className="font-medium text-muted-foreground">{(job as any).service_details}</span>
+                <div className="flex flex-col gap-0.5 sm:flex-row sm:flex-wrap sm:gap-x-2">
+                  <span className="text-xs font-bold uppercase tracking-wide text-foreground">Service</span>
+                  <span className="font-medium">
+                    <span className="text-brand-green">{job.job_type?.name}</span>
+                    <span className="text-muted-foreground"> · {(job as any).service_details}</span>
+                  </span>
                 </div>
               )}
               {(job as any).is_two_storey !== null && (job as any).is_two_storey !== undefined && (
-                <div className="flex items-center gap-1.5">
-                  <span className="text-xs font-bold uppercase tracking-wide text-foreground">2-storey building:</span>
+                <div className="flex flex-col gap-0.5 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-2">
+                  <span className="text-xs font-bold uppercase tracking-wide text-foreground">2-storey building</span>
                   {(job as any).is_two_storey ? (
                     <Check className="h-4 w-4 text-brand-green" strokeWidth={3} />
                   ) : (
