@@ -331,10 +331,12 @@ export type Database = {
           highlevel_appointment_id: string | null
           highlevel_payload: Json | null
           id: string
+          is_two_storey: boolean | null
           job_type_id: string
           notes: string | null
           price_cents: number | null
           scheduled_for: string | null
+          service_details: string | null
           status: Database["public"]["Enums"]["job_status"]
           updated_at: string
         }
@@ -348,10 +350,12 @@ export type Database = {
           highlevel_appointment_id?: string | null
           highlevel_payload?: Json | null
           id?: string
+          is_two_storey?: boolean | null
           job_type_id: string
           notes?: string | null
           price_cents?: number | null
           scheduled_for?: string | null
+          service_details?: string | null
           status?: Database["public"]["Enums"]["job_status"]
           updated_at?: string
         }
@@ -365,10 +369,12 @@ export type Database = {
           highlevel_appointment_id?: string | null
           highlevel_payload?: Json | null
           id?: string
+          is_two_storey?: boolean | null
           job_type_id?: string
           notes?: string | null
           price_cents?: number | null
           scheduled_for?: string | null
+          service_details?: string | null
           status?: Database["public"]["Enums"]["job_status"]
           updated_at?: string
         }
