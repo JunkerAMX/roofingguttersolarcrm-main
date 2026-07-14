@@ -9,6 +9,38 @@ function pick(...vals: any[]) {
   return null;
 }
 
+function cleanText(v: any): string | null {
+  if (v === undefined || v === null) return null;
+  const text = String(v).trim();
+  if (!text) return null;
+  if (["none", "null", "n/a", "na", "nil", "-"].includes(text.toLowerCase())) return null;
+  return text;
+}
+
+function pickText(...vals: any[]): string | null {
+  for (const v of vals) {
+    const text = cleanText(v);
+    if (text) return text;
+  }
+  return null;
+}
+
+function buildWorkerBriefing(ctx: {
+  customerMessage: string | null;
+  existingNotes: string | null;
+  serviceDetails: string | null;
+  jobTypeHint: string | null;
+  isTwoStorey: boolean | null;
+}) {
+  const lines: string[] = [];
+  if (ctx.customerMessage) lines.push(`- Customer request: ${ctx.customerMessage}`);
+  if (ctx.existingNotes && ctx.existingNotes !== ctx.customerMessage) lines.push(`- Job notes: ${ctx.existingNotes}`);
+  const service = [ctx.jobTypeHint, ctx.serviceDetails].filter(Boolean).join(" — ");
+  if (service) lines.push(`- Service: ${service}`);
+  if (ctx.isTwoStorey !== null) lines.push(`- Two-storey: ${ctx.isTwoStorey ? "yes" : "no"}`);
+  return lines.length ? lines.join("\n") : null;
+}
+
 // Price arrives in whole dollars (e.g. 249). Store as cents.
 function toCents(v: any): number | null {
   if (v === undefined || v === null || v === "") return null;
@@ -238,7 +270,8 @@ export const Route = createFileRoute("/api/public/highlevel/appointment")({
         const due_date = toDateOnly(pick(custom.due_date, appt.due_date, payload.due_date), tz) ?? toDateOnly(scheduled_for, tz);
         // Price sent in whole dollars (e.g. 249) → converted to cents for storage.
         const price_cents = toCents(pick(custom.price, payload.price, appt.price, custom.price_cents, payload.price_cents, appt.price_cents));
-        const notes = pick(custom.notes, appt.notes, payload.notes, payload.Message);
+        const customerMessage = pickText(payload.Message, payload.message, payload.customer_message, payload.customerMessage);
+        const existingNotes = pickText(payload.notes, appt.notes, custom.notes);
         const service_details = pick(
           custom.service_details, custom.cleaning_type, custom.what_needs_cleaning,
           payload.service_details, payload.cleaning_type, payload.what_needs_cleaning,
@@ -257,6 +290,14 @@ export const Route = createFileRoute("/api/public/highlevel/appointment")({
             : ["true", "yes", "y", "1", true, 1].includes(
                 typeof twoStoreyRaw === "string" ? twoStoreyRaw.toLowerCase().trim() : twoStoreyRaw,
               );
+
+        const notes = buildWorkerBriefing({
+          customerMessage,
+          existingNotes,
+          serviceDetails: service_details ? String(service_details) : null,
+          jobTypeHint: jobTypeHint ? String(jobTypeHint) : null,
+          isTwoStorey: is_two_storey,
+        });
 
 
         const { data: job, error: jerr } = await supabaseAdmin
