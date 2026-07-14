@@ -200,37 +200,22 @@ function JobDetail() {
             </div>
 
             {((job as any).service_details || (job as any).is_two_storey !== null && (job as any).is_two_storey !== undefined) && (
-              <div className="mt-4 flex flex-wrap items-stretch gap-2">
+              <dl className="mt-4 space-y-1.5 text-sm">
                 {(job as any).service_details && (
-                  <div className="flex min-w-0 flex-1 items-center gap-2.5 rounded-xl border border-border bg-secondary/40 px-3 py-2">
-                    <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-brand-green/15 text-brand-green">
-                      <StickyNote className="h-3.5 w-3.5" />
-                    </span>
-                    <div className="min-w-0">
-                      <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Service</div>
-                      <div className="truncate text-sm font-medium">{(job as any).service_details}</div>
-                    </div>
+                  <div className="flex gap-2">
+                    <dt className="w-28 shrink-0 text-muted-foreground">Service</dt>
+                    <dd className="min-w-0 font-medium">{(job as any).service_details}</dd>
                   </div>
                 )}
                 {(job as any).is_two_storey !== null && (job as any).is_two_storey !== undefined && (
-                  <div className={cn(
-                    "flex shrink-0 items-center gap-2.5 rounded-xl border px-3 py-2",
-                    (job as any).is_two_storey ? "border-brand-yellow/50 bg-brand-yellow/10" : "border-border bg-secondary/40",
-                  )}>
-                    <span className={cn(
-                      "grid h-7 w-7 shrink-0 place-items-center rounded-lg text-xs font-bold",
-                      (job as any).is_two_storey ? "bg-brand-yellow/25 text-brand-yellow" : "bg-muted text-muted-foreground",
-                    )}>
-                      2F
-                    </span>
-                    <div>
-                      <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">2-storey</div>
-                      <div className="text-sm font-semibold">{(job as any).is_two_storey ? "Yes" : "No"}</div>
-                    </div>
+                  <div className="flex gap-2">
+                    <dt className="w-28 shrink-0 text-muted-foreground">2-storey</dt>
+                    <dd className="font-medium">{(job as any).is_two_storey ? "Yes" : "No"}</dd>
                   </div>
                 )}
-              </div>
+              </dl>
             )}
+
 
             {job.notes && (
               <div className="mt-4 rounded-xl bg-secondary/60 p-3 text-sm">
