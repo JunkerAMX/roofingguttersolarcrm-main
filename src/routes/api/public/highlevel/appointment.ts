@@ -437,6 +437,6 @@ ${transcript}`;
   }
   const aiData = await aiRes.json() as any;
   const text = String(aiData?.choices?.[0]?.message?.content ?? "").trim();
-  if (!text || text === "NONE") return null;
+  if (!text) return null;
   return text;
 }
