@@ -168,42 +168,41 @@ function JobDetail() {
               )}
             </div>
 
-            <div className="mt-4 grid gap-2 text-sm">
+            <div className="mt-4 divide-y divide-border rounded-xl border border-border bg-background">
               {contact?.address && (
                 <a
                   href={`https://maps.google.com/?q=${encodeURIComponent(fullDisplayAddress)}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="flex items-start gap-2 text-foreground hover:text-brand-green"
+                  className="flex items-start gap-3 p-3 hover:bg-secondary/40"
                 >
-                  <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
-                  <span>{fullDisplayAddress}</span>
+                  <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-brand-green" />
+                  <div className="min-w-0">
+                    <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Location</div>
+                    <div className="mt-0.5 text-sm font-medium text-foreground">{fullDisplayAddress}</div>
+                  </div>
                 </a>
+              )}
+              {(job as any).service_details && (
+                <div className="p-3">
+                  <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    What needs cleaning · <span className="text-brand-green">{job.job_type?.name}</span>
+                  </div>
+                  <div className="mt-0.5 text-sm font-semibold text-foreground">{(job as any).service_details}</div>
+                </div>
+              )}
+              {(job as any).is_two_storey !== null && (job as any).is_two_storey !== undefined && (
+                <div className="flex items-center justify-between p-3">
+                  <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">2-storey building?</div>
+                  {(job as any).is_two_storey ? (
+                    <Check className="h-5 w-5 text-brand-green" strokeWidth={3} />
+                  ) : (
+                    <X className="h-5 w-5 text-muted-foreground" strokeWidth={3} />
+                  )}
+                </div>
               )}
             </div>
 
-            {((job as any).service_details || (job as any).is_two_storey !== null && (job as any).is_two_storey !== undefined) && (
-              <div className="mt-4 divide-y divide-border rounded-xl border border-border bg-background">
-                {(job as any).service_details && (
-                  <div className="p-3">
-                    <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                      What needs cleaning · <span className="text-brand-green">{job.job_type?.name}</span>
-                    </div>
-                    <div className="mt-1 text-base font-semibold text-foreground">{(job as any).service_details}</div>
-                  </div>
-                )}
-                {(job as any).is_two_storey !== null && (job as any).is_two_storey !== undefined && (
-                  <div className="flex items-center justify-between p-3">
-                    <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">2-storey building?</div>
-                    {(job as any).is_two_storey ? (
-                      <Check className="h-5 w-5 text-brand-green" strokeWidth={3} />
-                    ) : (
-                      <X className="h-5 w-5 text-muted-foreground" strokeWidth={3} />
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
 
             {(contact?.phone || contact?.email) && (
               <details className="mt-4 group rounded-xl border border-border bg-background">
