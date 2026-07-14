@@ -265,7 +265,12 @@ function JobListItem({ job, showPay, isWorker }: { job: any; showPay?: boolean; 
             {statusLabel}
           </span>
         </div>
-        <p className="text-xs text-muted-foreground">{job.job_type?.name ?? "Job"}</p>
+        <p className="text-xs text-muted-foreground">
+          <span className="font-semibold text-brand-green">{job.job_type?.name ?? "Job"}</span>
+          {job.service_details ? <span className="text-foreground/80"> · {job.service_details}</span> : null}
+          {job.is_two_storey ? <span className="ml-1.5 inline-flex items-center rounded bg-brand-yellow/20 px-1.5 py-0.5 text-[9px] font-bold uppercase text-brand-yellow">2-storey</span> : null}
+        </p>
+
         {job.contact?.address && (
           <div className="mt-1 flex items-center gap-2 text-sm text-foreground/80">
             <MapPin className="h-3.5 w-3.5 shrink-0 text-brand-green" />
