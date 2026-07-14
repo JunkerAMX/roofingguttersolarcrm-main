@@ -199,12 +199,29 @@ function JobDetail() {
               })()}
             </div>
 
+            {(job as any).service_details && (
+              <div className="mt-4 rounded-xl border border-brand-green/30 bg-brand-green/5 p-3 text-sm">
+                <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-brand-green">What needs cleaning</div>
+                <div className="whitespace-pre-wrap">{(job as any).service_details}</div>
+              </div>
+            )}
+
+            {(job as any).is_two_storey !== null && (job as any).is_two_storey !== undefined && (
+              <div className="mt-2 inline-flex items-center gap-2 rounded-lg bg-secondary px-3 py-1.5 text-xs font-semibold">
+                <span className="text-muted-foreground">2-storey building:</span>
+                <span className={(job as any).is_two_storey ? "text-brand-green" : "text-foreground"}>
+                  {(job as any).is_two_storey ? "Yes" : "No"}
+                </span>
+              </div>
+            )}
+
             {job.notes && (
               <div className="mt-4 rounded-xl bg-secondary/60 p-3 text-sm">
                 <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Job notes</div>
                 {job.notes}
               </div>
             )}
+
           </div>
 
 
