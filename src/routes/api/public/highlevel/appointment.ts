@@ -424,7 +424,7 @@ ${transcript}`;
       "Lovable-API-Key": lovableKey,
     },
     body: JSON.stringify({
-      model: "google/gemini-3.5-flash",
+      model: "google/gemini-2.5-flash",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt },
@@ -433,10 +433,10 @@ ${transcript}`;
   });
   if (!aiRes.ok) {
     console.error("Lovable AI failed", aiRes.status, await aiRes.text());
-    return null;
+    return trimmed.length ? "No AI summary available — see chat history in HighLevel." : "No prior conversation on record — brief on job details only.";
   }
   const aiData = await aiRes.json() as any;
   const text = String(aiData?.choices?.[0]?.message?.content ?? "").trim();
-  if (!text) return null;
+  if (!text) return trimmed.length ? "No AI summary available — see chat history in HighLevel." : "No prior conversation on record — brief on job details only.";
   return text;
 }
