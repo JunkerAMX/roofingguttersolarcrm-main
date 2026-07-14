@@ -145,7 +145,7 @@ export const updateTeamMember = createServerFn({ method: "POST" })
       clean[k] = typeof v === "string" && v.trim() === "" ? null : v;
     }
     if (Object.keys(clean).length === 0) return { ok: true };
-    const { error } = await context.supabase.from("profiles").update(clean).eq("id", userId);
+    const { error } = await context.supabase.from("profiles").update(clean as any).eq("id", userId);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
