@@ -126,6 +126,31 @@ export const deleteTeamMember = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+const updateTeamMemberSchema = z.object({
+  userId: z.string().uuid(),
+  full_name: z.string().trim().max(120).nullable().optional(),
+  phone: z.string().trim().max(40).nullable().optional(),
+  stripe_account_id: z.string().trim().max(120).nullable().optional(),
+});
+
+export const updateTeamMember = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: z.input<typeof updateTeamMemberSchema>) => updateTeamMemberSchema.parse(d))
+  .handler(async ({ context, data }) => {
+    await requireAdmin(context.supabase, context.userId);
+    const { userId, ...fields } = data;
+    const clean: Record<string, any> = {};
+    for (const [k, v] of Object.entries(fields)) {
+      if (v === undefined) continue;
+      clean[k] = typeof v === "string" && v.trim() === "" ? null : v;
+    }
+    if (Object.keys(clean).length === 0) return { ok: true };
+    const { error } = await context.supabase.from("profiles").update(clean).eq("id", userId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+
 export const listContacts = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
