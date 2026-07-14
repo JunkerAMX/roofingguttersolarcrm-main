@@ -269,7 +269,10 @@ export const Route = createFileRoute("/api/public/highlevel/appointment")({
             scheduled_for,
             due_date,
             notes,
+            service_details,
+            is_two_storey,
             highlevel_payload: payload,
+
           }, { onConflict: "highlevel_appointment_id" })
           .select("id")
           .maybeSingle();
