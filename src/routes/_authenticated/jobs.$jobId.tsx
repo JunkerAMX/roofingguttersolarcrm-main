@@ -184,7 +184,7 @@ function JobDetail() {
               )}
               {(job as any).service_details && (
                 <div>
-                  <span className="text-xs font-bold uppercase tracking-wide text-foreground">What needs cleaning: </span>
+                  <span className="text-xs font-bold uppercase tracking-wide text-foreground">Service: </span>
                   <span className="font-medium text-muted-foreground">{(job as any).service_details}</span>
                   <span className="text-muted-foreground"> · </span>
                   <span className="font-medium text-brand-green">{job.job_type?.name}</span>
