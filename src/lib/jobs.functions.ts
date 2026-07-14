@@ -110,9 +110,10 @@ export const toggleChecklistItem = createServerFn({ method: "POST" })
         webhookConfigured = true;
         const { data: full } = await supabase
           .from("jobs")
-          .select("*, contact:contacts(*)")
+          .select("*, contact:contacts(*), assignee:profiles!jobs_assigned_to_fkey(id, full_name, email, phone, stripe_account_id)")
           .eq("id", prog.job_id)
           .maybeSingle();
+        const worker = (full as any)?.assignee ?? null;
         try {
           const res = await fetch(settings.highlevel_payment_webhook_url, {
             method: "POST",
@@ -124,6 +125,12 @@ export const toggleChecklistItem = createServerFn({ method: "POST" })
               amount_cents: full?.price_cents,
               currency: full?.currency,
               contact: full?.contact,
+              worker,
+              worker_stripe_account_id: worker?.stripe_account_id ?? null,
+              worker_id: worker?.id ?? null,
+              worker_name: worker?.full_name ?? null,
+              worker_email: worker?.email ?? null,
+              worker_phone: worker?.phone ?? null,
             }),
           });
           if (res.ok) paymentSent = true;
