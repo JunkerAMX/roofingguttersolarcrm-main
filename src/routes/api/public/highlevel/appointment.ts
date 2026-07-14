@@ -242,12 +242,15 @@ export const Route = createFileRoute("/api/public/highlevel/appointment")({
         const service_details = pick(
           custom.service_details, custom.cleaning_type, custom.what_needs_cleaning,
           payload.service_details, payload.cleaning_type, payload.what_needs_cleaning,
+          payload["Service Type"], payload.serviceType, payload.service_type,
           appt.service_details,
         );
         const twoStoreyRaw = pick(
-          custom.is_two_storey, custom.two_storey, custom.twoStorey, custom.two_story,
+          custom.is_two_storey, custom.two_storey, custom.twoStorey, custom.two_story, custom.storeys, custom.Storeys,
           payload.is_two_storey, payload.two_storey, payload.twoStorey, payload.two_story,
+          payload.Storeys, payload.storeys,
         );
+
         const is_two_storey =
           twoStoreyRaw === null || twoStoreyRaw === undefined
             ? null
