@@ -1,0 +1,1 @@
+ALTER TABLE public.jobs ADD COLUMN IF NOT EXISTS service_details text, ADD COLUMN IF NOT EXISTS is_two_storey boolean;
