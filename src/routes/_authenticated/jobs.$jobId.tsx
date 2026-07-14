@@ -168,37 +168,40 @@ function JobDetail() {
               )}
             </div>
 
-            <div className="mt-4 divide-y divide-border">
+            <div className="mt-4 space-y-1.5 text-sm">
               {contact?.address && (
-                <a
-                  href={`https://maps.google.com/?q=${encodeURIComponent(fullDisplayAddress)}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="block py-3 hover:text-brand-green"
-                >
-                  <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Location</div>
-                  <div className="mt-0.5 text-sm font-medium">{fullDisplayAddress}</div>
-                </a>
+                <div>
+                  <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Location: </span>
+                  <a
+                    href={`https://maps.google.com/?q=${encodeURIComponent(fullDisplayAddress)}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="font-medium hover:text-brand-green"
+                  >
+                    {fullDisplayAddress}
+                  </a>
+                </div>
               )}
               {(job as any).service_details && (
-                <div className="py-3">
-                  <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                    What needs cleaning · <span className="text-brand-green">{job.job_type?.name}</span>
-                  </div>
-                  <div className="mt-0.5 text-sm font-semibold">{(job as any).service_details}</div>
+                <div>
+                  <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">What needs cleaning: </span>
+                  <span className="font-semibold">{(job as any).service_details}</span>
+                  <span className="text-muted-foreground"> · </span>
+                  <span className="font-medium text-brand-green">{job.job_type?.name}</span>
                 </div>
               )}
               {(job as any).is_two_storey !== null && (job as any).is_two_storey !== undefined && (
-                <div className="flex items-center justify-between py-3">
-                  <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">2-storey building?</div>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">2-storey building:</span>
                   {(job as any).is_two_storey ? (
-                    <Check className="h-5 w-5 text-brand-green" strokeWidth={3} />
+                    <Check className="h-4 w-4 text-brand-green" strokeWidth={3} />
                   ) : (
-                    <X className="h-5 w-5 text-muted-foreground" strokeWidth={3} />
+                    <X className="h-4 w-4 text-muted-foreground" strokeWidth={3} />
                   )}
                 </div>
               )}
             </div>
+
 
             {(contact?.phone || contact?.email) && (
               <details className="group mt-3">
