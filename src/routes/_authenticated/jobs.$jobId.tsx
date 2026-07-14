@@ -210,7 +210,12 @@ function JobDetail() {
                 {(job as any).is_two_storey !== null && (job as any).is_two_storey !== undefined && (
                   <div className="flex items-center justify-between p-3">
                     <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">2-storey building?</div>
-                    <div className="text-base font-bold">{(job as any).is_two_storey ? "Yes" : "No"}</div>
+                    {(job as any).is_two_storey ? (
+                      <Check className="h-5 w-5 text-brand-green" strokeWidth={3} />
+                    ) : (
+                      <X className="h-5 w-5 text-muted-foreground" strokeWidth={3} />
+                    )}
+
                   </div>
                 )}
               </div>
