@@ -119,7 +119,15 @@ function JobDetail() {
   });
 
   const now = useNow(15000);
-  const [msgOpen, setMsgOpen] = useState(false);
+  const search = Route.useSearch();
+  const [msgOpen, setMsgOpen] = useState(!!search.message);
+  const [targetMessageId, setTargetMessageId] = useState<string | undefined>(search.message);
+  useEffect(() => {
+    if (search.message) {
+      setMsgOpen(true);
+      setTargetMessageId(search.message);
+    }
+  }, [search.message]);
   const seenKey = `job-msg-seen:${jobId}`;
   const [lastSeen, setLastSeen] = useState<number>(() => {
     if (typeof window === "undefined") return 0;
