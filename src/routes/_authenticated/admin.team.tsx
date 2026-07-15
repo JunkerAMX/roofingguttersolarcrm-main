@@ -39,7 +39,7 @@ function TeamPage() {
   });
 
   const update = useMutation({
-    mutationFn: (v: { userId: string; full_name: string; phone: string; stripe_account_id: string }) =>
+    mutationFn: (v: { userId: string; full_name: string; phone: string; stripe_account_id: string; suburb: string; postcode: string; state: string }) =>
       updateFn({ data: v }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["team"] });
