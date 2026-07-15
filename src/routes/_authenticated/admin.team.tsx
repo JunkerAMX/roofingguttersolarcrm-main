@@ -66,6 +66,11 @@ function TeamPage() {
               <div className="min-w-0 flex-1">
                 <div className="truncate font-medium">{m.full_name || m.email}</div>
                 <div className="truncate text-xs text-muted-foreground">{m.email}</div>
+                {(m.phone || m.suburb || m.postcode || m.state) && (
+                  <div className="truncate text-xs text-muted-foreground">
+                    {[m.phone, [m.suburb, m.state, m.postcode].filter(Boolean).join(" ")].filter(Boolean).join(" · ")}
+                  </div>
+                )}
                 {m.stripe_account_id && (
                   <div className="truncate text-[10px] font-mono text-muted-foreground">Stripe: {m.stripe_account_id}</div>
                 )}
