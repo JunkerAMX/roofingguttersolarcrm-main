@@ -380,7 +380,7 @@ function JobDetail() {
 
 
 
-      {msgOpen && <MessagesDialog jobId={job.id} currentUserId={me?.userId} onClose={() => setMsgOpen(false)} />}
+      {msgOpen && <MessagesDialog jobId={job.id} currentUserId={me?.userId} targetMessageId={targetMessageId} onClose={() => { setMsgOpen(false); setTargetMessageId(undefined); }} />}
 
 
     </AppShell>
