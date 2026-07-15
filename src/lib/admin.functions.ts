@@ -68,6 +68,25 @@ export const saveChecklistItem = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export const reorderChecklistItems = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { items: { id: string; position: number }[] }) =>
+    z.object({
+      items: z.array(z.object({ id: z.string().uuid(), position: z.number().int() })).min(1),
+    }).parse(d),
+  )
+  .handler(async ({ context, data }) => {
+    await requireAdmin(context.supabase, context.userId);
+    for (const it of data.items) {
+      const { error } = await context.supabase
+        .from("checklist_items")
+        .update({ position: it.position })
+        .eq("id", it.id);
+      if (error) throw new Error(error.message);
+    }
+    return { ok: true };
+  });
+
 export const deleteChecklistItem = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
