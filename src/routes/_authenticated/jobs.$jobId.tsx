@@ -288,7 +288,8 @@ function JobDetail() {
       {(() => {
         const allDone = total > 0 && done === total;
         const remaining = total - done;
-        const showDone = total > 0 && job.status !== "completed";
+        const isCompleted = job.status === "completed";
+        const showDone = total > 0 && !isCompleted;
         return (
           <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 p-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] animate-fade-in">
             <div className="mx-auto max-w-md">
@@ -298,14 +299,21 @@ function JobDetail() {
                 </div>
               )}
               <div className="pointer-events-auto flex items-stretch gap-2">
-                <button
-                  onClick={() => setMsgOpen(true)}
-                  className="flex h-auto shrink-0 items-center justify-center gap-2 rounded-2xl bg-card border border-border px-4 text-sm font-semibold shadow-xl transition-all hover:-translate-y-0.5 active:scale-95"
-                  aria-label="Messages"
-                >
-                  <MessageSquare className="h-5 w-5 text-brand-green" />
-                </button>
-                {showDone && (
+                {!isCompleted && (
+                  <button
+                    onClick={() => setMsgOpen(true)}
+                    className="flex h-auto shrink-0 items-center justify-center gap-2 rounded-2xl bg-card border border-border px-4 text-sm font-semibold shadow-xl transition-all hover:-translate-y-0.5 active:scale-95"
+                    aria-label="Messages"
+                  >
+                    <MessageSquare className="h-5 w-5 text-brand-green" />
+                  </button>
+                )}
+                {isCompleted ? (
+                  <div className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-brand-green py-4 text-base font-semibold text-white shadow-2xl shadow-brand-green/40">
+                    <CheckCircle2 className="h-5 w-5" />
+                    <span className="truncate">Job completed</span>
+                  </div>
+                ) : showDone ? (
                   <button
                     onClick={() => allDone && markDone.mutate()}
                     disabled={!allDone || markDone.isPending}
@@ -326,7 +334,7 @@ function JobDetail() {
                         : `${remaining} more ${remaining === 1 ? "task" : "tasks"}`}
                     </span>
                   </button>
-                )}
+                ) : null}
               </div>
             </div>
           </div>
@@ -334,11 +342,6 @@ function JobDetail() {
       })()}
 
 
-      {job.status === "completed" && (
-        <div className="mt-4 flex items-center justify-center gap-2 rounded-2xl border border-brand-green/40 bg-brand-green/10 p-4 text-brand-green">
-          <CheckCircle2 className="h-5 w-5" /> <span className="font-semibold">Job completed</span>
-        </div>
-      )}
 
       {msgOpen && <MessagesDialog jobId={job.id} currentUserId={me?.userId} onClose={() => setMsgOpen(false)} />}
 
