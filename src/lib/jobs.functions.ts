@@ -95,6 +95,26 @@ export const toggleChecklistItem = createServerFn({ method: "POST" })
       throw new Error("Job isn't active yet — you can start ticking tasks once the appointment time arrives.");
     }
 
+    // Sequential gate: any task can only be completed if all prior tasks are complete.
+    if (data.completed) {
+      const { data: curItem } = await supabase
+        .from("checklist_items")
+        .select("position")
+        .eq("id", prog.checklist_item_id)
+        .maybeSingle();
+      const curPos = curItem?.position ?? prog.position;
+      const { data: siblings } = await supabase
+        .from("job_checklist_progress")
+        .select("completed, checklist_item:checklist_items(position)")
+        .eq("job_id", prog.job_id);
+      const priorIncomplete = (siblings ?? []).some(
+        (p: any) => (p.checklist_item?.position ?? 0) < curPos && !p.completed,
+      );
+      if (priorIncomplete) throw new Error("Complete the previous task first");
+    }
+
+
+
 
     // Payment trigger: verify prior items complete + fire HighLevel webhook
     let paymentTrigger = false;
