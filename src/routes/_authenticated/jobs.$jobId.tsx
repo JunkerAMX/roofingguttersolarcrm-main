@@ -510,51 +510,161 @@ function PhotoUploadDialog({ jobId, progressId, kind, title, onClose }: { jobId:
   const qc = useQueryClient();
   const uploadFn = useServerFn(uploadJobPhoto);
   const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [stage, setStage] = useState<"idle" | "reading" | "uploading" | "processing" | "done">("idle");
+  const [fileName, setFileName] = useState<string>("");
+  const [fileSize, setFileSize] = useState<number>(0);
+  const [previewUrl, setPreviewUrl] = useState<string>("");
   const inputRef = useRef<HTMLInputElement>(null);
+  const tickRef = useRef<number | null>(null);
 
   async function handleFile(file: File) {
     setUploading(true);
+    setFileName(file.name);
+    setFileSize(file.size);
+    setPreviewUrl(URL.createObjectURL(file));
+    setStage("reading");
+    setProgress(0);
     try {
-      const buf = new Uint8Array(await file.arrayBuffer());
-      let bin = "";
-      for (let i = 0; i < buf.length; i++) bin += String.fromCharCode(buf[i]);
-      const b64 = btoa(bin);
+      const b64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onprogress = (e) => {
+          if (e.lengthComputable) setProgress(Math.round((e.loaded / e.total) * 35));
+        };
+        reader.onerror = () => reject(reader.error);
+        reader.onload = () => {
+          const result = reader.result as string;
+          resolve(result.split(",")[1] || "");
+        };
+        reader.readAsDataURL(file);
+      });
+      setProgress(40);
+      setStage("uploading");
+
+      tickRef.current = window.setInterval(() => {
+        setProgress((p) => (p < 88 ? p + Math.max(1, Math.round((90 - p) / 12)) : p));
+      }, 180);
+
       const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
       await uploadFn({ data: { jobId, progressId, kind, fileBase64: b64, contentType: file.type || "image/jpeg", ext } });
+
+      if (tickRef.current) { clearInterval(tickRef.current); tickRef.current = null; }
+      setStage("processing");
+      setProgress(96);
+      await new Promise((r) => setTimeout(r, 250));
+      setProgress(100);
+      setStage("done");
       toast.success("Photo uploaded");
       qc.invalidateQueries({ queryKey: ["job", jobId] });
-      onClose();
+      setTimeout(onClose, 450);
     } catch (e: any) {
+      if (tickRef.current) { clearInterval(tickRef.current); tickRef.current = null; }
       toast.error(e.message ?? "Upload failed");
-    } finally {
+      setStage("idle");
+      setProgress(0);
       setUploading(false);
     }
   }
 
+  const accentBg = kind === "before" ? "bg-brand-yellow" : "bg-brand-green";
+  const accentText = kind === "before" ? "text-warning" : "text-white";
+  const stageLabel =
+    stage === "reading" ? "Reading file" :
+    stage === "uploading" ? "Uploading" :
+    stage === "processing" ? "Processing" :
+    stage === "done" ? "Complete" : "";
+
+  function fmtSize(b: number) {
+    if (b < 1024) return `${b} B`;
+    if (b < 1024 * 1024) return `${(b / 1024).toFixed(1)} KB`;
+    return `${(b / 1024 / 1024).toFixed(2)} MB`;
+  }
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
-      <div className="w-full max-w-md rounded-2xl bg-card p-6" onClick={(e) => e.stopPropagation()}>
-        <h3 className="font-display text-lg font-semibold">Upload {kind} photo</h3>
-        <p className="mt-1 text-sm text-muted-foreground">{title}</p>
-        <input
-          ref={inputRef}
-          type="file"
-          accept="image/*"
-          capture="environment"
-          className="hidden"
-          onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])}
-        />
-        <button
-          onClick={() => inputRef.current?.click()}
-          disabled={uploading}
-          className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-4 font-medium text-primary-foreground shadow-sm transition-all duration-200 ease-out hover:-translate-y-px hover:shadow-md active:scale-[0.97] disabled:opacity-60"
-        >
-          <Camera className="h-5 w-5" />
-          {uploading ? "Uploading…" : "Take / Choose photo"}
-        </button>
-        <button onClick={onClose} className="mt-2 w-full rounded-xl py-2 text-sm text-muted-foreground transition-all duration-200 ease-out hover:bg-secondary active:scale-[0.98]">
-          Cancel
-        </button>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm" onClick={uploading ? undefined : onClose}>
+      <div className="w-full max-w-md overflow-hidden rounded-2xl bg-card shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <div className={cn("flex items-center gap-2 px-6 py-3 text-xs font-semibold uppercase tracking-wider", accentBg, accentText)}>
+          <Camera className="h-4 w-4" />
+          {kind} photo
+        </div>
+        <div className="p-6">
+          <h3 className="font-display text-lg font-semibold">Upload {kind} photo</h3>
+          <p className="mt-1 text-sm text-muted-foreground">{title}</p>
+
+          <input
+            ref={inputRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            className="hidden"
+            onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])}
+          />
+
+          {!uploading && stage === "idle" && (
+            <>
+              <button
+                onClick={() => inputRef.current?.click()}
+                className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-4 font-medium text-primary-foreground shadow-sm transition-all duration-200 ease-out hover:-translate-y-px hover:shadow-md active:scale-[0.97]"
+              >
+                <Camera className="h-5 w-5" />
+                Take / Choose photo
+              </button>
+              <button onClick={onClose} className="mt-2 w-full rounded-xl py-2 text-sm text-muted-foreground transition-all duration-200 ease-out hover:bg-secondary active:scale-[0.98]">
+                Cancel
+              </button>
+            </>
+          )}
+
+          {(uploading || stage === "done") && (
+            <div className="mt-4 space-y-4">
+              <div className="flex items-center gap-3 rounded-xl border border-border bg-secondary/40 p-3">
+                {previewUrl ? (
+                  <img src={previewUrl} alt="" className="h-14 w-14 rounded-lg object-cover" />
+                ) : (
+                  <div className="h-14 w-14 rounded-lg bg-secondary" />
+                )}
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-sm font-medium">{fileName}</div>
+                  <div className="text-xs text-muted-foreground">{fmtSize(fileSize)}</div>
+                </div>
+                <div className="text-right">
+                  <div className="font-display text-lg font-bold tabular-nums">{progress}%</div>
+                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{stageLabel}</div>
+                </div>
+              </div>
+
+              <div className="relative h-2.5 w-full overflow-hidden rounded-full bg-secondary">
+                <div
+                  className={cn(
+                    "h-full rounded-full transition-[width] duration-300 ease-out",
+                    stage === "done" ? "bg-brand-green" : accentBg,
+                  )}
+                  style={{ width: `${progress}%` }}
+                />
+                {stage !== "done" && progress > 0 && (
+                  <div
+                    className="pointer-events-none absolute inset-y-0 left-0 animate-photo-shimmer bg-gradient-to-r from-transparent via-white/50 to-transparent"
+                    style={{ width: `${progress}%` }}
+                  />
+                )}
+              </div>
+
+              <div className="flex items-center justify-between text-xs">
+                {stage === "done" ? (
+                  <span className="flex items-center gap-1 font-medium text-brand-green">
+                    <Check className="h-3.5 w-3.5" /> Upload complete
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-1 text-muted-foreground">
+                    <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-primary" />
+                    {stageLabel}…
+                  </span>
+                )}
+                <div className="text-muted-foreground">Keep this window open</div>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
