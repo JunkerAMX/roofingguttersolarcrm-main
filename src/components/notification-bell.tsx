@@ -129,15 +129,12 @@ export function NotificationBell({ userId }: { userId?: string }) {
                 </div>
               ) : (
                 items.map((n: any) => (
-                  <Link
+                  <button
                     key={n.id}
-                    to={n.link ?? "/jobs"}
-                    onClick={() => {
-                      if (!n.read_at) mark.mutate({ ids: [n.id] });
-                      setOpen(false);
-                    }}
+                    type="button"
+                    onClick={() => openNotification(n)}
                     className={cn(
-                      "block border-b border-border px-4 py-3 text-sm transition-colors last:border-b-0 hover:bg-secondary/50 active:bg-secondary",
+                      "block w-full border-b border-border px-4 py-3 text-left text-sm transition-colors last:border-b-0 hover:bg-secondary/50 active:bg-secondary",
                       !n.read_at && "bg-brand-lime/10",
                     )}
                   >
@@ -155,7 +152,7 @@ export function NotificationBell({ userId }: { userId?: string }) {
                         </div>
                       </div>
                     </div>
-                  </Link>
+                  </button>
                 ))
               )}
             </div>
