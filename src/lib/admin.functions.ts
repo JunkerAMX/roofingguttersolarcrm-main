@@ -114,6 +114,114 @@ export const inviteWorker = createServerFn({ method: "POST" })
     return { ok: true, userId: invited.user?.id };
   });
 
+const completeOnboardingSchema = z.object({
+  full_name: z.string().trim().min(1).max(120),
+  phone: z.string().trim().max(40).optional().nullable(),
+  suburb: z.string().trim().min(1).max(120),
+  postcode: z.string().trim().min(2).max(20),
+  state: z.string().trim().max(80).optional().nullable(),
+});
+
+export const completeWorkerOnboarding = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: z.input<typeof completeOnboardingSchema>) => completeOnboardingSchema.parse(d))
+  .handler(async ({ context, data }) => {
+    const userId = context.userId;
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    // Update profile
+    const { data: profile, error: pErr } = await supabaseAdmin
+      .from("profiles")
+      .update({
+        full_name: data.full_name,
+        phone: data.phone || null,
+        suburb: data.suburb,
+        postcode: data.postcode,
+        state: data.state || null,
+      })
+      .eq("id", userId)
+      .select("id, email, full_name, phone, suburb, postcode, state, highlevel_user_id")
+      .maybeSingle();
+    if (pErr) throw new Error(pErr.message);
+    if (!profile) throw new Error("Profile not found");
+
+    // Skip if already synced
+    if (profile.highlevel_user_id) return { ok: true, alreadySynced: true };
+
+    const pit = process.env.HIGHLEVEL_PIT;
+    const locationId = process.env.HIGHLEVEL_LOCATION_ID;
+    if (!pit || !locationId) {
+      return { ok: true, hlSynced: false, reason: "HighLevel not configured" };
+    }
+
+    const parts = data.full_name.trim().split(/\s+/);
+    const firstName = parts[0] || data.full_name;
+    const lastName = parts.slice(1).join(" ") || "-";
+    const email = profile.email;
+    if (!email) return { ok: true, hlSynced: false, reason: "No email on profile" };
+
+    // Create HighLevel staff user in the location subaccount
+    const res = await fetch("https://services.leadconnectorhq.com/users/", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${pit}`,
+        "Content-Type": "application/json",
+        Version: "2021-07-28",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({
+        companyId: undefined,
+        firstName,
+        lastName,
+        email,
+        password: crypto.randomUUID() + "Aa1!",
+        phone: data.phone || undefined,
+        type: "account",
+        role: "user",
+        locationIds: [locationId],
+        permissions: {
+          campaignsEnabled: false,
+          contactsEnabled: true,
+          workflowsEnabled: false,
+          triggersEnabled: false,
+          funnelsEnabled: false,
+          websitesEnabled: false,
+          opportunitiesEnabled: true,
+          dashboardStatsEnabled: true,
+          bulkRequestsEnabled: false,
+          appointmentsEnabled: true,
+          reviewsEnabled: false,
+          onlineListingsEnabled: false,
+          phoneCallEnabled: false,
+          conversationsEnabled: true,
+          assignedDataOnly: true,
+          adwordsReportingEnabled: false,
+          membershipEnabled: false,
+          facebookAdsReportingEnabled: false,
+          attributionsReportingEnabled: false,
+          settingsEnabled: false,
+          tagsEnabled: false,
+          leadValueEnabled: false,
+          marketingEnabled: false,
+        },
+      }),
+    });
+    const bodyText = await res.text();
+    if (!res.ok) {
+      console.error(`HighLevel create user failed [${res.status}]: ${bodyText}`);
+      return { ok: true, hlSynced: false, reason: `HighLevel error ${res.status}: ${bodyText.slice(0, 300)}` };
+    }
+    let hlUserId: string | null = null;
+    try {
+      const j = JSON.parse(bodyText);
+      hlUserId = j?.id ?? j?.user?.id ?? j?.userId ?? null;
+    } catch {}
+    if (hlUserId) {
+      await supabaseAdmin.from("profiles").update({ highlevel_user_id: hlUserId }).eq("id", userId);
+    }
+    return { ok: true, hlSynced: true };
+  });
+
 export const deleteTeamMember = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { userId: string }) => z.object({ userId: z.string().uuid() }).parse(d))
