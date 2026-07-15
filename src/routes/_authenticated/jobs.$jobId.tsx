@@ -280,7 +280,7 @@ function JobDetail() {
           </div>
         </div>
 
-        <div className="space-y-4 pb-28 lg:pb-4">
+        <div className="space-y-4 pb-48 lg:pb-4">
           <PhotoGallery jobId={jobId} photos={data.photos} />
         </div>
       </div>
