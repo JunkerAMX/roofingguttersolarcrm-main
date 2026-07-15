@@ -61,12 +61,18 @@ export const getJob = createServerFn({ method: "GET" })
         .select("*, contact:contacts(*), job_type:job_types(*), assignee:profiles!jobs_assigned_to_fkey(id, full_name, email)")
         .eq("id", data.jobId)
         .maybeSingle(),
-      supabase.from("job_checklist_progress").select("*").eq("job_id", data.jobId).order("position"),
+      supabase
+        .from("job_checklist_progress")
+        .select("*, checklist_item:checklist_items(position)")
+        .eq("job_id", data.jobId),
       supabase.from("job_photos").select("*").eq("job_id", data.jobId).order("created_at"),
     ]);
     if (error) throw new Error(error.message);
     if (!job) throw new Error("Job not found");
-    return { job, progress: progress ?? [], photos: photos ?? [] };
+    const orderedProgress = (progress ?? [])
+      .map((p: any) => ({ ...p, position: p.checklist_item?.position ?? p.position }))
+      .sort((a: any, b: any) => a.position - b.position);
+    return { job, progress: orderedProgress, photos: photos ?? [] };
   });
 
 export const toggleChecklistItem = createServerFn({ method: "POST" })
@@ -96,12 +102,21 @@ export const toggleChecklistItem = createServerFn({ method: "POST" })
     let webhookConfigured = false;
     if (data.completed && prog.input_type === "payment_trigger") {
       paymentTrigger = true;
+      // Use current checklist_items.position (admin reorder aware), not the snapshot on progress
+      const { data: currentItem } = await supabase
+        .from("checklist_items")
+        .select("position")
+        .eq("id", prog.checklist_item_id)
+        .maybeSingle();
+      const currentPos = currentItem?.position ?? prog.position;
       const { data: prior } = await supabase
         .from("job_checklist_progress")
-        .select("completed, position")
-        .eq("job_id", prog.job_id)
-        .lt("position", prog.position);
-      if ((prior ?? []).some((p) => !p.completed)) {
+        .select("completed, checklist_item:checklist_items(position)")
+        .eq("job_id", prog.job_id);
+      const priorIncomplete = (prior ?? []).some(
+        (p: any) => (p.checklist_item?.position ?? 0) < currentPos && !p.completed,
+      );
+      if (priorIncomplete) {
         throw new Error("Complete all prior steps first");
       }
       // Fire webhook to HighLevel
