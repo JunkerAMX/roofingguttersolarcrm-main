@@ -26,6 +26,8 @@ import { Route as AuthenticatedAdminContactsRouteImport } from './routes/_authen
 import { Route as AuthenticatedAdminChecklistsRouteImport } from './routes/_authenticated/admin.checklists'
 import { Route as AuthenticatedAdminAreasRouteImport } from './routes/_authenticated/admin.areas'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
+import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
+import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
 import { Route as ApiPublicHighlevelContactRouteImport } from './routes/api/public/highlevel/contact'
 import { Route as ApiPublicHighlevelAppointmentRouteImport } from './routes/api/public/highlevel/appointment'
 
@@ -117,6 +119,16 @@ const LovableEmailQueueProcessRoute =
     path: '/lovable/email/queue/process',
     getParentRoute: () => rootRouteImport,
   } as any)
+const LovableEmailAuthWebhookRoute = LovableEmailAuthWebhookRouteImport.update({
+  id: '/lovable/email/auth/webhook',
+  path: '/lovable/email/auth/webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LovableEmailAuthPreviewRoute = LovableEmailAuthPreviewRouteImport.update({
+  id: '/lovable/email/auth/preview',
+  path: '/lovable/email/auth/preview',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicHighlevelContactRoute =
   ApiPublicHighlevelContactRouteImport.update({
     id: '/api/public/highlevel/contact',
@@ -148,6 +160,8 @@ export interface FileRoutesByFullPath {
   '/jobs/': typeof AuthenticatedJobsIndexRoute
   '/api/public/highlevel/appointment': typeof ApiPublicHighlevelAppointmentRoute
   '/api/public/highlevel/contact': typeof ApiPublicHighlevelContactRoute
+  '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
+  '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
 }
 export interface FileRoutesByTo {
@@ -167,6 +181,8 @@ export interface FileRoutesByTo {
   '/jobs': typeof AuthenticatedJobsIndexRoute
   '/api/public/highlevel/appointment': typeof ApiPublicHighlevelAppointmentRoute
   '/api/public/highlevel/contact': typeof ApiPublicHighlevelContactRoute
+  '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
+  '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
 }
 export interface FileRoutesById {
@@ -189,6 +205,8 @@ export interface FileRoutesById {
   '/_authenticated/jobs/': typeof AuthenticatedJobsIndexRoute
   '/api/public/highlevel/appointment': typeof ApiPublicHighlevelAppointmentRoute
   '/api/public/highlevel/contact': typeof ApiPublicHighlevelContactRoute
+  '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
+  '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
 }
 export interface FileRouteTypes {
@@ -211,6 +229,8 @@ export interface FileRouteTypes {
     | '/jobs/'
     | '/api/public/highlevel/appointment'
     | '/api/public/highlevel/contact'
+    | '/lovable/email/auth/preview'
+    | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -230,6 +250,8 @@ export interface FileRouteTypes {
     | '/jobs'
     | '/api/public/highlevel/appointment'
     | '/api/public/highlevel/contact'
+    | '/lovable/email/auth/preview'
+    | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
   id:
     | '__root__'
@@ -251,6 +273,8 @@ export interface FileRouteTypes {
     | '/_authenticated/jobs/'
     | '/api/public/highlevel/appointment'
     | '/api/public/highlevel/contact'
+    | '/lovable/email/auth/preview'
+    | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
   fileRoutesById: FileRoutesById
 }
@@ -261,6 +285,8 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   ApiPublicHighlevelAppointmentRoute: typeof ApiPublicHighlevelAppointmentRoute
   ApiPublicHighlevelContactRoute: typeof ApiPublicHighlevelContactRoute
+  LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
+  LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
 }
 
@@ -385,6 +411,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LovableEmailQueueProcessRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/lovable/email/auth/webhook': {
+      id: '/lovable/email/auth/webhook'
+      path: '/lovable/email/auth/webhook'
+      fullPath: '/lovable/email/auth/webhook'
+      preLoaderRoute: typeof LovableEmailAuthWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lovable/email/auth/preview': {
+      id: '/lovable/email/auth/preview'
+      path: '/lovable/email/auth/preview'
+      fullPath: '/lovable/email/auth/preview'
+      preLoaderRoute: typeof LovableEmailAuthPreviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/highlevel/contact': {
       id: '/api/public/highlevel/contact'
       path: '/api/public/highlevel/contact'
@@ -451,6 +491,8 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   ApiPublicHighlevelAppointmentRoute: ApiPublicHighlevelAppointmentRoute,
   ApiPublicHighlevelContactRoute: ApiPublicHighlevelContactRoute,
+  LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
+  LovableEmailAuthWebhookRoute: LovableEmailAuthWebhookRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
 }
 export const routeTree = rootRouteImport
