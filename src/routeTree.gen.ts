@@ -25,6 +25,7 @@ import { Route as AuthenticatedAdminJobsRouteImport } from './routes/_authentica
 import { Route as AuthenticatedAdminContactsRouteImport } from './routes/_authenticated/admin.contacts'
 import { Route as AuthenticatedAdminChecklistsRouteImport } from './routes/_authenticated/admin.checklists'
 import { Route as AuthenticatedAdminAreasRouteImport } from './routes/_authenticated/admin.areas'
+import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 import { Route as ApiPublicHighlevelContactRouteImport } from './routes/api/public/highlevel/contact'
 import { Route as ApiPublicHighlevelAppointmentRouteImport } from './routes/api/public/highlevel/appointment'
 
@@ -110,6 +111,12 @@ const AuthenticatedAdminAreasRoute = AuthenticatedAdminAreasRouteImport.update({
   path: '/areas',
   getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
+const LovableEmailQueueProcessRoute =
+  LovableEmailQueueProcessRouteImport.update({
+    id: '/lovable/email/queue/process',
+    path: '/lovable/email/queue/process',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHighlevelContactRoute =
   ApiPublicHighlevelContactRouteImport.update({
     id: '/api/public/highlevel/contact',
@@ -141,6 +148,7 @@ export interface FileRoutesByFullPath {
   '/jobs/': typeof AuthenticatedJobsIndexRoute
   '/api/public/highlevel/appointment': typeof ApiPublicHighlevelAppointmentRoute
   '/api/public/highlevel/contact': typeof ApiPublicHighlevelContactRoute
+  '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -159,6 +167,7 @@ export interface FileRoutesByTo {
   '/jobs': typeof AuthenticatedJobsIndexRoute
   '/api/public/highlevel/appointment': typeof ApiPublicHighlevelAppointmentRoute
   '/api/public/highlevel/contact': typeof ApiPublicHighlevelContactRoute
+  '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -180,6 +189,7 @@ export interface FileRoutesById {
   '/_authenticated/jobs/': typeof AuthenticatedJobsIndexRoute
   '/api/public/highlevel/appointment': typeof ApiPublicHighlevelAppointmentRoute
   '/api/public/highlevel/contact': typeof ApiPublicHighlevelContactRoute
+  '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -201,6 +211,7 @@ export interface FileRouteTypes {
     | '/jobs/'
     | '/api/public/highlevel/appointment'
     | '/api/public/highlevel/contact'
+    | '/lovable/email/queue/process'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -219,6 +230,7 @@ export interface FileRouteTypes {
     | '/jobs'
     | '/api/public/highlevel/appointment'
     | '/api/public/highlevel/contact'
+    | '/lovable/email/queue/process'
   id:
     | '__root__'
     | '/'
@@ -239,6 +251,7 @@ export interface FileRouteTypes {
     | '/_authenticated/jobs/'
     | '/api/public/highlevel/appointment'
     | '/api/public/highlevel/contact'
+    | '/lovable/email/queue/process'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -248,6 +261,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   ApiPublicHighlevelAppointmentRoute: typeof ApiPublicHighlevelAppointmentRoute
   ApiPublicHighlevelContactRoute: typeof ApiPublicHighlevelContactRoute
+  LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -364,6 +378,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminAreasRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/lovable/email/queue/process': {
+      id: '/lovable/email/queue/process'
+      path: '/lovable/email/queue/process'
+      fullPath: '/lovable/email/queue/process'
+      preLoaderRoute: typeof LovableEmailQueueProcessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/highlevel/contact': {
       id: '/api/public/highlevel/contact'
       path: '/api/public/highlevel/contact'
@@ -430,6 +451,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   ApiPublicHighlevelAppointmentRoute: ApiPublicHighlevelAppointmentRoute,
   ApiPublicHighlevelContactRoute: ApiPublicHighlevelContactRoute,
+  LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
