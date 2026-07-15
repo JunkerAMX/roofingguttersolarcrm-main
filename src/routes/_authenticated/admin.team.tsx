@@ -129,16 +129,19 @@ function TeamPage() {
 function EditMemberDialog({ member, onClose, onSave, saving }: {
   member: any;
   onClose: () => void;
-  onSave: (v: { full_name: string; phone: string; stripe_account_id: string }) => void;
+  onSave: (v: { full_name: string; phone: string; stripe_account_id: string; suburb: string; postcode: string; state: string }) => void;
   saving: boolean;
 }) {
   const [fullName, setFullName] = useState(member.full_name ?? "");
   const [phone, setPhone] = useState(member.phone ?? "");
   const [stripeId, setStripeId] = useState(member.stripe_account_id ?? "");
+  const [suburb, setSuburb] = useState(member.suburb ?? "");
+  const [postcode, setPostcode] = useState(member.postcode ?? "");
+  const [state, setState] = useState(member.state ?? "");
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
-      <div className="w-full max-w-md rounded-2xl bg-card p-6" onClick={(e) => e.stopPropagation()}>
+      <div className="w-full max-w-md rounded-2xl bg-card p-6 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <h3 className="font-display text-lg font-semibold">Edit team member</h3>
         <p className="mt-1 truncate text-xs text-muted-foreground">{member.email}</p>
         <div className="mt-4 space-y-3">
@@ -151,6 +154,20 @@ function EditMemberDialog({ member, onClose, onSave, saving }: {
             <input value={phone} onChange={(e) => setPhone(e.target.value)} className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
           </div>
           <div>
+            <label className="mb-1 block text-xs font-medium text-muted-foreground">Suburb</label>
+            <input value={suburb} onChange={(e) => setSuburb(e.target.value)} className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">Postcode</label>
+              <input value={postcode} onChange={(e) => setPostcode(e.target.value)} className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">State</label>
+              <input value={state} onChange={(e) => setState(e.target.value)} className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" />
+            </div>
+          </div>
+          <div>
             <label className="mb-1 block text-xs font-medium text-muted-foreground">Stripe account ID</label>
             <input value={stripeId} onChange={(e) => setStripeId(e.target.value)} placeholder="acct_..." className="w-full rounded-lg border border-input bg-background px-3 py-2 font-mono text-sm" />
             <p className="mt-1 text-[10px] text-muted-foreground">Sent with the payment webhook when this worker completes a job.</p>
@@ -158,7 +175,7 @@ function EditMemberDialog({ member, onClose, onSave, saving }: {
           <div className="flex gap-2 pt-2">
             <button onClick={onClose} className="flex-1 rounded-lg border border-input bg-background py-2 text-sm font-medium">Cancel</button>
             <button
-              onClick={() => onSave({ full_name: fullName, phone, stripe_account_id: stripeId })}
+              onClick={() => onSave({ full_name: fullName, phone, stripe_account_id: stripeId, suburb, postcode, state })}
               disabled={saving}
               className="flex-1 rounded-lg bg-primary py-2 text-sm font-medium text-primary-foreground shadow-sm transition-all duration-200 ease-out hover:-translate-y-px hover:shadow-md active:scale-[0.97] disabled:opacity-60"
             >
@@ -170,3 +187,4 @@ function EditMemberDialog({ member, onClose, onSave, saving }: {
     </div>
   );
 }
+
