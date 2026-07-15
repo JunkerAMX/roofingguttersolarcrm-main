@@ -290,7 +290,7 @@ function JobDetail() {
         const remaining = total - done;
         const showDone = total > 0 && job.status !== "completed";
         return (
-          <div className="pointer-events-none fixed inset-x-0 bottom-0 z-30 p-4 pb-[calc(env(safe-area-inset-bottom)+5.5rem)] md:pb-[calc(env(safe-area-inset-bottom)+1rem)] animate-fade-in">
+          <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 p-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] animate-fade-in">
             <div className="mx-auto max-w-md">
               {showDone && allDone && isWorker && calculateWorkerPayCents(job.price_cents) > 0 && (
                 <div className="pointer-events-auto mb-2 text-center text-sm font-medium text-brand-green">
