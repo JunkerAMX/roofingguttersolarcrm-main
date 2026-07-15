@@ -142,7 +142,7 @@ function JobsPage() {
                 {viewMode === "grid" ? (
                   <div className="grid gap-3 sm:grid-cols-2">
                     {section.jobs.map((j: any) => (
-                      <JobCard key={j.id} job={j} showPay isWorker={isWorker} highlight={isToday} />
+                      <JobCard key={j.id} job={j} showPay isWorker={isWorker} />
                     ))}
                   </div>
                 ) : (
