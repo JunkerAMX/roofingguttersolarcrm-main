@@ -20,6 +20,9 @@ import { formatJobDateTime, getJobTimeZone } from "@/lib/time";
 
 export const Route = createFileRoute("/_authenticated/jobs/$jobId")({
   component: JobDetail,
+  validateSearch: (search: Record<string, unknown>) => ({
+    message: typeof search.message === "string" ? search.message : undefined,
+  }),
   errorComponent: ({ error }) => <div className="p-8 text-destructive">{error.message}</div>,
 });
 
