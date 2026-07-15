@@ -323,10 +323,15 @@ function JobDetail() {
                 {!isCompleted && (
                   <button
                     onClick={() => setMsgOpen(true)}
-                    className="flex h-auto shrink-0 items-center justify-center gap-2 rounded-2xl bg-card border border-border px-4 text-sm font-semibold shadow-xl transition-all hover:-translate-y-0.5 active:scale-95"
-                    aria-label="Messages"
+                    className="relative flex h-auto shrink-0 items-center justify-center gap-2 rounded-2xl bg-card border border-border px-4 text-sm font-semibold shadow-xl transition-all hover:-translate-y-0.5 active:scale-95"
+                    aria-label={unreadCount > 0 ? `Messages (${unreadCount} unread)` : "Messages"}
                   >
                     <MessageSquare className="h-5 w-5 text-brand-green" />
+                    {unreadCount > 0 && (
+                      <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground shadow ring-2 ring-card animate-pulse">
+                        {unreadCount > 9 ? "9+" : unreadCount}
+                      </span>
+                    )}
                   </button>
                 )}
                 {isCompleted ? (
