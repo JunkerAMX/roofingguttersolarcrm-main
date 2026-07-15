@@ -130,14 +130,11 @@ function JobsPage() {
           {sections.map((section) => {
             const isToday = section.label === "Today";
             return (
-              <section key={section.key}>
-                <div className="mb-2 flex items-baseline justify-between gap-2 border-b border-border/60 pb-2">
+              <section key={section.key} className={isToday ? "" : "opacity-60"}>
+                <div className="mb-2 border-b border-border/60 pb-2">
                   <h2 className="font-display text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                     {section.label}
                   </h2>
-                  <span className="text-xs text-muted-foreground">
-                    {section.jobs.length} {section.jobs.length === 1 ? "job" : "jobs"}
-                  </span>
                 </div>
                 {viewMode === "grid" ? (
                   <div className="grid gap-3 sm:grid-cols-2">
