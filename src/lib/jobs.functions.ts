@@ -102,12 +102,21 @@ export const toggleChecklistItem = createServerFn({ method: "POST" })
     let webhookConfigured = false;
     if (data.completed && prog.input_type === "payment_trigger") {
       paymentTrigger = true;
+      // Use current checklist_items.position (admin reorder aware), not the snapshot on progress
+      const { data: currentItem } = await supabase
+        .from("checklist_items")
+        .select("position")
+        .eq("id", prog.checklist_item_id)
+        .maybeSingle();
+      const currentPos = currentItem?.position ?? prog.position;
       const { data: prior } = await supabase
         .from("job_checklist_progress")
-        .select("completed, position")
-        .eq("job_id", prog.job_id)
-        .lt("position", prog.position);
-      if ((prior ?? []).some((p) => !p.completed)) {
+        .select("completed, checklist_item:checklist_items(position)")
+        .eq("job_id", prog.job_id);
+      const priorIncomplete = (prior ?? []).some(
+        (p: any) => (p.checklist_item?.position ?? 0) < currentPos && !p.completed,
+      );
+      if (priorIncomplete) {
         throw new Error("Complete all prior steps first");
       }
       // Fire webhook to HighLevel
