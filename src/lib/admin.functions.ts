@@ -172,7 +172,7 @@ export const completeWorkerOnboarding = createServerFn({ method: "POST" })
         Accept: "application/json",
       },
       body: JSON.stringify({
-        companyId: undefined,
+        companyId,
         firstName,
         lastName,
         email,
