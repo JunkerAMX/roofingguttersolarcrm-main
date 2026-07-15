@@ -5,6 +5,7 @@ import { useState, useRef, useEffect } from "react";
 import { AppShell } from "@/components/app-shell";
 import { MessagesDialog } from "@/components/messages-dialog";
 import { getJob, getMe, toggleChecklistItem, uploadJobPhoto, getPhotoUrl, markJobDone } from "@/lib/jobs.functions";
+import { listJobMessages } from "@/lib/messaging.functions";
 import { calculateWorkerPayCents, formatWorkerPay } from "@/lib/pay";
 import { ArrowLeft, MapPin, Phone, Mail, DollarSign, Wallet, Camera, Check, Lock, ImageIcon, CheckCircle2, Clock, StickyNote, X, MessageSquare } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
@@ -34,7 +35,14 @@ function JobDetail() {
     queryKey: ["job", jobId],
     queryFn: () => fn({ data: { jobId } }),
   });
-  useRealtimeInvalidate(["jobs", "job_checklist_progress"], [["job", jobId], ["jobs"]]);
+  useRealtimeInvalidate(["jobs", "job_checklist_progress", "job_messages"], [["job", jobId], ["jobs"], ["jobMessages", jobId]]);
+  const msgsFn = useServerFn(listJobMessages);
+  const { data: msgList = [] } = useQuery({
+    queryKey: ["jobMessages", jobId],
+    queryFn: () => msgsFn({ data: { jobId } }),
+    refetchOnWindowFocus: true,
+    refetchInterval: 20000,
+  });
 
   const toggle = useMutation({
     mutationFn: (v: { progressId: string; completed: boolean; note?: string }) => toggleFn({ data: v }),
@@ -109,6 +117,19 @@ function JobDetail() {
 
   const now = useNow(15000);
   const [msgOpen, setMsgOpen] = useState(false);
+  const seenKey = `job-msg-seen:${jobId}`;
+  const [lastSeen, setLastSeen] = useState<number>(() => {
+    if (typeof window === "undefined") return 0;
+    return Number(window.localStorage.getItem(seenKey)) || 0;
+  });
+  useEffect(() => {
+    if (msgOpen) {
+      const now = Date.now();
+      window.localStorage.setItem(seenKey, String(now));
+      setLastSeen(now);
+    }
+  }, [msgOpen, seenKey, msgList.length]);
+  const unreadCount = msgList.filter((m: any) => m.sender_id !== me?.userId && new Date(m.created_at).getTime() > lastSeen).length;
   const { scrambleFirst, scrambleLast, scrambleAddress, scrambleCity, scramblePhone, scrambleEmail } = useScramble();
 
   if (isLoading || !data) return <AppShell><div className="animate-pulse space-y-4"><div className="h-8 w-40 rounded bg-secondary" /><div className="h-64 rounded-2xl bg-secondary" /></div></AppShell>;
@@ -302,10 +323,15 @@ function JobDetail() {
                 {!isCompleted && (
                   <button
                     onClick={() => setMsgOpen(true)}
-                    className="flex h-auto shrink-0 items-center justify-center gap-2 rounded-2xl bg-card border border-border px-4 text-sm font-semibold shadow-xl transition-all hover:-translate-y-0.5 active:scale-95"
-                    aria-label="Messages"
+                    className="relative flex h-auto shrink-0 items-center justify-center gap-2 rounded-2xl bg-card border border-border px-4 text-sm font-semibold shadow-xl transition-all hover:-translate-y-0.5 active:scale-95"
+                    aria-label={unreadCount > 0 ? `Messages (${unreadCount} unread)` : "Messages"}
                   >
                     <MessageSquare className="h-5 w-5 text-brand-green" />
+                    {unreadCount > 0 && (
+                      <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground shadow ring-2 ring-card animate-pulse">
+                        {unreadCount > 9 ? "9+" : unreadCount}
+                      </span>
+                    )}
                   </button>
                 )}
                 {isCompleted ? (
