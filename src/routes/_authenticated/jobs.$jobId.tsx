@@ -35,7 +35,14 @@ function JobDetail() {
     queryKey: ["job", jobId],
     queryFn: () => fn({ data: { jobId } }),
   });
-  useRealtimeInvalidate(["jobs", "job_checklist_progress"], [["job", jobId], ["jobs"]]);
+  useRealtimeInvalidate(["jobs", "job_checklist_progress", "job_messages"], [["job", jobId], ["jobs"], ["jobMessages", jobId]]);
+  const msgsFn = useServerFn(listJobMessages);
+  const { data: msgList = [] } = useQuery({
+    queryKey: ["jobMessages", jobId],
+    queryFn: () => msgsFn({ data: { jobId } }),
+    refetchOnWindowFocus: true,
+    refetchInterval: 20000,
+  });
 
   const toggle = useMutation({
     mutationFn: (v: { progressId: string; completed: boolean; note?: string }) => toggleFn({ data: v }),
