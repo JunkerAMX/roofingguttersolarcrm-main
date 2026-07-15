@@ -12,8 +12,28 @@ export function NotificationBell({ userId }: { userId?: string }) {
   const listFn = useServerFn(listNotifications);
   const markFn = useServerFn(markNotificationsRead);
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+
+  function openNotification(n: any) {
+    if (!n.read_at) mark.mutate({ ids: [n.id] });
+    setOpen(false);
+    const raw = (n.link as string | undefined) ?? "/jobs";
+    const [path, qs] = raw.split("?");
+    const search: Record<string, string> = {};
+    if (qs) for (const part of qs.split("&")) {
+      const [k, v] = part.split("=");
+      if (k) search[decodeURIComponent(k)] = decodeURIComponent(v ?? "");
+    }
+    const jobMatch = path.match(/^\/jobs\/([^/]+)$/);
+    if (jobMatch) {
+      navigate({ to: "/jobs/$jobId", params: { jobId: jobMatch[1] }, search: search as any });
+    } else {
+      navigate({ to: path as any, search: search as any });
+    }
+  }
+
 
   const { data: items = [] } = useQuery({
     queryKey: ["notifications"],
