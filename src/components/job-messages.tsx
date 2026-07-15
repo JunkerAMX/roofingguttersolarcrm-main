@@ -8,12 +8,20 @@ import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
-export function JobMessages({ jobId, currentUserId }: { jobId: string; currentUserId?: string }) {
+type TypingUser = { userId: string; name: string; at: number };
+
+export function JobMessages({ jobId, currentUserId, targetMessageId }: { jobId: string; currentUserId?: string; targetMessageId?: string }) {
   const listFn = useServerFn(listJobMessages);
   const sendFn = useServerFn(sendJobMessage);
   const qc = useQueryClient();
   const [text, setText] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
+  const msgRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const [highlightId, setHighlightId] = useState<string | null>(null);
+  const [typingUsers, setTypingUsers] = useState<Record<string, TypingUser>>({});
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const lastBroadcastRef = useRef<number>(0);
+  const typingTimerRef = useRef<number | null>(null);
 
   const { data: msgs = [] } = useQuery({
     queryKey: ["jobMessages", jobId],
@@ -24,6 +32,8 @@ export function JobMessages({ jobId, currentUserId }: { jobId: string; currentUs
     mutationFn: (body: string) => sendFn({ data: { jobId, body } }),
     onMutate: async (body: string) => {
       setText("");
+      // stop typing when sending
+      channelRef.current?.send({ type: "broadcast", event: "typing", payload: { userId: currentUserId, typing: false } });
       await qc.cancelQueries({ queryKey: ["jobMessages", jobId] });
       const prev = qc.getQueryData<any[]>(["jobMessages", jobId]) ?? [];
       const optimistic = {
@@ -47,19 +57,73 @@ export function JobMessages({ jobId, currentUserId }: { jobId: string; currentUs
     },
   });
 
+  // Realtime: postgres_changes + typing broadcast on one channel
   useEffect(() => {
     const ch = supabase
-      .channel(`job-msg-${jobId}`)
+      .channel(`job-msg-${jobId}`, { config: { broadcast: { self: false } } })
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "job_messages", filter: `job_id=eq.${jobId}` }, () => {
         qc.invalidateQueries({ queryKey: ["jobMessages", jobId] });
       })
+      .on("broadcast", { event: "typing" }, (payload) => {
+        const p = payload.payload as { userId: string; name?: string; typing: boolean };
+        if (!p?.userId || p.userId === currentUserId) return;
+        setTypingUsers((prev) => {
+          const next = { ...prev };
+          if (p.typing) next[p.userId] = { userId: p.userId, name: p.name || "Someone", at: Date.now() };
+          else delete next[p.userId];
+          return next;
+        });
+      })
       .subscribe();
-    return () => { supabase.removeChannel(ch); };
-  }, [jobId, qc]);
+    channelRef.current = ch;
+    return () => { supabase.removeChannel(ch); channelRef.current = null; };
+  }, [jobId, qc, currentUserId]);
+
+  // Prune stale typing entries every 2s
+  useEffect(() => {
+    const t = window.setInterval(() => {
+      setTypingUsers((prev) => {
+        const cutoff = Date.now() - 4000;
+        const next: Record<string, TypingUser> = {};
+        for (const [k, v] of Object.entries(prev)) if (v.at >= cutoff) next[k] = v;
+        return Object.keys(next).length === Object.keys(prev).length ? prev : next;
+      });
+    }, 2000);
+    return () => window.clearInterval(t);
+  }, []);
+
+  function broadcastTyping() {
+    const ch = channelRef.current;
+    if (!ch || !currentUserId) return;
+    const now = Date.now();
+    if (now - lastBroadcastRef.current > 1500) {
+      ch.send({ type: "broadcast", event: "typing", payload: { userId: currentUserId, typing: true } });
+      lastBroadcastRef.current = now;
+    }
+    if (typingTimerRef.current) window.clearTimeout(typingTimerRef.current);
+    typingTimerRef.current = window.setTimeout(() => {
+      ch.send({ type: "broadcast", event: "typing", payload: { userId: currentUserId, typing: false } });
+      lastBroadcastRef.current = 0;
+    }, 2500);
+  }
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [msgs.length]);
+
+  // Scroll to and highlight target message
+  useEffect(() => {
+    if (!targetMessageId || msgs.length === 0) return;
+    const el = msgRefs.current[targetMessageId];
+    if (!el) return;
+    const raf = requestAnimationFrame(() => {
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+      setHighlightId(targetMessageId);
+      const t = window.setTimeout(() => setHighlightId(null), 1600);
+      return () => window.clearTimeout(t);
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [targetMessageId, msgs.length]);
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -67,6 +131,8 @@ export function JobMessages({ jobId, currentUserId }: { jobId: string; currentUs
     if (!body || send.isPending) return;
     send.mutate(body);
   }
+
+  const typingList = Object.values(typingUsers);
 
   return (
     <div className="flex flex-col bg-card overflow-hidden">
@@ -82,8 +148,17 @@ export function JobMessages({ jobId, currentUserId }: { jobId: string; currentUs
           msgs.map((m: any) => {
             const mine = m.sender_id === currentUserId;
             const name = mine ? "You" : (m.sender?.full_name || m.sender?.email || "User");
+            const isTarget = highlightId === m.id;
             return (
-              <div key={m.id} className={cn("flex flex-col", mine ? "items-end" : "items-start")}>
+              <div
+                key={m.id}
+                ref={(el) => { msgRefs.current[m.id] = el; }}
+                className={cn(
+                  "flex flex-col rounded-2xl transition-all duration-500",
+                  mine ? "items-end" : "items-start",
+                  isTarget && "bg-brand-lime/25 ring-2 ring-brand-green shadow-md",
+                )}
+              >
                 <div className={cn(
                   "max-w-[80%] rounded-2xl px-3 py-2 text-sm",
                   mine ? "bg-brand-green text-white" : "bg-secondary text-foreground",
@@ -98,12 +173,22 @@ export function JobMessages({ jobId, currentUserId }: { jobId: string; currentUs
             );
           })
         )}
+        {typingList.length > 0 && (
+          <div className="flex items-center gap-2 pl-1 pt-1 text-xs text-muted-foreground">
+            <div className="flex gap-1">
+              <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-brand-green [animation-delay:-0.3s]" />
+              <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-brand-green [animation-delay:-0.15s]" />
+              <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-brand-green" />
+            </div>
+            <span>{typingList.length === 1 ? `${typingList[0].name} is typing…` : `${typingList.length} people are typing…`}</span>
+          </div>
+        )}
         <div ref={bottomRef} />
       </div>
       <form onSubmit={submit} className="flex items-end gap-2 border-t border-border p-3">
         <textarea
           value={text}
-          onChange={(e) => setText(e.target.value)}
+          onChange={(e) => { setText(e.target.value); if (e.target.value.trim()) broadcastTyping(); }}
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submit(e as any); }
           }}
