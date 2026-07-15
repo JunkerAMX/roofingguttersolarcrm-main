@@ -117,6 +117,19 @@ function JobDetail() {
 
   const now = useNow(15000);
   const [msgOpen, setMsgOpen] = useState(false);
+  const seenKey = `job-msg-seen:${jobId}`;
+  const [lastSeen, setLastSeen] = useState<number>(() => {
+    if (typeof window === "undefined") return 0;
+    return Number(window.localStorage.getItem(seenKey)) || 0;
+  });
+  useEffect(() => {
+    if (msgOpen) {
+      const now = Date.now();
+      window.localStorage.setItem(seenKey, String(now));
+      setLastSeen(now);
+    }
+  }, [msgOpen, seenKey, msgList.length]);
+  const unreadCount = msgList.filter((m: any) => m.sender_id !== me?.userId && new Date(m.created_at).getTime() > lastSeen).length;
   const { scrambleFirst, scrambleLast, scrambleAddress, scrambleCity, scramblePhone, scrambleEmail } = useScramble();
 
   if (isLoading || !data) return <AppShell><div className="animate-pulse space-y-4"><div className="h-8 w-40 rounded bg-secondary" /><div className="h-64 rounded-2xl bg-secondary" /></div></AppShell>;
