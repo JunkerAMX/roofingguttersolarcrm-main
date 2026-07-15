@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useRef, useState } from "react";
 import { Bell } from "lucide-react";
-import { Link } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { formatDistanceToNow } from "date-fns";
 import { listNotifications, markNotificationsRead } from "@/lib/messaging.functions";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,8 +12,28 @@ export function NotificationBell({ userId }: { userId?: string }) {
   const listFn = useServerFn(listNotifications);
   const markFn = useServerFn(markNotificationsRead);
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+
+  function openNotification(n: any) {
+    if (!n.read_at) mark.mutate({ ids: [n.id] });
+    setOpen(false);
+    const raw = (n.link as string | undefined) ?? "/jobs";
+    const [path, qs] = raw.split("?");
+    const search: Record<string, string> = {};
+    if (qs) for (const part of qs.split("&")) {
+      const [k, v] = part.split("=");
+      if (k) search[decodeURIComponent(k)] = decodeURIComponent(v ?? "");
+    }
+    const jobMatch = path.match(/^\/jobs\/([^/]+)$/);
+    if (jobMatch) {
+      navigate({ to: "/jobs/$jobId", params: { jobId: jobMatch[1] }, search: search as any });
+    } else {
+      navigate({ to: path as any, search: search as any });
+    }
+  }
+
 
   const { data: items = [] } = useQuery({
     queryKey: ["notifications"],
@@ -109,15 +129,12 @@ export function NotificationBell({ userId }: { userId?: string }) {
                 </div>
               ) : (
                 items.map((n: any) => (
-                  <Link
+                  <button
                     key={n.id}
-                    to={n.link ?? "/jobs"}
-                    onClick={() => {
-                      if (!n.read_at) mark.mutate({ ids: [n.id] });
-                      setOpen(false);
-                    }}
+                    type="button"
+                    onClick={() => openNotification(n)}
                     className={cn(
-                      "block border-b border-border px-4 py-3 text-sm transition-colors last:border-b-0 hover:bg-secondary/50 active:bg-secondary",
+                      "block w-full border-b border-border px-4 py-3 text-left text-sm transition-colors last:border-b-0 hover:bg-secondary/50 active:bg-secondary",
                       !n.read_at && "bg-brand-lime/10",
                     )}
                   >
@@ -135,7 +152,7 @@ export function NotificationBell({ userId }: { userId?: string }) {
                         </div>
                       </div>
                     </div>
-                  </Link>
+                  </button>
                 ))
               )}
             </div>

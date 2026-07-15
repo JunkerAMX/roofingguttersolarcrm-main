@@ -67,7 +67,7 @@ export const sendJobMessage = createServerFn({ method: "POST" })
           kind: "message",
           title: `${senderName} · ${contactName}`,
           body: data.body.slice(0, 140),
-          link: `/jobs/${data.jobId}`,
+          link: `/jobs/${data.jobId}?message=${msg.id}`,
           job_id: data.jobId,
         })),
       );

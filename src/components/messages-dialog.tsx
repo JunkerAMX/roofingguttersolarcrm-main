@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { X } from "lucide-react";
 import { JobMessages } from "./job-messages";
 
-export function MessagesDialog({ jobId, currentUserId, onClose }: { jobId: string; currentUserId?: string; onClose: () => void }) {
+export function MessagesDialog({ jobId, currentUserId, targetMessageId, onClose }: { jobId: string; currentUserId?: string; targetMessageId?: string; onClose: () => void }) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
     window.addEventListener("keydown", onKey);
@@ -21,7 +21,7 @@ export function MessagesDialog({ jobId, currentUserId, onClose }: { jobId: strin
           </button>
         </div>
         <div className="max-h-[80vh] overflow-hidden">
-          <JobMessages jobId={jobId} currentUserId={currentUserId} />
+          <JobMessages jobId={jobId} currentUserId={currentUserId} targetMessageId={targetMessageId} />
         </div>
       </div>
     </div>

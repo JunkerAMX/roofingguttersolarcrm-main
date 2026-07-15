@@ -20,6 +20,9 @@ import { formatJobDateTime, getJobTimeZone } from "@/lib/time";
 
 export const Route = createFileRoute("/_authenticated/jobs/$jobId")({
   component: JobDetail,
+  validateSearch: (search: Record<string, unknown>) => ({
+    message: typeof search.message === "string" ? search.message : undefined,
+  }),
   errorComponent: ({ error }) => <div className="p-8 text-destructive">{error.message}</div>,
 });
 
@@ -116,7 +119,15 @@ function JobDetail() {
   });
 
   const now = useNow(15000);
-  const [msgOpen, setMsgOpen] = useState(false);
+  const search = Route.useSearch();
+  const [msgOpen, setMsgOpen] = useState(!!search.message);
+  const [targetMessageId, setTargetMessageId] = useState<string | undefined>(search.message);
+  useEffect(() => {
+    if (search.message) {
+      setMsgOpen(true);
+      setTargetMessageId(search.message);
+    }
+  }, [search.message]);
   const seenKey = `job-msg-seen:${jobId}`;
   const [lastSeen, setLastSeen] = useState<number>(() => {
     if (typeof window === "undefined") return 0;
@@ -369,7 +380,7 @@ function JobDetail() {
 
 
 
-      {msgOpen && <MessagesDialog jobId={job.id} currentUserId={me?.userId} onClose={() => setMsgOpen(false)} />}
+      {msgOpen && <MessagesDialog jobId={job.id} currentUserId={me?.userId} targetMessageId={targetMessageId} onClose={() => { setMsgOpen(false); setTargetMessageId(undefined); }} />}
 
 
     </AppShell>
