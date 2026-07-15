@@ -452,9 +452,13 @@ export type Database = {
           created_at: string
           email: string | null
           full_name: string | null
+          highlevel_user_id: string | null
           id: string
           phone: string | null
+          postcode: string | null
+          state: string | null
           stripe_account_id: string | null
+          suburb: string | null
           updated_at: string
         }
         Insert: {
@@ -462,9 +466,13 @@ export type Database = {
           created_at?: string
           email?: string | null
           full_name?: string | null
+          highlevel_user_id?: string | null
           id: string
           phone?: string | null
+          postcode?: string | null
+          state?: string | null
           stripe_account_id?: string | null
+          suburb?: string | null
           updated_at?: string
         }
         Update: {
@@ -472,9 +480,13 @@ export type Database = {
           created_at?: string
           email?: string | null
           full_name?: string | null
+          highlevel_user_id?: string | null
           id?: string
           phone?: string | null
+          postcode?: string | null
+          state?: string | null
           stripe_account_id?: string | null
+          suburb?: string | null
           updated_at?: string
         }
         Relationships: []
