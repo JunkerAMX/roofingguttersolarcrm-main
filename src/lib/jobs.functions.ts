@@ -61,12 +61,18 @@ export const getJob = createServerFn({ method: "GET" })
         .select("*, contact:contacts(*), job_type:job_types(*), assignee:profiles!jobs_assigned_to_fkey(id, full_name, email)")
         .eq("id", data.jobId)
         .maybeSingle(),
-      supabase.from("job_checklist_progress").select("*").eq("job_id", data.jobId).order("position"),
+      supabase
+        .from("job_checklist_progress")
+        .select("*, checklist_item:checklist_items(position)")
+        .eq("job_id", data.jobId),
       supabase.from("job_photos").select("*").eq("job_id", data.jobId).order("created_at"),
     ]);
     if (error) throw new Error(error.message);
     if (!job) throw new Error("Job not found");
-    return { job, progress: progress ?? [], photos: photos ?? [] };
+    const orderedProgress = (progress ?? [])
+      .map((p: any) => ({ ...p, position: p.checklist_item?.position ?? p.position }))
+      .sort((a: any, b: any) => a.position - b.position);
+    return { job, progress: orderedProgress, photos: photos ?? [] };
   });
 
 export const toggleChecklistItem = createServerFn({ method: "POST" })
