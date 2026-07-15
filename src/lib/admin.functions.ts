@@ -150,7 +150,9 @@ export const completeWorkerOnboarding = createServerFn({ method: "POST" })
 
     const pit = process.env.HIGHLEVEL_PIT;
     const locationId = process.env.HIGHLEVEL_LOCATION_ID;
+    const companyId = process.env.HIGHLEVEL_COMPANY_ID;
     if (!pit || !locationId) {
+
       return { ok: true, hlSynced: false, reason: "HighLevel not configured" };
     }
 
@@ -170,7 +172,7 @@ export const completeWorkerOnboarding = createServerFn({ method: "POST" })
         Accept: "application/json",
       },
       body: JSON.stringify({
-        companyId: undefined,
+        companyId,
         firstName,
         lastName,
         email,
