@@ -130,22 +130,12 @@ function JobsPage() {
           {sections.map((section) => {
             const isToday = section.label === "Today";
             return (
-              <section
-                key={section.key}
-                className={
-                  isToday
-                    ? "rounded-3xl border border-brand-green/25 bg-gradient-to-br from-brand-lime/15 via-brand-lime/5 to-transparent p-4 shadow-sm ring-1 ring-brand-lime/20 sm:p-5"
-                    : "rounded-3xl border border-border bg-card/40 p-4 sm:p-5"
-                }
-              >
-                <div className="mb-3 flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
-                    {isToday && <span className="h-2 w-2 animate-pulse rounded-full bg-brand-green" />}
-                    <h2 className="font-display text-lg font-semibold text-foreground">
-                      {section.label}
-                    </h2>
-                  </div>
-                  <span className="rounded-full bg-background/70 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              <section key={section.key}>
+                <div className="mb-2 flex items-baseline justify-between gap-2 border-b border-border/60 pb-2">
+                  <h2 className="font-display text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                    {section.label}
+                  </h2>
+                  <span className="text-xs text-muted-foreground">
                     {section.jobs.length} {section.jobs.length === 1 ? "job" : "jobs"}
                   </span>
                 </div>
@@ -167,6 +157,7 @@ function JobsPage() {
           })}
         </div>
       )}
+
 
 
 
