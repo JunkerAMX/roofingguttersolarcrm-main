@@ -126,29 +126,48 @@ function JobsPage() {
           <p className="mt-1 text-sm text-muted-foreground">No jobs scheduled for today. Enjoy the break.</p>
         </div>
       ) : (
-        <div className="space-y-8">
-          {sections.map((section) => (
-            <section key={section.key}>
-              <h2 className="sticky top-16 z-10 mb-3 bg-background/95 py-2 font-display text-lg font-semibold text-foreground backdrop-blur">
-                {section.label}
-              </h2>
-              {viewMode === "grid" ? (
-                <div className="grid gap-3 sm:grid-cols-2">
-                  {section.jobs.map((j: any) => (
-                    <JobCard key={j.id} job={j} showPay isWorker={isWorker} />
-                  ))}
+        <div className="space-y-6">
+          {sections.map((section) => {
+            const isToday = section.label === "Today";
+            return (
+              <section
+                key={section.key}
+                className={
+                  isToday
+                    ? "rounded-3xl border border-brand-green/25 bg-gradient-to-br from-brand-lime/15 via-brand-lime/5 to-transparent p-4 shadow-sm ring-1 ring-brand-lime/20 sm:p-5"
+                    : "rounded-3xl border border-border bg-card/40 p-4 sm:p-5"
+                }
+              >
+                <div className="mb-3 flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    {isToday && <span className="h-2 w-2 animate-pulse rounded-full bg-brand-green" />}
+                    <h2 className="font-display text-lg font-semibold text-foreground">
+                      {section.label}
+                    </h2>
+                  </div>
+                  <span className="rounded-full bg-background/70 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                    {section.jobs.length} {section.jobs.length === 1 ? "job" : "jobs"}
+                  </span>
                 </div>
-              ) : (
-                <div className="space-y-2">
-                  {section.jobs.map((j: any) => (
-                    <JobListItem key={j.id} job={j} showPay isWorker={isWorker} />
-                  ))}
-                </div>
-              )}
-            </section>
-          ))}
+                {viewMode === "grid" ? (
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {section.jobs.map((j: any) => (
+                      <JobCard key={j.id} job={j} showPay isWorker={isWorker} />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {section.jobs.map((j: any) => (
+                      <JobListItem key={j.id} job={j} showPay isWorker={isWorker} />
+                    ))}
+                  </div>
+                )}
+              </section>
+            );
+          })}
         </div>
       )}
+
 
 
     </AppShell>
