@@ -241,6 +241,9 @@ const updateTeamMemberSchema = z.object({
   full_name: z.string().trim().max(120).nullable().optional(),
   phone: z.string().trim().max(40).nullable().optional(),
   stripe_account_id: z.string().trim().max(120).nullable().optional(),
+  suburb: z.string().trim().max(120).nullable().optional(),
+  postcode: z.string().trim().max(20).nullable().optional(),
+  state: z.string().trim().max(80).nullable().optional(),
 });
 
 export const updateTeamMember = createServerFn({ method: "POST" })
