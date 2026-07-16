@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 import { useNow } from "@/hooks/use-now";
 import { useRealtimeInvalidate } from "@/hooks/use-realtime-invalidate";
 import { useScramble } from "@/hooks/use-scramble";
-import { formatJobDateTime, getJobTimeZone } from "@/lib/time";
+import { formatJobDateTime, formatJobFullDate, formatJobTime, getJobTimeZone } from "@/lib/time";
 
 
 
