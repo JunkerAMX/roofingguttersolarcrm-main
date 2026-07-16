@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 import { useNow } from "@/hooks/use-now";
 import { useRealtimeInvalidate } from "@/hooks/use-realtime-invalidate";
 import { useScramble } from "@/hooks/use-scramble";
-import { formatJobDateTime, getJobTimeZone } from "@/lib/time";
+import { formatJobDateTime, formatJobFullDate, formatJobTime, getJobTimeZone } from "@/lib/time";
 
 
 
@@ -212,6 +212,14 @@ function JobDetail() {
                   >
                     {fullDisplayAddress}
                   </a>
+                </div>
+              )}
+              {job.scheduled_for && (
+                <div>
+                  <span className="text-xs font-bold uppercase tracking-wide text-foreground">When: </span>
+                  <span className="font-medium text-muted-foreground">
+                    {formatJobFullDate(job.scheduled_for, jobTz)} · {formatJobTime(job.scheduled_for, jobTz)}
+                  </span>
                 </div>
               )}
               {(job as any).service_details && (
