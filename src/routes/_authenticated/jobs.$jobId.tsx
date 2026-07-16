@@ -214,6 +214,14 @@ function JobDetail() {
                   </a>
                 </div>
               )}
+              {job.scheduled_for && (
+                <div>
+                  <span className="text-xs font-bold uppercase tracking-wide text-foreground">When: </span>
+                  <span className="font-medium text-muted-foreground">
+                    {formatJobFullDate(job.scheduled_for, jobTz)} · {formatJobTime(job.scheduled_for, jobTz)}
+                  </span>
+                </div>
+              )}
               {(job as any).service_details && (
                 <div>
                   <span className="text-xs font-bold uppercase tracking-wide text-foreground">Service: </span>
